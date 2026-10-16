@@ -19,6 +19,9 @@ const optionalUrl = z.preprocess(blankToUndefined, z.url().optional());
 
 export const envSchema = z.object({
   // Application
+  // PROVIDER_MODE (02_TRD.md section 2.4): "mock" or "live". Unset behaves as
+  // "mock". Nothing reads it in Phase 1; it is validated so a typo is caught early.
+  PROVIDER_MODE: z.preprocess(blankToUndefined, z.enum(["mock", "live"]).optional()),
   NEXT_PUBLIC_APP_URL: optionalUrl,
   APP_BASE_URL: optionalUrl,
   ADMIN_EMAILS: optionalText,
@@ -54,8 +57,8 @@ export const envSchema = z.object({
   PAYMENT_INSTRUCTIONS: optionalText,
   PAYMENT_CURRENCY: optionalText,
 
-  // Optional operational services
-  SENTRY_DSN: optionalText,
+  // Optional operational services (no error-monitoring service is adopted, so
+  // there is deliberately no SENTRY_DSN; add it only if monitoring is approved)
   LOG_LEVEL: optionalText,
   RATE_LIMIT_MAX_REQUESTS: optionalText,
   RATE_LIMIT_WINDOW_SECONDS: optionalText,

@@ -40,7 +40,7 @@ that prefix are exposed to browser code.
 
   `NEXT_PUBLIC_APP_URL`   Required                Public base URL used
                                                   for links and
-                                                  redirects, e.g.Â local
+                                                  redirects, e.g. local
                                                   development or deployed
                                                   app URL. Not a secret.
 
@@ -59,6 +59,17 @@ that prefix are exposed to browser code.
                                                   allowlisting. Must not
                                                   be the only
                                                   authorization layer.
+
+  `PROVIDER_MODE`         Conditional             `mock` or `live`.
+                                                  Chooses between clearly
+                                                  labelled mock adapters
+                                                  and verified live
+                                                  providers. Unset behaves
+                                                  as `mock`. `live` is
+                                                  valid only for providers
+                                                  verified with real
+                                                  credentials. Proposed in
+                                                  `02_TRD.md` section 2.4.
   -----------------------------------------------------------------------
 
 ## 3. Supabase --- database, authentication, and storage
@@ -242,7 +253,7 @@ gateway secret unless a gateway is added later.
 
   `PAYMENT_CURRENCY`         Conditional             Currency code used by
                                                      the application,
-                                                     e.g.Â `INR`, if
+                                                     e.g. `INR`, if
                                                      configurable.
 
   `PAYMENT_GATEWAY_SECRET`   Not used in current     Reserve only if a
@@ -289,12 +300,10 @@ them.
 
   `RATE_LIMIT_WINDOW_SECONDS`   Optional                Proposed rate-limit
                                                         window in seconds.
-
-  `CRON_SECRET`                 Conditional / sensitive Server-only secret to
-                                                        authenticate scheduled
-                                                        jobs, only if scheduled
-                                                        jobs are implemented.
   -----------------------------------------------------------------------------
+
+No scheduled jobs are part of the approved scope, so no `CRON_SECRET` is
+defined. Add one only if a future approved phase introduces scheduled jobs.
 
 ## 8. Example blank environment template
 

@@ -37,6 +37,19 @@ describe("parseEnv", () => {
     }
   });
 
+  it("accepts PROVIDER_MODE mock or live, treats blank as unset, and flags other values by name only", () => {
+    expect(parseEnv({ PROVIDER_MODE: "mock" }).ok).toBe(true);
+    expect(parseEnv({ PROVIDER_MODE: "live" }).ok).toBe(true);
+    expect(parseEnv({ PROVIDER_MODE: "" }).ok).toBe(true);
+
+    const bad = parseEnv({ PROVIDER_MODE: "demo-SECRET-777" });
+    expect(bad.ok).toBe(false);
+    if (!bad.ok) {
+      expect(bad.issues).toEqual([{ name: "PROVIDER_MODE", problem: "invalid format" }]);
+      expect(JSON.stringify(bad.issues)).not.toContain("SECRET-777");
+    }
+  });
+
   it("lists each invalid variable once", () => {
     const result = parseEnv({ APP_BASE_URL: "nope", OPENROUTER_BASE_URL: "also nope" });
     expect(result.ok).toBe(false);
