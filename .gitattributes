@@ -1,0 +1,7 @@
+# Keep line endings consistent: text files are stored and checked out with LF.
+# This only affects files Git writes from now on; it does not rewrite existing files.
+* text=auto eol=lf
+
+# Binary files: never convert line endings or encoding.
+*.ico binary
+*.pdf binary
