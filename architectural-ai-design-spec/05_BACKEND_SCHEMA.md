@@ -76,18 +76,27 @@ requirements, and brief approval.
   `english_brief_text`        `text` nullable         Editable professional
                                                       English brief
 
-  `approved_at`               `timestamptz` nullable  Approval timestamp
-
-  `approved_by_customer_at`   `timestamptz` nullable  Source PDF field; may
-                                                      be consolidated with
-                                                      `approved_at` if
-                                                      semantics are
-                                                      documented
+  `approved_at`               `timestamptz` nullable  Moment the customer
+                                                      approved the brief.
+                                                      Set only by the
+                                                      server on the
+                                                      `BRIEF_APPROVED`
+                                                      transition.
 
   `created_at`                `timestamptz`           Default now
 
   `updated_at`                `timestamptz`           Updated on mutation
   ---------------------------------------------------------------------------
+
+**Duplicate field resolved:** The source PDF lists both `approved_at` and
+`approved_by_customer_at` for `projects`. Only the customer approves a
+brief, so the two would always hold the same moment. This document
+previously allowed consolidating them if the semantics were documented;
+they are consolidated into the single `approved_at` column, whose meaning
+is stated in the table above. If a separate administrator approval is ever
+added, introduce a new column with a distinct name rather than reusing
+this one. The converted PDF text (`architectural-ai-design-poc-4day-plan.md`)
+is left unchanged as the source record.
 
 **Recommended additional columns (implementation detail):** `title`,
 `cancelled_at`, `last_error_code`, and `schema_version` if they improve
@@ -102,7 +111,7 @@ Stores the quote breakdown and accepted snapshot.
   ------------------------ ----------------------- -----------------------
   `id`                     `uuid` PK
 
-  `project_id`             `uuid` FK â†’ projects
+  `project_id`             `uuid` FK → projects
 
   `currency`               `text`                  ISO currency code,
                                                    selected by business
@@ -144,9 +153,9 @@ Stores offline payment claims and admin verification/rejection.
   ----------------------- ----------------------- -----------------------
   `id`                    `uuid` PK
 
-  `project_id`            `uuid` FK â†’ projects
+  `project_id`            `uuid` FK → projects
 
-  `quote_id`              `uuid` FK â†’ quotes      Accepted quote
+  `quote_id`              `uuid` FK → quotes      Accepted quote
                                                   reference
 
   `amount_claimed`        `numeric(12,2)`         Customer-submitted
@@ -201,7 +210,7 @@ Tracks provider calls, prompts, status, attempts, and failure details.
   ----------------------- ----------------------- ---------------------------------
   `id`                    `uuid` PK
 
-  `project_id`            `uuid` FK â†’ projects
+  `project_id`            `uuid` FK → projects
 
   `status`                enum/text check         Queued/running/succeeded/failed
                                                   or mapped workflow state
@@ -244,9 +253,9 @@ Tracks reference/generated deliverables and release state.
   ----------------------- ----------------------- -----------------------
   `id`                    `uuid` PK
 
-  `project_id`            `uuid` FK â†’ projects
+  `project_id`            `uuid` FK → projects
 
-  `generation_job_id`     `uuid` FK â†’             Reference to producing
+  `generation_job_id`     `uuid` FK →             Reference to producing
                           generation_jobs         job
                           nullable
 

@@ -1,4 +1,4 @@
-# Architectural AI Design â€” Web Prototype
+# Architectural AI Design — Web Prototype
 
 A concept-design prototype. A customer describes a building, an interior, or a garden; the app turns it into an English brief and a quote; an administrator verifies an offline payment; and only then are AI concept images generated and released.
 
@@ -47,6 +47,9 @@ Never put a secret in a `NEXT_PUBLIC_*` variable: those are sent to the browser.
 ## Project layout
 
 ```
+CLAUDE.md                Project instructions for Claude Code (copy of the spec folder's guide)
+AGENTS.md                Written by Next.js: agents read its bundled docs first
+.env.example             Blank environment template
 src/app/                 Pages, error pages, and API routes
 src/components/          Shared layout and UI components
 src/lib/env/             Environment schema and validation

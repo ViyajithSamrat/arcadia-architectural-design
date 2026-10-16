@@ -1,5 +1,10 @@
 # CLAUDE.md --- Architectural AI Design Web Prototype
 
+> **Retained source guidance.** This copy is kept with the specification as
+> the original source guidance. The active instruction file for this
+> repository is the root `CLAUDE.md` (`../CLAUDE.md`). If the two ever
+> differ, the root file governs.
+
 This file is the primary project guide for Claude Code. Read it before
 inspecting or changing the repository. It contains the project's
 purpose, scope, user journeys, architecture direction, security
@@ -601,14 +606,14 @@ Rules:
 
 The detailed phase prompts are execution guides. Use them in this order:
 
-1. `00_BUILD_ORCHESTRATION.md` â€” establish the overall build sequence and approval gates.
-2. `01_REPOSITORY_BASELINE.md` â€” inspect the repository and establish the baseline.
-3. `02_DATABASE_AUTH_STORAGE.md` â€” database, authentication, and private storage.
-4. `03_CUSTOMER_JOURNEYS_UI.md` â€” customer journeys and frontend UI.
-5. `04_PAYMENT_EVIDENCE_ADMIN.md` â€” manual payment evidence and administrator workflow.
-6. `05_AI_TEXT_VOICE.md` â€” text-model and voice integrations.
-7. `06_IMAGE_GENERATION_RELEASE.md` â€” image generation and protected asset release.
-8. `07_END_TO_END_QA_DEMO_HANDOFF.md` â€” end-to-end validation and handoff.
+1. `00_BUILD_ORCHESTRATION.md` — establish the overall build sequence and approval gates.
+2. `01_REPOSITORY_BASELINE.md` — inspect the repository and establish the baseline.
+3. `02_DATABASE_AUTH_STORAGE.md` — database, authentication, and private storage.
+4. `03_CUSTOMER_JOURNEYS_UI.md` — customer journeys and frontend UI.
+5. `04_PAYMENT_EVIDENCE_ADMIN.md` — manual payment evidence and administrator workflow.
+6. `05_AI_TEXT_VOICE.md` — text-model and voice integrations.
+7. `06_IMAGE_GENERATION_RELEASE.md` — image generation and protected asset release.
+8. `07_END_TO_END_QA_DEMO_HANDOFF.md` — end-to-end validation and handoff.
 
 ### How to execute phases
 

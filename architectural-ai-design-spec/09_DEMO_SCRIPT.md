@@ -5,8 +5,10 @@
 2.  **Voice and brief (60 sec):** Record a short request in a configured
     language, show transcript, correct a room count, review the English
     brief.
-3.  **2D and 3D concepts (60 sec):** Show labelled SVG schematic and
-    generated concept render; explain concept-only limitation.
+3.  **2D schematic and concept images (60 sec):** Show labelled SVG
+    schematic and generated static concept image; explain concept-only
+    limitation. These are static images, not an interactive or
+    dimensionally accurate 3D model.
 4.  **Interior or landscape (45 sec):** Upload safe sample room/garden
     image and generate a concept through the same adapter.
 5.  **Pricing and payment (60 sec):** Show itemized quote, configured
