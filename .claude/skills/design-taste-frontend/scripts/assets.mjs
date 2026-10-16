@@ -149,7 +149,7 @@ const o = {
 
 // ---------- small helpers ----------
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const short = (s, n) => { const t = String(s || ''); return t.length > n ? t.slice(0, n - 1).replace(/[\s,;:.-]+$/, '') + 'â€¦' : t; };
+const short = (s, n) => { const t = String(s || ''); return t.length > n ? t.slice(0, n - 1).replace(/[\s,;:.-]+$/, '') + '…' : t; };
 const noQuery = (u) => (u ? String(u).split('?')[0] : u);
 const rel = (p) => relative(process.cwd(), p).split('\\').join('/') || '.';
 const size = (bytes) => (bytes >= 1048576 ? `${(bytes / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`);
@@ -641,7 +641,7 @@ async function search(query, opts) {
   const filters = opts.video
     ? [`licences ${opts.licences.join(', ')}`, `at least ${opts.minWidth}px wide`, opts.orientation, `renditions up to ${opts.res}p`, `flagged over ${opts.maxMb} MB`, opts.check ? 'every file checked' : 'files not checked']
     : [`licences ${opts.licences.join(', ')}`, `at least ${opts.minWidth}px wide`, opts.orientation, `image URLs ${opts.width}px wide where the source can size them`, opts.check ? 'every image checked' : 'images not checked'];
-  console.log(`ASSETS${opts.video ? ' Â· VIDEO' : ''} Â· "${query}" Â· ${filters.filter(Boolean).join(' Â· ')}`);
+  console.log(`ASSETS${opts.video ? ' · VIDEO' : ''} · "${query}" · ${filters.filter(Boolean).join(' · ')}`);
   for (const r of results) {
     const src = SOURCES[r.key];
     console.log('');
@@ -657,8 +657,8 @@ async function search(query, opts) {
       console.log(`${it.ref}  ${short(it.title, 100)}${it.date ? ` (${short(it.date, 30)})` : ''}`);
       if (it.kind) console.log(`  what     ${short(it.kind, 110)}`);
       if (it.about) console.log(`  about    ${short(it.about, 150)}`);
-      const pixels = it.imageWidth && it.imageHeight ? `${it.imageWidth} Ã— ${it.imageHeight}` : 'size unknown';
-      const largest = it.width && it.height && it.width !== it.imageWidth ? `; largest ${it.width} Ã— ${it.height}` : '';
+      const pixels = it.imageWidth && it.imageHeight ? `${it.imageWidth} × ${it.imageHeight}` : 'size unknown';
+      const largest = it.width && it.height && it.width !== it.imageWidth ? `; largest ${it.width} × ${it.height}` : '';
       const sh = shape(it.width || it.imageWidth, it.height || it.imageHeight);
       if (it.media === 'video') {
         const facts = [pixels, it.duration ? clock(it.duration) : 'length unknown', it.bytes ? `${it.estimated ? 'about ' : ''}${size(it.bytes)}` : null, VIDEO_TYPES[it.mime]];
@@ -761,7 +761,7 @@ async function getOne(ref, opts) {
   };
   recordCredit(opts, credits, entry);
   const alt = it.alt || it.title;
-  console.log(`Saved ${entry.file}${entry.width ? ` Â· ${entry.width} Ã— ${entry.height}` : ''} Â· ${size(buf.length)}`);
+  console.log(`Saved ${entry.file}${entry.width ? ` · ${entry.width} × ${entry.height}` : ''} · ${size(buf.length)}`);
   console.log(`  page     ${it.page}`);
   console.log(`  credit   ${entry.credit}`);
   console.log(`  markup   <img src="${esc(entry.file)}"${entry.width ? ` width="${entry.width}" height="${entry.height}"` : ''} alt="${esc(short(alt, 120))}" loading="lazy" decoding="async">`);
@@ -814,7 +814,7 @@ async function getVideo(it, src, id, opts) {
     credit: credit(it), notes: [...it.notes, ...licenceNotes(it), ...videoNotes({ ...it, bytes: n, duration }, opts)], saved: new Date().toISOString(),
   };
   recordCredit(opts, credits, entry);
-  console.log(`Saved ${entry.file}${w ? ` Â· ${w} Ã— ${h}` : ''}${duration ? ` Â· ${clock(duration)}` : ''} Â· ${size(n)}`);
+  console.log(`Saved ${entry.file}${w ? ` · ${w} × ${h}` : ''}${duration ? ` · ${clock(duration)}` : ''} · ${size(n)}`);
   console.log(`  poster   ${entry.poster || 'none from the source: export a still frame yourself, or use a found picture'}`);
   console.log(`  page     ${it.page}`);
   console.log(`  credit   ${entry.credit}`);
@@ -844,7 +844,7 @@ function printCredits(opts) {
     const by = c.creator && !/^(unknown|anonymous)\b/i.test(c.creator) ? ` by ${esc(short(c.creator, 60))}` : '';
     const date = /^(aic|met):/.test(c.ref) && c.date ? `, ${esc(short(c.date, 30))}` : '';
     const lic = c.licenseUrl ? `<a href="${esc(c.licenseUrl)}">${esc(c.license)}</a>` : esc(c.license);
-    return `<a href="${esc(c.page)}">â€œ${esc(short(c.title, 90))}â€</a>${by}${date}, ${lic}, via ${esc(c.via)}`;
+    return `<a href="${esc(c.page)}">“${esc(short(c.title, 90))}”</a>${by}${date}, ${lic}, via ${esc(c.via)}`;
   };
   const media = new Set(uniq.map((c) => c.media || 'image'));
   const label = media.size > 1 ? 'Pictures and footage' : media.has('video') ? 'Footage' : 'Pictures';

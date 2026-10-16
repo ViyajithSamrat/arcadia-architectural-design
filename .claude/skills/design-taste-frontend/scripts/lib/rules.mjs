@@ -35,12 +35,12 @@ export function judge(m, { width = m.viewport.w, allow = [] } = {}) {
   const isStatement = (h) => h.kind === 'statement' && h.size <= stmtMaxPx;
   const long = m.headings.filter((h) => h.lines > 2 && !isStatement(h));
   if (long.length) {
-    add('FAIL', 'headline-lines', `${long.length} headline(s) wrap past two lines at ${width}px: ` + long.slice(0, 4).map((h) => `"${h.text.slice(0, 48)}" â†’ ${h.lines} lines (${h.words} words, ${h.size}px${h.kind === 'statement' ? ', a paragraph set above ' + stmtMaxPx + 'px' : ''})`).join('; '),
+    add('FAIL', 'headline-lines', `${long.length} headline(s) wrap past two lines at ${width}px: ` + long.slice(0, 4).map((h) => `"${h.text.slice(0, 48)}" → ${h.lines} lines (${h.words} words, ${h.size}px${h.kind === 'statement' ? ', a paragraph set above ' + stmtMaxPx + 'px' : ''})`).join('; '),
       'Cut words first (a headline is a title, not a sentence). Then give it a wider measure. Lower the size only as a last resort and never below the scale you chose. A real statement paragraph belongs in a <p> or <blockquote> at ' + stmtMaxPx + 'px or less.');
   }
   const longStatements = m.headings.filter((h) => isStatement(h) && h.lines > stmtMaxLines);
   if (longStatements.length) {
-    add('WARN', 'statement-length', `${longStatements.length} large-set statement(s) run past ${stmtMaxLines} lines at ${width}px: ` + longStatements.slice(0, 3).map((h) => `"${h.text.slice(0, 40)}â€¦" â†’ ${h.lines} lines at ${h.size}px`).join('; '),
+    add('WARN', 'statement-length', `${longStatements.length} large-set statement(s) run past ${stmtMaxLines} lines at ${width}px: ` + longStatements.slice(0, 3).map((h) => `"${h.text.slice(0, 40)}…" → ${h.lines} lines at ${h.size}px`).join('; '),
       'A statement set large is about 30 words. Cut it, or set the rest as ordinary body text.');
   }
   if (m.hero && m.hero.words > 10) add('WARN', 'hero-words', `Hero headline is ${m.hero.words} words ("${m.hero.text.slice(0, 60)}"). Gallery median is 5.`, 'Say the one thing. Move the rest to the supporting line.');
@@ -52,12 +52,12 @@ export function judge(m, { width = m.viewport.w, allow = [] } = {}) {
       'Delete them. If the label carried real information, fold it into the headline or the supporting sentence.');
   }
   if (m.type.monoProseShare > 0) {
-    add('FAIL', 'mono', `Monospace type outside code: ${m.type.monoFamilies.join(', ')} â€” e.g. ${m.type.monoSamples.slice(0, 4).map((s) => `"${s}"`).join(', ')}`,
+    add('FAIL', 'mono', `Monospace type outside code: ${m.type.monoFamilies.join(', ')} — e.g. ${m.type.monoSamples.slice(0, 4).map((s) => `"${s}"`).join(', ')}`,
       'Set it in the text face. Monospace is for literal code inside <pre>/<code> only.');
   }
   if (m.numbered.length) {
     add('FAIL', 'numbering', `Decorative index numbers: ${m.numbered.slice(0, 6).map((n) => `"${n.text}"`).join(', ')}`,
-      'Remove them. If order truly matters, write it into the words ("First, â€¦") or use a real <ol>.');
+      'Remove them. If order truly matters, write it into the words ("First, …") or use a real <ol>.');
   }
   if (m.type.microLabels >= 3) add('FAIL', 'micro-label', `${m.type.microLabels} tiny uppercase letter-spaced labels (e.g. ${m.type.microSamples.slice(0, 4).map((s) => `"${s}"`).join(', ')}).`, 'Use sentence-case text at a readable size, or delete the label.');
   else if (m.type.microLabels > 0) add('WARN', 'micro-label', `${m.type.microLabels} tiny uppercase letter-spaced label(s): ${m.type.microSamples.slice(0, 3).map((s) => `"${s}"`).join(', ')}`, 'Prefer sentence case at body size.');
@@ -103,8 +103,8 @@ export function judge(m, { width = m.viewport.w, allow = [] } = {}) {
   if (m.type.notLoaded.length) add('WARN', 'font-fallback', `Typeface(s) declared but not loaded, so a fallback is rendering: ${m.type.notLoaded.join(', ')}`, 'Fix the font URL / family name, or the screenshots you are judging are not the design.');
   if (m.type.sizeCount > 9) add('WARN', 'size-count', `${m.type.sizeCount} different font sizes (${m.type.sizes.join(', ')}).`, 'A page needs about five: display, heading, lead, body, small.');
   // Tiny text is the fault the study's best sites share (about a quarter of them); it is not copied here.
-  if (m.type.body && m.type.body.size < 15) add('FAIL', 'body-size', `Body text is ${m.type.body.size}px (the size most of the running text is set in).`, 'Body copy 16â€“20px. Map small sizes from blueprints onto your body step.');
-  else if (m.type.body && m.type.body.size < 16 && !mobile) add('WARN', 'body-size', `Body text is ${m.type.body.size}px.`, 'Body copy 16â€“20px.');
+  if (m.type.body && m.type.body.size < 15) add('FAIL', 'body-size', `Body text is ${m.type.body.size}px (the size most of the running text is set in).`, 'Body copy 16–20px. Map small sizes from blueprints onto your body step.');
+  else if (m.type.body && m.type.body.size < 16 && !mobile) add('WARN', 'body-size', `Body text is ${m.type.body.size}px.`, 'Body copy 16–20px.');
   if (m.type.body?.contrast && m.type.body.contrast < 7) add('WARN', 'grey-body', `The running text is a soft grey on its ground (${m.type.body.contrast}:1).`, 'Set body copy in the full ink (7:1 or more). Keep the muted ink for secondary notes; pages read thin and unfinished when everything is grey.');
   if (m.buttons.inHero === 0) add('WARN', 'first-action', `No visible button in the first ${mobile ? 'phone ' : ''}screen.`, mobile ? 'On a phone the first screen still holds the headline, the supporting sentence and the action; move navigation into one row or a menu so it does not push them down.' : 'Give the one primary action a real button in the first screen (a filled or solid-bordered control, 44px or taller), not only a link in the navigation.');
   // Models skip pictures when nothing makes them: the page must carry real ones (see SKILL.md, imagery).
@@ -116,7 +116,7 @@ export function judge(m, { width = m.viewport.w, allow = [] } = {}) {
   }
   if (m.page.sideScrollers) add('WARN', 'side-scroll', `${m.page.sideScrollers} row(s) scroll sideways with content past their edge.`, 'Jurors and most visitors read a row cut at the edge as clipped, not as scrollable. Wrap it onto more lines, or end it inside the grid.');
   if (m.page.blendText) add('WARN', 'blend-text', `${m.page.blendText} text element(s) use mix-blend-mode difference or exclusion.`, 'Over anything but black, white or grey, blended text takes random hues (blue on orange, lilac on green) that jurors read as a glitch. Use a solid ink chosen for the ground, or keep the blended text over neutral grounds only.');
-  if (m.type.measureChars && m.type.measureChars > 88 && !mobile) add('WARN', 'measure', `Longest paragraph runs about ${m.type.measureChars} characters per line.`, 'Cap paragraphs at 45â€“75 characters (max-width: 60ch).');
+  if (m.type.measureChars && m.type.measureChars > 88 && !mobile) add('WARN', 'measure', `Longest paragraph runs about ${m.type.measureChars} characters per line.`, 'Cap paragraphs at 45–75 characters (max-width: 60ch).');
   if (m.type.smallText > 3) add('FAIL', 'small-text', `${m.type.smallText} text blocks under 13px.`, 'Nothing meant to be read goes below 13px.');
   else if (m.type.smallText > 0) add('WARN', 'small-text', `${m.type.smallText} text block(s) under 13px.`, 'Nothing meant to be read goes below 13px.');
   if (m.type.centerShare > 0.72 && m.headings.length >= 4) add('WARN', 'all-centred', `${Math.round(m.type.centerShare * 100)}% of the text is centre-aligned.`, 'Centre one moment at most; anchor the rest to a shared left edge.');

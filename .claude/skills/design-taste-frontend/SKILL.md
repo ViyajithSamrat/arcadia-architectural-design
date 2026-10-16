@@ -1,6 +1,6 @@
 ---
 name: design-taste-frontend
-description: tasteskill v2, the anti-slop frontend skill. Art direction for websites, distilled from a study of 247 curated gallery sites (One Page Love, Awwwards Sites of the Day). Deals researched directions (idea, composition, type, palette, photographs, section blueprints) from a library, enforces a strict no-slop house style with a real-browser inspector, and runs a look-and-fix loop on screenshots. Use this whenever you build, design, redesign, restyle, polish or review a landing page, marketing site, portfolio, product page, one-pager, hero or any public-facing web page, in any stack (HTML/CSS, React, Next.js, Vue, Svelte, Astro, Tailwind) â€” also when the user says a page looks generic, templated, "AI-made", sloppy, or asks to make it look designed, premium, award-level or less like every other site. Not for dashboards or app screens.
+description: tasteskill v2, the anti-slop frontend skill. Art direction for websites, distilled from a study of 247 curated gallery sites (One Page Love, Awwwards Sites of the Day). Deals researched directions (idea, composition, type, palette, photographs, section blueprints) from a library, enforces a strict no-slop house style with a real-browser inspector, and runs a look-and-fix loop on screenshots. Use this whenever you build, design, redesign, restyle, polish or review a landing page, marketing site, portfolio, product page, one-pager, hero or any public-facing web page, in any stack (HTML/CSS, React, Next.js, Vue, Svelte, Astro, Tailwind) — also when the user says a page looks generic, templated, "AI-made", sloppy, or asks to make it look designed, premium, award-level or less like every other site. Not for dashboards or app screens.
 ---
 
 # tasteskill v2
@@ -33,7 +33,7 @@ or Chromium, and install nothing. `assets.mjs` also needs network access; it use
 
 ## The run
 
-Do these in order. Steps 1â€“5 take a few minutes and decide whether the page is any good.
+Do these in order. Steps 1–5 take a few minutes and decide whether the page is any good.
 
 ### 1. Read the brief and the project
 
@@ -62,7 +62,7 @@ is also your picture search: each place, material and printed thing on it is a q
 ### 2. Write the argument
 
 Before any design, list the page as claims with their proof, one line per section, the way
-`references/copy.md` Â§1 shows. The claims decide which sections exist and in what order. Delete any
+`references/copy.md` §1 shows. The claims decide which sections exist and in what order. Delete any
 section that has no claim. This is how you avoid the stock sequence of hero, logos, three features,
 testimonial, pricing, call to action.
 
@@ -157,7 +157,7 @@ built in step 6 as part of the page, not added as motion in step 9.
 
 Write the whole page as a copy deck (plain text) before markup, following `references/copy.md`:
 
-- **Every headline fits in two lines or fewer at every width.** Do the arithmetic in copy.md Â§2 before
+- **Every headline fits in two lines or fewer at every width.** Do the arithmetic in copy.md §2 before
   committing to a sentence: about 32 characters is safe everywhere at a confident size. The studied
   gallery heroes have a median of 5 words and 32 characters.
 - One supporting sentence. One primary action, named for what it does, as a real button on the first
@@ -264,7 +264,7 @@ under sixteen). The layer has four parts:
 
 1. **The signature move** named on the sheet: one, done well.
 2. **An entrance for the parts of every section:** the heading, then the text, then the picture,
-   staggered by 60â€“90ms, rising 16â€“32px with opacity, triggered once as the section enters. Not one
+   staggered by 60–90ms, rising 16–32px with opacity, triggered once as the section enters. Not one
    fade for the whole block, and never content that stays hidden if the script fails.
 3. **Feedback on every control:** press, hover and focus on buttons, links, cards and the live thing.
 4. **One moving picture:** a found clip as a muted loop, a slow scale or drift on a photograph, or a
@@ -291,9 +291,9 @@ These hold on every build, whatever the direction. `inspect.mjs` measures them.
 
 | Rule | Instead |
 | --- | --- |
-| **Headlines: two lines or fewer, at every width.** Every `h1`â€“`h6`, and the main line of the first screen whatever its tag. | Cut words. Then widen the measure. Size last. |
+| **Headlines: two lines or fewer, at every width.** Every `h1`–`h6`, and the main line of the first screen whatever its tag. | Cut words. Then widen the measure. Size last. |
 | **Statements are paragraphs.** An intro sentence or a quotation set large is marked up as `<p>` or `<blockquote>`, stays at statement size (36px or less on desktop, 24px on a phone) and runs to about 25 words, three lines. | Larger than that it is a headline and the two-line rule applies. In blind tests jurors read a 42px sentence over four lines as a four-line headline. |
-| **No eyebrows.** No small label above a heading, no pill badge above the headline, no "New Â·" chip. | Put the information in the heading or the first sentence, or drop it. |
+| **No eyebrows.** No small label above a heading, no pill badge above the headline, no "New ·" chip. | Put the information in the heading or the first sentence, or drop it. |
 | **No monospace** outside real code blocks. | The text face. Tabular figures where numbers align. |
 | **No index numbering.** No 01 / 02 / 03, no (001), no "Step 2". | Order shown by position, size, or the words. A real `<ol>` if order matters. |
 | **No thin rules.** No hairline dividers, no 1px outlined boxes, no grid lines, crosshairs or crop marks. | Space. A step in background tone. A change of scale. A filled shape. |
@@ -310,7 +310,7 @@ These hold on every build, whatever the direction. `inspect.mjs` measures them.
 Three places keep their own conventions and are left alone by the inspector: real code in
 `<pre>`/`<code>` (monospace is correct there), real tables and form fields (they may have lines), and
 a real interface fragment whose root carries the attribute `data-ui` (the product's own borders and
-menus; see `references/imagery.md` Â§7).
+menus; see `references/imagery.md` §7).
 
 Why these, honestly. Some are what the study measured: among the 247 sites, those the panel scored
 7.5 or higher used icon feature cards 1% of the time against 28% for sites under 6.5, pill badges 14%
@@ -332,16 +332,16 @@ Short form. Numbers are from the study unless marked as house style.
 - Two or three sizes do the visible work: one very large, one small, nothing in between. Median
   headline-to-body ratio on the studied sites is 4.3; the best go far beyond (largest type: median
   8.4vw on the top sites against 5.0vw on the weak ones).
-- Display type: tracking -0.02 to -0.05em, leading 0.85â€“1.05. Text: 16â€“20px, leading 1.45â€“1.6,
-  45â€“75 characters per line.
+- Display type: tracking -0.02 to -0.05em, leading 0.85–1.05. Text: 16–20px, leading 1.45–1.6,
+  45–75 characters per line.
 - Five sizes on a page is the ceiling. One family is normal (a third of the studied sites); two is the
   limit.
 - Left-aligned by default. Centre at most one moment.
 
 **Space**
-- One grid, one pair of tight margins (16â€“32px), used everywhere; large things run to the edges. Text
+- One grid, one pair of tight margins (16–32px), used everywhere; large things run to the edges. Text
   blocks share two or three left edges on the whole page.
-- The gap between sections is clearly larger than any gap inside one: 120â€“220px on desktop.
+- The gap between sections is clearly larger than any gap inside one: 120–220px on desktop.
 - Each section has a different composition from its neighbours; none is a card grid.
 
 **Colour**
@@ -364,7 +364,7 @@ Short form. Numbers are from the study unless marked as house style.
 
 **Components**
 - Buttons: flat, one fill colour, either square-cornered or fully round, decided once (top sites: 52%
-  square, 23% pill; the 9â€“16px "soft" radius is the weak-site default). Most strong heroes have no
+  square, 23% pill; the 9–16px "soft" radius is the weak-site default). Most strong heroes have no
   button at all, or one.
 - Navigation: wordmark, three to five plain links, one action. No bar chrome.
 - The footer is a designed close, not a sitemap: on most strong sites the name returns at full width.
@@ -409,6 +409,6 @@ open collections could not be searched.
 | `references/research.md` | The study: method, numbers, what the best and worst sites do. Cite it, do not guess. |
 | `scripts/draw.mjs` | Deals and reprints the direction; `--photos`, `--site <id>` for more references. |
 | `scripts/assets.mjs` | Step 6: searches open collections for real pictures of the subject's world; `--get` downloads with the credit, `--credits` prints them. |
-| `scripts/lint.mjs` Â· `scripts/inspect.mjs` | The gate. |
-| `assets/base.css` Â· `assets/base.js` | An optional neutral foundation to build on. |
+| `scripts/lint.mjs` · `scripts/inspect.mjs` | The gate. |
+| `assets/base.css` · `assets/base.js` | An optional neutral foundation to build on. |
 | `library/` | The data the draw reads: directions, heroes, sections, type systems, palettes, photographs, studied sites, motions. Do not read it whole; use the script. |

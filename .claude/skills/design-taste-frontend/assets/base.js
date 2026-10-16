@@ -1,4 +1,4 @@
-// tasteskill / base.js â€” the small amount of script the motion helpers in base.css need.
+// tasteskill / base.js — the small amount of script the motion helpers in base.css need.
 // Put this line in <head> so the hidden states only apply when scripting works:
 //   <script>document.documentElement.classList.add('js')</script>
 // Then load this file at the end of <body> (or with defer).

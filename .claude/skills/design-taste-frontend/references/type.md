@@ -16,17 +16,17 @@ The direction sheet deals you a type system (faces, weights, settings). This fil
 
 ## 1. What the study measured
 
-From 202 measurable sites out of the 247 studied (Chrome, 1440Ã—900 and 390Ã—844):
+From 202 measurable sites out of the 247 studied (Chrome, 1440×900 and 390×844):
 
 | | Median | Middle half | Note |
 | --- | --- | --- | --- |
-| Hero headline size | 72px (5.0vw) | 43â€“109px | Top-scored sites: 6.0vw median |
+| Hero headline size | 72px (5.0vw) | 43–109px | Top-scored sites: 6.0vw median |
 | Largest type on the page | 6.4vw | up to 10.4vw | Top-scored sites 8.4vw, weak sites 5.0vw |
-| Hero headline on a phone | 40px | 32â€“59px | |
+| Hero headline on a phone | 40px | 32–59px | |
 | Hero tracking | -0.01em | -0.03 to 0 | Tighter as size grows |
-| Hero leading | 1.0 | 0.95â€“1.1 | |
-| Body size | 16px | 14â€“18px | |
-| Headline Ã· body size | 4.3 | | Top-scored sites 4.7 |
+| Hero leading | 1.0 | 0.95–1.1 | |
+| Body size | 16px | 14–18px | |
+| Headline ÷ body size | 4.3 | | Top-scored sites 4.7 |
 | Typefaces in real use | 2 | 31% use one, 45% two, 22% three | |
 | Hero weight | regular 48%, medium 18%, bold or heavier 22% | | Big type does not need to be bold |
 | Hero in capitals | 24% | | |
@@ -42,19 +42,19 @@ The panel described about 30 of the 114 strongest sites as using two or three ty
 in between, and none as using a graded five- or six-step scale. So: one display size, one text size
 and a small size carry the page; a lead size and a heading size exist for when they are needed. Five
 is the ceiling. The common failure is nine sizes that are all near each other (16, 18, 20, 24, 28,
-32â€¦), which reads as mush. Choose steps that are clearly different:
+32…), which reads as mush. Choose steps that are clearly different:
 
 ```css
 :root {
-  --step-small: clamp(0.8125rem, 0.79rem + 0.1vw, 0.875rem);   /* 13â€“14px  captions, legal */
-  --step-body:  clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);    /* 17â€“19px  paragraphs */
-  --step-lead:  clamp(1.25rem, 1.1rem + 0.7vw, 1.625rem);      /* 20â€“26px  supporting line, large body */
-  --step-head:  clamp(2rem, 1.3rem + 3.2vw, 4rem);             /* 32â€“64px  section headings */
+  --step-small: clamp(0.8125rem, 0.79rem + 0.1vw, 0.875rem);   /* 13–14px  captions, legal */
+  --step-body:  clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);    /* 17–19px  paragraphs */
+  --step-lead:  clamp(1.25rem, 1.1rem + 0.7vw, 1.625rem);      /* 20–26px  supporting line, large body */
+  --step-head:  clamp(2rem, 1.3rem + 3.2vw, 4rem);             /* 32–64px  section headings */
   --step-display: clamp(3rem, 1rem + 9vw, 9rem);               /* set by the hero blueprint */
 }
 ```
 
-- `--step-display` belongs to the direction. A monument wordmark is 16â€“24vw; a quiet instrument's
+- `--step-display` belongs to the direction. A monument wordmark is 16–24vw; a quiet instrument's
   headline is 28px. Use the size the hero blueprint gives, as a `clamp()` so it scales with the
   viewport but is bounded on phones and very wide screens.
 - Keep the gap: the display size should be at least four times the body size on desktop, and nothing
@@ -69,7 +69,7 @@ Large type exposes spacing that is invisible at text size. Apply all of these to
 ```css
 .display {
   font-size: var(--step-display);
-  line-height: 0.95;              /* 0.85â€“1.05; tighter for capitals and condensed faces */
+  line-height: 0.95;              /* 0.85–1.05; tighter for capitals and condensed faces */
   letter-spacing: -0.035em;       /* -0.02 to -0.05em; use the value on the direction sheet */
   font-kerning: normal;
   text-wrap: balance;
@@ -85,11 +85,11 @@ Large type exposes spacing that is invisible at text size. Apply all of these to
 - **All capitals** want slightly open tracking (0 to +0.03em) even at display size, and leading around
   0.9.
 - **Optical alignment.** Big letters with round or diagonal left edges (O, C, A, T, W) look indented.
-  Pull the headline left by about 0.04â€“0.06em (`margin-left: -0.05em`) so it aligns optically with the
+  Pull the headline left by about 0.04–0.06em (`margin-left: -0.05em`) so it aligns optically with the
   text beneath it.
 - **Viewport-wide type.** For a line that must span the screen, size it in `vw` and verify at 390 and
   1440; set `white-space: nowrap` and let the container clip rather than wrap. Calculate the size from
-  the character count: `font-size â‰ˆ container width Ã· (characters Ã— k)` with k from `copy.md` Â§2.
+  the character count: `font-size ≈ container width ÷ (characters × k)` with k from `copy.md` §2.
 - Never add a text shadow, an outline stroke, or a gradient fill to display type.
 
 ## 4. Setting text
@@ -102,9 +102,9 @@ p + p { margin-top: 0.9em; }
 small, .caption { font-size: var(--step-small); line-height: 1.45; }
 ```
 
-- Measure: 45â€“75 characters. Wider than that and the eye loses the next line; the inspector warns
+- Measure: 45–75 characters. Wider than that and the eye loses the next line; the inspector warns
   past about 88.
-- Leading: 1.45â€“1.6 for body, tighter (1.3â€“1.4) for the larger lead size, looser for long reading.
+- Leading: 1.45–1.6 for body, tighter (1.3–1.4) for the larger lead size, looser for long reading.
 - Secondary text is the same face in a softer ink (`--muted`), not a lighter weight and not smaller
   than 13px.
 - Do not centre paragraphs longer than three lines. Do not justify.
@@ -118,7 +118,7 @@ The sheet gives a `<link>` tag. Use it exactly; do not swap in a face you prefer
 ```html
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="â€¦from the direction sheetâ€¦" rel="stylesheet">
+<link href="…from the direction sheet…" rel="stylesheet">
 ```
 
 ```css
@@ -149,7 +149,7 @@ coherent. When the dealt system has two faces:
 
 ## 7. Details that separate set type from typed text
 
-- Curly quotes and apostrophes, real dashes, a real ellipsis (see `copy.md` Â§7).
+- Curly quotes and apostrophes, real dashes, a real ellipsis (see `copy.md` §7).
 - `font-variant-numeric: tabular-nums` for prices, tables, dates in columns; `oldstyle-nums` suits
   serif body text.
 - `text-underline-offset: 0.18em; text-decoration-thickness: 0.07em` on links, so underlines clear the

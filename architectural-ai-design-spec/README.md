@@ -1,4 +1,4 @@
-# Architectural AI Design â€” Claude Code Specification
+# Architectural AI Design — Claude Code Specification
 
 This folder separates the source project specification into focused Markdown documents so Claude Code can load the right context without repeatedly parsing one large file.
 
@@ -11,19 +11,19 @@ This folder separates the source project specification into focused Markdown doc
 
 ## Read order
 
-1. [`00_PROJECT_OVERVIEW.md`](00_PROJECT_OVERVIEW.md) â€” context, scope, invariants, and links.
-2. [`01_PRD.md`](01_PRD.md) â€” product requirements and acceptance criteria.
-3. [`02_TRD.md`](02_TRD.md) â€” technical architecture, stack, APIs, security, and tests.
-4. [`03_APP_FLOW.md`](03_APP_FLOW.md) â€” customer journeys, state machine, voice, generation, and payment flows.
-5. [`04_UI_UX.md`](04_UI_UX.md) â€” page inventory, forms, components, states, and UX checks.
-6. [`05_BACKEND_SCHEMA.md`](05_BACKEND_SCHEMA.md) â€” data entities, constraints, pricing, RLS, and storage.
-7. [`06_IMPLEMENTATION_PLAN.md`](06_IMPLEMENTATION_PLAN.md) â€” phased execution plan and acceptance gates.
-8. [`07_RUNTIME_PROMPT_TEMPLATES.md`](07_RUNTIME_PROMPT_TEMPLATES.md) â€” prompts used by the application at runtime.
-9. [`08_RISK_REGISTER.md`](08_RISK_REGISTER.md) â€” project risks and mitigations.
-10. [`09_DEMO_SCRIPT.md`](09_DEMO_SCRIPT.md) â€” five-minute demonstration.
-11. [`10_HANDOFF_AND_HARDENING.md`](10_HANDOFF_AND_HARDENING.md) â€” post-PoC improvements.
-12. [`11_DECISIONS_AND_OPEN_QUESTIONS.md`](11_DECISIONS_AND_OPEN_QUESTIONS.md) â€” decisions that need validation.
-14. [`13_ARCHITECTURE_DECISION.md`](13_ARCHITECTURE_DECISION.md) â€” final architecture decision.
+1. [`00_PROJECT_OVERVIEW.md`](00_PROJECT_OVERVIEW.md) — context, scope, invariants, and links.
+2. [`01_PRD.md`](01_PRD.md) — product requirements and acceptance criteria.
+3. [`02_TRD.md`](02_TRD.md) — technical architecture, stack, APIs, security, and tests.
+4. [`03_APP_FLOW.md`](03_APP_FLOW.md) — customer journeys, state machine, voice, generation, and payment flows.
+5. [`04_UI_UX.md`](04_UI_UX.md) — page inventory, forms, components, states, and UX checks.
+6. [`05_BACKEND_SCHEMA.md`](05_BACKEND_SCHEMA.md) — data entities, constraints, pricing, RLS, and storage.
+7. [`06_IMPLEMENTATION_PLAN.md`](06_IMPLEMENTATION_PLAN.md) — phased execution plan and acceptance gates.
+8. [`07_RUNTIME_PROMPT_TEMPLATES.md`](07_RUNTIME_PROMPT_TEMPLATES.md) — prompts used by the application at runtime.
+9. [`08_RISK_REGISTER.md`](08_RISK_REGISTER.md) — project risks and mitigations.
+10. [`09_DEMO_SCRIPT.md`](09_DEMO_SCRIPT.md) — five-minute demonstration.
+11. [`10_HANDOFF_AND_HARDENING.md`](10_HANDOFF_AND_HARDENING.md) — post-PoC improvements.
+12. [`11_DECISIONS_AND_OPEN_QUESTIONS.md`](11_DECISIONS_AND_OPEN_QUESTIONS.md) — decisions that need validation.
+14. [`13_ARCHITECTURE_DECISION.md`](13_ARCHITECTURE_DECISION.md) — final architecture decision.
 
 ## Instructions for Claude Code
 

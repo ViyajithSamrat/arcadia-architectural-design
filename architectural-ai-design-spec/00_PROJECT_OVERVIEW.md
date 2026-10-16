@@ -1,4 +1,4 @@
-# Project Overview â€” Architectural AI Design Web Prototype
+# Project Overview — Architectural AI Design Web Prototype
 
 ## Purpose
 
@@ -6,9 +6,9 @@ Build a demo-ready web application that helps customers turn spoken or typed req
 
 ## Three supported customer journeys
 
-1. **New Build on Empty Plot** â€” collect plot/building requirements, render an illustrative labelled 2D SVG room layout from structured data, and generate static exterior/interior concept views.
-2. **Interior Refresh** â€” collect existing-room details, preferences, budget, must-preserve features, and reference photos/floor plans; generate interior concept images and a text summary.
-3. **Landscape Design** â€” collect outdoor-area, climate, sunlight, water, maintenance, and feature requirements; generate landscape concept images and a text summary.
+1. **New Build on Empty Plot** — collect plot/building requirements, render an illustrative labelled 2D SVG room layout from structured data, and generate static exterior/interior concept views.
+2. **Interior Refresh** — collect existing-room details, preferences, budget, must-preserve features, and reference photos/floor plans; generate interior concept images and a text summary.
+3. **Landscape Design** — collect outdoor-area, climate, sunlight, water, maintenance, and feature requirements; generate landscape concept images and a text summary.
 
 ## Proposed technical stack in the source specification
 

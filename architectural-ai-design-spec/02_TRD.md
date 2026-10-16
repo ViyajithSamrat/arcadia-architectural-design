@@ -66,27 +66,27 @@ IDs and fallback model IDs configurable.
 
 ``` text
 Browser / Customer UI
-  â”œâ”€â”€ Project type + typed forms
-  â”œâ”€â”€ MediaRecorder / transcript editor
-  â”œâ”€â”€ Brief review + approval
-  â”œâ”€â”€ Quote + payment evidence
-  â””â”€â”€ Released-results gallery
-          â”‚ HTTPS
-          â–¼
+  ├── Project type + typed forms
+  ├── MediaRecorder / transcript editor
+  ├── Brief review + approval
+  ├── Quote + payment evidence
+  └── Released-results gallery
+          │ HTTPS
+          ▼
 Next.js App Router / Server Route Handlers
-  â”œâ”€â”€ Authentication + authorization
-  â”œâ”€â”€ Project workflow/state machine
-  â”œâ”€â”€ Zod validation
-  â”œâ”€â”€ BriefProvider â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â–º OpenRouter text model
-  â”œâ”€â”€ SpeechToTextProvider â”€â”€â”€â”€â”€â”€â”€â”€â–º Gnani STT
-  â”œâ”€â”€ TextToSpeechProvider â”€â”€â”€â”€â”€â”€â”€â”€â–º Gnani TTS
-  â”œâ”€â”€ ImageGenerationProvider â”€â”€â”€â”€â”€â–º OpenRouter Image API
-  â”œâ”€â”€ Server-side quote engine
-  â”œâ”€â”€ Payment verification/release rules
-  â””â”€â”€ Signed URL creation
-          â”‚
-          â”œâ”€â”€ Supabase Postgres (records, rules, statuses, audit)
-          â””â”€â”€ Supabase Storage (private uploads and outputs)
+  ├── Authentication + authorization
+  ├── Project workflow/state machine
+  ├── Zod validation
+  ├── BriefProvider ───────────────► OpenRouter text model
+  ├── SpeechToTextProvider ────────► Gnani STT
+  ├── TextToSpeechProvider ────────► Gnani TTS
+  ├── ImageGenerationProvider ─────► OpenRouter Image API
+  ├── Server-side quote engine
+  ├── Payment verification/release rules
+  └── Signed URL creation
+          │
+          ├── Supabase Postgres (records, rules, statuses, audit)
+          └── Supabase Storage (private uploads and outputs)
 ```
 
 **Trust boundaries:** The browser is untrusted. Model responses are
@@ -103,69 +103,69 @@ without reason.
 
 ``` text
 .
-â”œâ”€â”€ app/
-â”‚   â”œâ”€â”€ (marketing)/
-â”‚   â”‚   â””â”€â”€ page.tsx
-â”‚   â”œâ”€â”€ projects/
-â”‚   â”‚   â”œâ”€â”€ new/page.tsx
-â”‚   â”‚   â”œâ”€â”€ [projectId]/page.tsx
-â”‚   â”‚   â”œâ”€â”€ [projectId]/brief/page.tsx
-â”‚   â”‚   â”œâ”€â”€ [projectId]/quote/page.tsx
-â”‚   â”‚   â”œâ”€â”€ [projectId]/payment/page.tsx
-â”‚   â”‚   â””â”€â”€ [projectId]/results/page.tsx
-â”‚   â”œâ”€â”€ admin/
-â”‚   â”‚   â”œâ”€â”€ page.tsx
-â”‚   â”‚   â”œâ”€â”€ payments/page.tsx
-â”‚   â”‚   â”œâ”€â”€ generations/page.tsx
-â”‚   â”‚   â””â”€â”€ pricing/page.tsx
-â”‚   â””â”€â”€ api/
-â”‚       â”œâ”€â”€ health/route.ts
-â”‚       â”œâ”€â”€ projects/route.ts
-â”‚       â”œâ”€â”€ projects/[projectId]/route.ts
-â”‚       â”œâ”€â”€ speech/transcribe/route.ts
-â”‚       â”œâ”€â”€ speech/synthesize/route.ts
-â”‚       â”œâ”€â”€ briefs/route.ts
-â”‚       â”œâ”€â”€ quotes/route.ts
-â”‚       â”œâ”€â”€ payments/route.ts
-â”‚       â”œâ”€â”€ payments/[paymentId]/verify/route.ts
-â”‚       â”œâ”€â”€ payments/[paymentId]/reject/route.ts
-â”‚       â”œâ”€â”€ generation/route.ts
-â”‚       â”œâ”€â”€ admin/projects/[projectId]/release/route.ts
-â”‚       â””â”€â”€ assets/[assetId]/access/route.ts
-â”œâ”€â”€ components/
-â”‚   â”œâ”€â”€ ui/
-â”‚   â”œâ”€â”€ project/
-â”‚   â”œâ”€â”€ voice/
-â”‚   â”œâ”€â”€ brief/
-â”‚   â”œâ”€â”€ quote/
-â”‚   â”œâ”€â”€ payment/
-â”‚   â”œâ”€â”€ gallery/
-â”‚   â””â”€â”€ admin/
-â”œâ”€â”€ lib/
-â”‚   â”œâ”€â”€ config/
-â”‚   â”œâ”€â”€ auth/
-â”‚   â”œâ”€â”€ db/
-â”‚   â”œâ”€â”€ validation/
-â”‚   â”œâ”€â”€ workflow/
-â”‚   â”œâ”€â”€ pricing/
-â”‚   â”œâ”€â”€ storage/
-â”‚   â”œâ”€â”€ providers/
-â”‚   â”‚   â”œâ”€â”€ interfaces.ts
-â”‚   â”‚   â”œâ”€â”€ gnani/
-â”‚   â”‚   â”œâ”€â”€ openrouter/
-â”‚   â”‚   â””â”€â”€ mocks/
-â”‚   â”œâ”€â”€ prompts/
-â”‚   â””â”€â”€ logging/
-â”œâ”€â”€ supabase/
-â”‚   â”œâ”€â”€ migrations/
-â”‚   â””â”€â”€ seed.sql
-â”œâ”€â”€ tests/
-â”‚   â”œâ”€â”€ unit/
-â”‚   â”œâ”€â”€ integration/
-â”‚   â””â”€â”€ e2e/
-â”œâ”€â”€ .env.example
-â”œâ”€â”€ README.md
-â””â”€â”€ package.json
+├── app/
+│   ├── (marketing)/
+│   │   └── page.tsx
+│   ├── projects/
+│   │   ├── new/page.tsx
+│   │   ├── [projectId]/page.tsx
+│   │   ├── [projectId]/brief/page.tsx
+│   │   ├── [projectId]/quote/page.tsx
+│   │   ├── [projectId]/payment/page.tsx
+│   │   └── [projectId]/results/page.tsx
+│   ├── admin/
+│   │   ├── page.tsx
+│   │   ├── payments/page.tsx
+│   │   ├── generations/page.tsx
+│   │   └── pricing/page.tsx
+│   └── api/
+│       ├── health/route.ts
+│       ├── projects/route.ts
+│       ├── projects/[projectId]/route.ts
+│       ├── speech/transcribe/route.ts
+│       ├── speech/synthesize/route.ts
+│       ├── briefs/route.ts
+│       ├── quotes/route.ts
+│       ├── payments/route.ts
+│       ├── payments/[paymentId]/verify/route.ts
+│       ├── payments/[paymentId]/reject/route.ts
+│       ├── generation/route.ts
+│       ├── admin/projects/[projectId]/release/route.ts
+│       └── assets/[assetId]/access/route.ts
+├── components/
+│   ├── ui/
+│   ├── project/
+│   ├── voice/
+│   ├── brief/
+│   ├── quote/
+│   ├── payment/
+│   ├── gallery/
+│   └── admin/
+├── lib/
+│   ├── config/
+│   ├── auth/
+│   ├── db/
+│   ├── validation/
+│   ├── workflow/
+│   ├── pricing/
+│   ├── storage/
+│   ├── providers/
+│   │   ├── interfaces.ts
+│   │   ├── gnani/
+│   │   ├── openrouter/
+│   │   └── mocks/
+│   ├── prompts/
+│   └── logging/
+├── supabase/
+│   ├── migrations/
+│   └── seed.sql
+├── tests/
+│   ├── unit/
+│   ├── integration/
+│   └── e2e/
+├── .env.example
+├── README.md
+└── package.json
 ```
 
 This is a suggested layout, not a mandate to create every route/file
@@ -184,12 +184,12 @@ APP_URL=http://localhost:3000
 APP_ENV=development
 PROVIDER_MODE=mock
 
-# Supabase â€” server-only values where applicable
+# Supabase — server-only values where applicable
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
 
-# Gnani â€” exact names/endpoints must match the account's current API
+# Gnani — exact names/endpoints must match the account's current API
 GNANI_API_KEY=
 GNANI_STT_ENDPOINT=
 GNANI_TTS_ENDPOINT=
@@ -204,7 +204,7 @@ OPENROUTER_TEXT_MODEL=
 OPENROUTER_IMAGE_MODEL=
 OPENROUTER_IMAGE_FALLBACK_MODEL=
 
-# Application limits â€” final values are product-owner decisions
+# Application limits — final values are product-owner decisions
 MAX_UPLOAD_BYTES=
 MAX_AUDIO_BYTES=
 MAX_GENERATION_IMAGES=
@@ -430,13 +430,13 @@ treat these suggested paths as an externally promised public API.
 
 ### End-to-end smoke tests
 
--   Empty plot: text or voice â†’ corrected transcript â†’ approved brief â†’
-    quote â†’ payment submission â†’ admin verification â†’ generation â†’ admin
-    release â†’ customer results.
--   Interior: upload reference â†’ brief â†’ quote/payment path â†’ generated
-    concept â†’ release.
--   Landscape: climate/site inputs â†’ brief â†’ quote/payment path â†’
-    generated concept â†’ release.
+-   Empty plot: text or voice → corrected transcript → approved brief →
+    quote → payment submission → admin verification → generation → admin
+    release → customer results.
+-   Interior: upload reference → brief → quote/payment path → generated
+    concept → release.
+-   Landscape: climate/site inputs → brief → quote/payment path →
+    generated concept → release.
 -   Negative test: direct API generation attempt for an unpaid project
     is denied.
 -   Fallback test: mock mode and speech-provider failure are clearly

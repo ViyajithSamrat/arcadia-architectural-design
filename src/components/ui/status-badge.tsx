@@ -1,9 +1,9 @@
 import type { IntegrationState } from "@/lib/integrations/status";
 
 const LABELS: Record<IntegrationState, { text: string; symbol: string }> = {
-  not_configured: { text: "Not configured", symbol: "â—‹" },
-  partial: { text: "Partly configured", symbol: "â—" },
-  configured_unverified: { text: "Configured, not yet verified", symbol: "â—" },
+  not_configured: { text: "Not configured", symbol: "○" },
+  partial: { text: "Partly configured", symbol: "◐" },
+  configured_unverified: { text: "Configured, not yet verified", symbol: "●" },
 };
 
 /**

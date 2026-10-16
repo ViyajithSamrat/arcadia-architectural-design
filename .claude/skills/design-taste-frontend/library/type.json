@@ -11,7 +11,7 @@
     600
    ],
    "italic": false,
-   "settings": "weight 600 Â· tracking -0.04em Â· leading 0.95 Â· sentence case; charcoal rather than pure black",
+   "settings": "weight 600 · tracking -0.04em · leading 0.95 · sentence case; charcoal rather than pure black",
    "css": "<link rel=\"preconnect\" href=\"https://api.fontshare.com\">\n<link rel=\"preconnect\" href=\"https://cdn.fontshare.com\" crossorigin>\n<link href=\"https://api.fontshare.com/v2/css?f[]=switzer@400,500,600&display=swap\" rel=\"stylesheet\">"
   },
   "text": {
@@ -23,7 +23,7 @@
     500
    ],
    "italic": false,
-   "settings": "400 for body, 500 for emphasis Â· leading 1.5 Â· tracking -0.005em",
+   "settings": "400 for body, 500 for emphasis · leading 1.5 · tracking -0.005em",
    "css": "<link rel=\"preconnect\" href=\"https://api.fontshare.com\">\n<link rel=\"preconnect\" href=\"https://cdn.fontshare.com\" crossorigin>\n<link href=\"https://api.fontshare.com/v2/css?f[]=switzer@400,500,600&display=swap\" rel=\"stylesheet\">"
   },
   "standsInFor": [
@@ -59,7 +59,7 @@
     700
    ],
    "italic": false,
-   "settings": "weight 700 Â· tracking -0.02em Â· leading 0.9 Â· sentence case; sizes jump straight from 16px text to 10vw and larger",
+   "settings": "weight 700 · tracking -0.02em · leading 0.9 · sentence case; sizes jump straight from 16px text to 10vw and larger",
    "css": "<link rel=\"preconnect\" href=\"https://api.fontshare.com\">\n<link rel=\"preconnect\" href=\"https://cdn.fontshare.com\" crossorigin>\n<link href=\"https://api.fontshare.com/v2/css?f[]=general-sans@400,500,700&display=swap\" rel=\"stylesheet\">"
   },
   "text": {
@@ -71,7 +71,7 @@
     500
    ],
    "italic": false,
-   "settings": "400 for body and lists, 500 for emphasis Â· leading 1.45 Â· tracking 0",
+   "settings": "400 for body and lists, 500 for emphasis · leading 1.45 · tracking 0",
    "css": "<link rel=\"preconnect\" href=\"https://api.fontshare.com\">\n<link rel=\"preconnect\" href=\"https://cdn.fontshare.com\" crossorigin>\n<link href=\"https://api.fontshare.com/v2/css?f[]=general-sans@400,500,700&display=swap\" rel=\"stylesheet\">"
   },
   "standsInFor": [
@@ -106,7 +106,7 @@
     800
    ],
    "italic": false,
-   "settings": "weight 800 Â· tracking -0.05em Â· leading 0.88 Â· sentence case or all lowercase",
+   "settings": "weight 800 · tracking -0.05em · leading 0.88 · sentence case or all lowercase",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;600;800&display=swap\" rel=\"stylesheet\">"
   },
   "text": {
@@ -117,7 +117,7 @@
     600
    ],
    "italic": false,
-   "settings": "400 for paragraphs, 600 for navigation and other functional text Â· leading 1.4 Â· tracking -0.01em",
+   "settings": "400 for paragraphs, 600 for navigation and other functional text · leading 1.4 · tracking -0.01em",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;600;800&display=swap\" rel=\"stylesheet\">"
   },
   "standsInFor": [
@@ -151,7 +151,7 @@
     500
    ],
    "italic": false,
-   "settings": "weight 500 Â· tracking -0.05em Â· leading 0.9 Â· sentence case; one statement size (about 6vw) used for every heading",
+   "settings": "weight 500 · tracking -0.05em · leading 0.9 · sentence case; one statement size (about 6vw) used for every heading",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500&display=swap\" rel=\"stylesheet\">"
   },
   "text": {
@@ -162,7 +162,7 @@
     500
    ],
    "italic": false,
-   "settings": "400 for body, 500 for emphasis Â· leading 1.45 Â· tracking -0.005em",
+   "settings": "400 for body, 500 for emphasis · leading 1.45 · tracking -0.005em",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500&display=swap\" rel=\"stylesheet\">"
   },
   "standsInFor": [
@@ -197,7 +197,7 @@
     600
    ],
    "italic": false,
-   "settings": "weight 600 Â· tracking -0.04em Â· leading 0.92 Â· sentence case; leave optical sizing on so large sizes tighten and gain contrast",
+   "settings": "weight 600 · tracking -0.04em · leading 0.92 · sentence case; leave optical sizing on so large sizes tighten and gain contrast",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;600&display=swap\" rel=\"stylesheet\">"
   },
   "text": {
@@ -208,7 +208,7 @@
     500
    ],
    "italic": false,
-   "settings": "400 for body, 500 for emphasis Â· leading 1.5 Â· tracking 0",
+   "settings": "400 for body, 500 for emphasis · leading 1.5 · tracking 0",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;600&display=swap\" rel=\"stylesheet\">"
   },
   "standsInFor": [
@@ -242,7 +242,7 @@
     700
    ],
    "italic": false,
-   "settings": "weight 700 Â· tracking -0.035em Â· leading 0.92 Â· uppercase for the title, sentence case for section headings",
+   "settings": "weight 700 · tracking -0.035em · leading 0.92 · uppercase for the title, sentence case for section headings",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@700&family=Source+Serif+4:ital,wght@0,400;0,600;1,400;1,600&display=swap\" rel=\"stylesheet\">"
   },
   "text": {
@@ -253,7 +253,7 @@
     600
    ],
    "italic": true,
-   "settings": "400 for body, 600 for emphasis, italic for quotations Â· leading 1.55 Â· tracking 0",
+   "settings": "400 for body, 600 for emphasis, italic for quotations · leading 1.55 · tracking 0",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@700&family=Source+Serif+4:ital,wght@0,400;0,600;1,400;1,600&display=swap\" rel=\"stylesheet\">"
   },
   "standsInFor": [
@@ -289,7 +289,7 @@
     400
    ],
    "italic": false,
-   "settings": "weight 400 Â· tracking -0.03em Â· leading 1.1 Â· sentence case; headings stay small (28â€“40px) and at most one line jumps to 5vw",
+   "settings": "weight 400 · tracking -0.03em · leading 1.1 · sentence case; headings stay small (28–40px) and at most one line jumps to 5vw",
    "css": "<link rel=\"preconnect\" href=\"https://api.fontshare.com\">\n<link rel=\"preconnect\" href=\"https://cdn.fontshare.com\" crossorigin>\n<link href=\"https://api.fontshare.com/v2/css?f[]=switzer@400,500&display=swap\" rel=\"stylesheet\">"
   },
   "text": {
@@ -301,7 +301,7 @@
     500
    ],
    "italic": false,
-   "settings": "400 for everything, 500 only for names and links Â· leading 1.45 Â· tracking -0.01em; hierarchy by ink against mid-grey",
+   "settings": "400 for everything, 500 only for names and links · leading 1.45 · tracking -0.01em; hierarchy by ink against mid-grey",
    "css": "<link rel=\"preconnect\" href=\"https://api.fontshare.com\">\n<link rel=\"preconnect\" href=\"https://cdn.fontshare.com\" crossorigin>\n<link href=\"https://api.fontshare.com/v2/css?f[]=switzer@400,500&display=swap\" rel=\"stylesheet\">"
   },
   "standsInFor": [
@@ -336,7 +336,7 @@
     400
    ],
    "italic": false,
-   "settings": "weight 400 Â· tracking -0.02em Â· leading 1.0 Â· sentence case; never bold, inactive items fade to grey",
+   "settings": "weight 400 · tracking -0.02em · leading 1.0 · sentence case; never bold, inactive items fade to grey",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Archivo:wght@400;600&display=swap\" rel=\"stylesheet\">"
   },
   "text": {
@@ -347,7 +347,7 @@
     600
    ],
    "italic": false,
-   "settings": "400 for body, 600 for buttons and short emphasis Â· leading 1.5 Â· tracking 0",
+   "settings": "400 for body, 600 for buttons and short emphasis · leading 1.5 · tracking 0",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Archivo:wght@400;600&display=swap\" rel=\"stylesheet\">"
   },
   "standsInFor": [
@@ -383,7 +383,7 @@
     400
    ],
    "italic": false,
-   "settings": "weight 400 Â· tracking -0.03em Â· leading 0.95 Â· sentence case, or uppercase for one statement",
+   "settings": "weight 400 · tracking -0.03em · leading 0.95 · sentence case, or uppercase for one statement",
    "css": "<link rel=\"preconnect\" href=\"https://api.fontshare.com\">\n<link rel=\"preconnect\" href=\"https://cdn.fontshare.com\" crossorigin>\n<link href=\"https://api.fontshare.com/v2/css?f[]=clash-grotesk@400,500&display=swap\" rel=\"stylesheet\">"
   },
   "text": {
@@ -395,7 +395,7 @@
     500
    ],
    "italic": false,
-   "settings": "400 for body, 500 for emphasis Â· leading 1.4 Â· tracking 0",
+   "settings": "400 for body, 500 for emphasis · leading 1.4 · tracking 0",
    "css": "<link rel=\"preconnect\" href=\"https://api.fontshare.com\">\n<link rel=\"preconnect\" href=\"https://cdn.fontshare.com\" crossorigin>\n<link href=\"https://api.fontshare.com/v2/css?f[]=clash-grotesk@400,500&display=swap\" rel=\"stylesheet\">"
   },
   "standsInFor": [
@@ -429,7 +429,7 @@
     300
    ],
    "italic": false,
-   "settings": "weight 300 Â· tracking -0.035em Â· leading 1.0 Â· sentence case",
+   "settings": "weight 300 · tracking -0.035em · leading 1.0 · sentence case",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500&display=swap\" rel=\"stylesheet\">"
   },
   "text": {
@@ -440,7 +440,7 @@
     500
    ],
    "italic": false,
-   "settings": "400 for body, 500 for emphasis Â· leading 1.55 Â· tracking 0",
+   "settings": "400 for body, 500 for emphasis · leading 1.55 · tracking 0",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500&display=swap\" rel=\"stylesheet\">"
   },
   "standsInFor": [
@@ -475,7 +475,7 @@
     400
    ],
    "italic": false,
-   "settings": "weight 400 (single heavy cut) Â· tracking -0.01em Â· leading 0.86 Â· uppercase",
+   "settings": "weight 400 (single heavy cut) · tracking -0.01em · leading 0.86 · uppercase",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Anton:wght@400&family=Work+Sans:wght@400;600&display=swap\" rel=\"stylesheet\">"
   },
   "text": {
@@ -486,7 +486,7 @@
     600
    ],
    "italic": false,
-   "settings": "400 for body, 600 for links and short emphasis Â· leading 1.5 Â· tracking 0",
+   "settings": "400 for body, 600 for links and short emphasis · leading 1.5 · tracking 0",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Anton:wght@400&family=Work+Sans:wght@400;600&display=swap\" rel=\"stylesheet\">"
   },
   "standsInFor": [
@@ -521,7 +521,7 @@
     800
    ],
    "italic": false,
-   "settings": "weight 800 Â· tracking -0.005em Â· leading 0.88 Â· uppercase",
+   "settings": "weight 800 · tracking -0.005em · leading 0.88 · uppercase",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Big+Shoulders:wght@800&family=Public+Sans:wght@400;600&display=swap\" rel=\"stylesheet\">"
   },
   "text": {
@@ -532,7 +532,7 @@
     600
    ],
    "italic": false,
-   "settings": "400 for body, 600 for emphasis Â· leading 1.5 Â· tracking 0",
+   "settings": "400 for body, 600 for emphasis · leading 1.5 · tracking 0",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Big+Shoulders:wght@800&family=Public+Sans:wght@400;600&display=swap\" rel=\"stylesheet\">"
   },
   "standsInFor": [
@@ -568,7 +568,7 @@
     800
    ],
    "italic": false,
-   "settings": "weight 800 at font-stretch 62% (load the wdth axis and use its narrowest setting) Â· tracking -0.01em Â· leading 0.86 Â· uppercase",
+   "settings": "weight 800 at font-stretch 62% (load the wdth axis and use its narrowest setting) · tracking -0.01em · leading 0.86 · uppercase",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap\" rel=\"stylesheet\">"
   },
   "text": {
@@ -579,7 +579,7 @@
     500
    ],
    "italic": false,
-   "settings": "normal width Â· 400 for body, 500 for buttons and emphasis Â· leading 1.5 Â· tracking 0",
+   "settings": "normal width · 400 for body, 500 for buttons and emphasis · leading 1.5 · tracking 0",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap\" rel=\"stylesheet\">"
   },
   "standsInFor": [
@@ -612,7 +612,7 @@
     400
    ],
    "italic": false,
-   "settings": "weight 400 (single cut, capitals only) Â· tracking -0.02em, tightening to -0.06em above 15vw Â· leading 0.85 Â· uppercase",
+   "settings": "weight 400 (single cut, capitals only) · tracking -0.02em, tightening to -0.06em above 15vw · leading 0.85 · uppercase",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Bebas+Neue:wght@400&family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&display=swap\" rel=\"stylesheet\">"
   },
   "text": {
@@ -623,7 +623,7 @@
     500
    ],
    "italic": true,
-   "settings": "leading 1.45 Â· tracking 0",
+   "settings": "leading 1.45 · tracking 0",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Bebas+Neue:wght@400&family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&display=swap\" rel=\"stylesheet\">"
   },
   "standsInFor": [
@@ -658,7 +658,7 @@
     700
    ],
    "italic": false,
-   "settings": "weight 700 Â· tracking -0.02em Â· leading 0.9 Â· uppercase for statements, mixed case for item titles",
+   "settings": "weight 700 · tracking -0.02em · leading 0.9 · uppercase for statements, mixed case for item titles",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700&family=Barlow:wght@400;500&display=swap\" rel=\"stylesheet\">"
   },
   "text": {
@@ -669,7 +669,7 @@
     500
    ],
    "italic": false,
-   "settings": "400 for body, 500 for emphasis Â· leading 1.5 Â· tracking 0",
+   "settings": "400 for body, 500 for emphasis · leading 1.5 · tracking 0",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700&family=Barlow:wght@400;500&display=swap\" rel=\"stylesheet\">"
   },
   "standsInFor": [
@@ -704,7 +704,7 @@
     700
    ],
    "italic": false,
-   "settings": "weight 700 Â· tracking -0.02em Â· leading 1.0 Â· uppercase; four words or fewer per line because the face is very wide",
+   "settings": "weight 700 · tracking -0.02em · leading 1.0 · uppercase; four words or fewer per line because the face is very wide",
    "css": "<link rel=\"preconnect\" href=\"https://api.fontshare.com\">\n<link rel=\"preconnect\" href=\"https://cdn.fontshare.com\" crossorigin>\n<link href=\"https://api.fontshare.com/v2/css?f[]=panchang@700&display=swap\" rel=\"stylesheet\">\n<link href=\"https://api.fontshare.com/v2/css?f[]=switzer@400,500&display=swap\" rel=\"stylesheet\">"
   },
   "text": {
@@ -716,7 +716,7 @@
     500
    ],
    "italic": false,
-   "settings": "400 for body, 500 for emphasis Â· leading 1.5 Â· tracking 0",
+   "settings": "400 for body, 500 for emphasis · leading 1.5 · tracking 0",
    "css": "<link rel=\"preconnect\" href=\"https://api.fontshare.com\">\n<link rel=\"preconnect\" href=\"https://cdn.fontshare.com\" crossorigin>\n<link href=\"https://api.fontshare.com/v2/css?f[]=panchang@700&display=swap\" rel=\"stylesheet\">\n<link href=\"https://api.fontshare.com/v2/css?f[]=switzer@400,500&display=swap\" rel=\"stylesheet\">"
   },
   "standsInFor": [
@@ -753,7 +753,7 @@
     800
    ],
    "italic": false,
-   "settings": "weight 800 at font-stretch 150% (load the wdth axis and use its widest setting) Â· tracking -0.01em Â· leading 1.0 Â· uppercase",
+   "settings": "weight 800 at font-stretch 150% (load the wdth axis and use its widest setting) · tracking -0.01em · leading 1.0 · uppercase",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=TikTok+Sans:wdth,wght@75..150,300..900&display=swap\" rel=\"stylesheet\">"
   },
   "text": {
@@ -764,7 +764,7 @@
     500
    ],
    "italic": false,
-   "settings": "normal width Â· 400 for body, 500 for emphasis Â· leading 1.45 Â· tracking 0",
+   "settings": "normal width · 400 for body, 500 for emphasis · leading 1.45 · tracking 0",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=TikTok+Sans:wdth,wght@75..150,300..900&display=swap\" rel=\"stylesheet\">"
   },
   "standsInFor": [
@@ -800,7 +800,7 @@
     800
    ],
    "italic": false,
-   "settings": "weight 800 Â· tracking -0.03em Â· leading 1.0 Â· uppercase",
+   "settings": "weight 800 · tracking -0.03em · leading 1.0 · uppercase",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Unbounded:wght@800&family=Onest:wght@400;500&display=swap\" rel=\"stylesheet\">"
   },
   "text": {
@@ -811,7 +811,7 @@
     500
    ],
    "italic": false,
-   "settings": "400 for body, 500 for emphasis Â· leading 1.5 Â· tracking 0",
+   "settings": "400 for body, 500 for emphasis · leading 1.5 · tracking 0",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Unbounded:wght@800&family=Onest:wght@400;500&display=swap\" rel=\"stylesheet\">"
   },
   "standsInFor": [
@@ -847,7 +847,7 @@
     900
    ],
    "italic": false,
-   "settings": "weight 900 Â· tracking -0.05em Â· leading 0.88 Â· uppercase",
+   "settings": "weight 900 · tracking -0.05em · leading 0.88 · uppercase",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Chivo:wght@400;700;900&display=swap\" rel=\"stylesheet\">"
   },
   "text": {
@@ -858,7 +858,7 @@
     700
    ],
    "italic": false,
-   "settings": "400 for paragraphs, 700 for navigation, tags and links Â· leading 1.35 Â· tracking -0.01em",
+   "settings": "400 for paragraphs, 700 for navigation, tags and links · leading 1.35 · tracking -0.01em",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Chivo:wght@400;700;900&display=swap\" rel=\"stylesheet\">"
   },
   "standsInFor": [
@@ -894,7 +894,7 @@
     800
    ],
    "italic": false,
-   "settings": "weight 800 Â· tracking -0.035em Â· leading 0.9 Â· lowercase or sentence case, one or two words per line",
+   "settings": "weight 800 · tracking -0.035em · leading 0.9 · lowercase or sentence case, one or two words per line",
    "css": "<link rel=\"preconnect\" href=\"https://api.fontshare.com\">\n<link rel=\"preconnect\" href=\"https://cdn.fontshare.com\" crossorigin>\n<link href=\"https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500,800&display=swap\" rel=\"stylesheet\">"
   },
   "text": {
@@ -906,7 +906,7 @@
     500
    ],
    "italic": false,
-   "settings": "400 for body, 500 for emphasis Â· leading 1.5 Â· tracking 0",
+   "settings": "400 for body, 500 for emphasis · leading 1.5 · tracking 0",
    "css": "<link rel=\"preconnect\" href=\"https://api.fontshare.com\">\n<link rel=\"preconnect\" href=\"https://cdn.fontshare.com\" crossorigin>\n<link href=\"https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500,800&display=swap\" rel=\"stylesheet\">"
   },
   "standsInFor": [
@@ -940,7 +940,7 @@
     900
    ],
    "italic": false,
-   "settings": "weight 900 Â· tracking -0.04em Â· leading 0.9 Â· sentence case or title case",
+   "settings": "weight 900 · tracking -0.04em · leading 0.9 · sentence case or title case",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Epilogue:wght@400;500;900&display=swap\" rel=\"stylesheet\">"
   },
   "text": {
@@ -951,7 +951,7 @@
     500
    ],
    "italic": false,
-   "settings": "400 for body, 500 for emphasis Â· leading 1.5 Â· tracking 0",
+   "settings": "400 for body, 500 for emphasis · leading 1.5 · tracking 0",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Epilogue:wght@400;500;900&display=swap\" rel=\"stylesheet\">"
   },
   "standsInFor": [
@@ -985,7 +985,7 @@
     900
    ],
    "italic": false,
-   "settings": "weight 900 Â· tracking -0.03em Â· leading 0.92 Â· uppercase; centred three-line stacks work well",
+   "settings": "weight 900 · tracking -0.03em · leading 0.92 · uppercase; centred three-line stacks work well",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@900&family=Red+Hat+Text:wght@400;500&display=swap\" rel=\"stylesheet\">"
   },
   "text": {
@@ -996,7 +996,7 @@
     500
    ],
    "italic": false,
-   "settings": "400 for body, 500 for emphasis Â· leading 1.5 Â· tracking 0",
+   "settings": "400 for body, 500 for emphasis · leading 1.5 · tracking 0",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@900&family=Red+Hat+Text:wght@400;500&display=swap\" rel=\"stylesheet\">"
   },
   "standsInFor": [
@@ -1029,7 +1029,7 @@
     700
    ],
    "italic": false,
-   "settings": "weight 700 Â· tracking -0.03em Â· leading 0.9 Â· uppercase",
+   "settings": "weight 700 · tracking -0.03em · leading 0.9 · uppercase",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Jost:wght@400;500;700&display=swap\" rel=\"stylesheet\">"
   },
   "text": {
@@ -1040,7 +1040,7 @@
     500
    ],
    "italic": false,
-   "settings": "400 for body, 500 for emphasis Â· leading 1.5 Â· tracking 0",
+   "settings": "400 for body, 500 for emphasis · leading 1.5 · tracking 0",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Jost:wght@400;500;700&display=swap\" rel=\"stylesheet\">"
   },
   "standsInFor": [
@@ -1073,7 +1073,7 @@
     300
    ],
    "italic": false,
-   "settings": "weight 300 Â· tracking -0.022em Â· leading 1.05 Â· sentence case; a heading may be two-tone, grey then full ink",
+   "settings": "weight 300 · tracking -0.022em · leading 1.05 · sentence case; a heading may be two-tone, grey then full ink",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Stack+Sans+Headline:wght@300&family=Stack+Sans+Text:wght@400;500&display=swap\" rel=\"stylesheet\">"
   },
   "text": {
@@ -1084,7 +1084,7 @@
     500
    ],
    "italic": false,
-   "settings": "400 for body, 500 for emphasis Â· leading 1.5 Â· tracking 0",
+   "settings": "400 for body, 500 for emphasis · leading 1.5 · tracking 0",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Stack+Sans+Headline:wght@300&family=Stack+Sans+Text:wght@400;500&display=swap\" rel=\"stylesheet\">"
   },
   "standsInFor": [
@@ -1118,7 +1118,7 @@
     600
    ],
    "italic": false,
-   "settings": "weight 600 Â· tracking -0.035em Â· leading 1.0 Â· sentence case",
+   "settings": "weight 600 · tracking -0.035em · leading 1.0 · sentence case",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600&display=swap\" rel=\"stylesheet\">"
   },
   "text": {
@@ -1129,7 +1129,7 @@
     500
    ],
    "italic": false,
-   "settings": "400 for body, 500 for emphasis Â· leading 1.5 Â· tracking 0",
+   "settings": "400 for body, 500 for emphasis · leading 1.5 · tracking 0",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600&display=swap\" rel=\"stylesheet\">"
   },
   "standsInFor": [
@@ -1163,7 +1163,7 @@
     700
    ],
    "italic": false,
-   "settings": "weight 700 Â· tracking -0.04em Â· leading 0.88 Â· lowercase or sentence case",
+   "settings": "weight 700 · tracking -0.04em · leading 0.88 · lowercase or sentence case",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=League+Spartan:wght@700&family=Figtree:wght@400;600&display=swap\" rel=\"stylesheet\">"
   },
   "text": {
@@ -1174,7 +1174,7 @@
     600
    ],
    "italic": false,
-   "settings": "400 for body, 600 for emphasis Â· leading 1.5 Â· tracking 0",
+   "settings": "400 for body, 600 for emphasis · leading 1.5 · tracking 0",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=League+Spartan:wght@700&family=Figtree:wght@400;600&display=swap\" rel=\"stylesheet\">"
   },
   "standsInFor": [
@@ -1210,7 +1210,7 @@
     700
    ],
    "italic": false,
-   "settings": "weight 700 Â· tracking -0.05em Â· leading 0.9 Â· all lowercase, one or two words per line",
+   "settings": "weight 700 · tracking -0.05em · leading 0.9 · all lowercase, one or two words per line",
    "css": "<link rel=\"preconnect\" href=\"https://api.fontshare.com\">\n<link rel=\"preconnect\" href=\"https://cdn.fontshare.com\" crossorigin>\n<link href=\"https://api.fontshare.com/v2/css?f[]=pilcrow-rounded@400,500,700&display=swap\" rel=\"stylesheet\">"
   },
   "text": {
@@ -1222,7 +1222,7 @@
     500
    ],
    "italic": false,
-   "settings": "400 for body, 500 for emphasis Â· leading 1.5 Â· tracking 0; lowercase throughout is fine",
+   "settings": "400 for body, 500 for emphasis · leading 1.5 · tracking 0; lowercase throughout is fine",
    "css": "<link rel=\"preconnect\" href=\"https://api.fontshare.com\">\n<link rel=\"preconnect\" href=\"https://cdn.fontshare.com\" crossorigin>\n<link href=\"https://api.fontshare.com/v2/css?f[]=pilcrow-rounded@400,500,700&display=swap\" rel=\"stylesheet\">"
   },
   "standsInFor": [
@@ -1257,7 +1257,7 @@
     500
    ],
    "italic": false,
-   "settings": "weight 500 Â· tracking -0.025em Â· leading 1.05 Â· sentence case; colour the type to its section instead of black",
+   "settings": "weight 500 · tracking -0.025em · leading 1.05 · sentence case; colour the type to its section instead of black",
    "css": "<link rel=\"preconnect\" href=\"https://api.fontshare.com\">\n<link rel=\"preconnect\" href=\"https://cdn.fontshare.com\" crossorigin>\n<link href=\"https://api.fontshare.com/v2/css?f[]=roundo@400,500,600&display=swap\" rel=\"stylesheet\">"
   },
   "text": {
@@ -1269,7 +1269,7 @@
     600
    ],
    "italic": false,
-   "settings": "400 for body, 600 for emphasis Â· leading 1.5 Â· tracking 0",
+   "settings": "400 for body, 600 for emphasis · leading 1.5 · tracking 0",
    "css": "<link rel=\"preconnect\" href=\"https://api.fontshare.com\">\n<link rel=\"preconnect\" href=\"https://cdn.fontshare.com\" crossorigin>\n<link href=\"https://api.fontshare.com/v2/css?f[]=roundo@400,500,600&display=swap\" rel=\"stylesheet\">"
   },
   "standsInFor": [
@@ -1303,7 +1303,7 @@
     600
    ],
    "italic": false,
-   "settings": "weight 600 Â· tracking -0.03em Â· leading 1.0 Â· sentence case",
+   "settings": "weight 600 · tracking -0.03em · leading 1.0 · sentence case",
    "css": "<link rel=\"preconnect\" href=\"https://api.fontshare.com\">\n<link rel=\"preconnect\" href=\"https://cdn.fontshare.com\" crossorigin>\n<link href=\"https://api.fontshare.com/v2/css?f[]=chillax@400,500,600&display=swap\" rel=\"stylesheet\">"
   },
   "text": {
@@ -1315,7 +1315,7 @@
     500
    ],
    "italic": false,
-   "settings": "400 for body, 500 for emphasis Â· leading 1.5 Â· tracking 0",
+   "settings": "400 for body, 500 for emphasis · leading 1.5 · tracking 0",
    "css": "<link rel=\"preconnect\" href=\"https://api.fontshare.com\">\n<link rel=\"preconnect\" href=\"https://cdn.fontshare.com\" crossorigin>\n<link href=\"https://api.fontshare.com/v2/css?f[]=chillax@400,500,600&display=swap\" rel=\"stylesheet\">"
   },
   "standsInFor": [
@@ -1349,7 +1349,7 @@
     400
    ],
    "italic": false,
-   "settings": "weight 400 (single cut) Â· tracking -0.02em Â· leading 0.92 Â· sentence case",
+   "settings": "weight 400 (single cut) · tracking -0.02em · leading 0.92 · sentence case",
    "css": "<link rel=\"preconnect\" href=\"https://api.fontshare.com\">\n<link rel=\"preconnect\" href=\"https://cdn.fontshare.com\" crossorigin>\n<link href=\"https://api.fontshare.com/v2/css?f[]=gambarino@400&display=swap\" rel=\"stylesheet\">\n<link href=\"https://api.fontshare.com/v2/css?f[]=general-sans@400,500&display=swap\" rel=\"stylesheet\">"
   },
   "text": {
@@ -1361,7 +1361,7 @@
     500
    ],
    "italic": false,
-   "settings": "400 for body, navigation and buttons, 500 for emphasis Â· leading 1.5",
+   "settings": "400 for body, navigation and buttons, 500 for emphasis · leading 1.5",
    "css": "<link rel=\"preconnect\" href=\"https://api.fontshare.com\">\n<link rel=\"preconnect\" href=\"https://cdn.fontshare.com\" crossorigin>\n<link href=\"https://api.fontshare.com/v2/css?f[]=gambarino@400&display=swap\" rel=\"stylesheet\">\n<link href=\"https://api.fontshare.com/v2/css?f[]=general-sans@400,500&display=swap\" rel=\"stylesheet\">"
   },
   "standsInFor": [
@@ -1397,7 +1397,7 @@
     500
    ],
    "italic": true,
-   "settings": "weight 500 with optical sizing on Â· tracking -0.02em Â· leading 0.95 Â· uppercase or sentence case; italic for a whole line, never for one word",
+   "settings": "weight 500 with optical sizing on · tracking -0.02em · leading 0.95 · uppercase or sentence case; italic for a whole line, never for one word",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,wght@0,500;1,500&family=Jost:wght@400;500&display=swap\" rel=\"stylesheet\">"
   },
   "text": {
@@ -1408,7 +1408,7 @@
     500
    ],
    "italic": false,
-   "settings": "400 for body, 500 for emphasis Â· leading 1.6 Â· tracking 0.01em",
+   "settings": "400 for body, 500 for emphasis · leading 1.6 · tracking 0.01em",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,wght@0,500;1,500&family=Jost:wght@400;500&display=swap\" rel=\"stylesheet\">"
   },
   "standsInFor": [
@@ -1441,7 +1441,7 @@
     400
    ],
    "italic": false,
-   "settings": "weight 400 with optical sizing on Â· tracking -0.01em Â· leading 0.9 Â· uppercase, sized so one short word fills its column (6â€“12vw)",
+   "settings": "weight 400 with optical sizing on · tracking -0.01em · leading 0.9 · uppercase, sized so one short word fills its column (6–12vw)",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Imbue:wght@400&family=Albert+Sans:wght@400;500&display=swap\" rel=\"stylesheet\">"
   },
   "text": {
@@ -1452,7 +1452,7 @@
     500
    ],
    "italic": false,
-   "settings": "400 for body, 500 for emphasis Â· leading 1.55 Â· tracking 0",
+   "settings": "400 for body, 500 for emphasis · leading 1.55 · tracking 0",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Imbue:wght@400&family=Albert+Sans:wght@400;500&display=swap\" rel=\"stylesheet\">"
   },
   "standsInFor": [
@@ -1485,7 +1485,7 @@
     500
    ],
    "italic": false,
-   "settings": "weight 500 Â· tracking -0.025em Â· leading 0.95 Â· sentence case, or tight capitals at 32â€“40px for a single statement",
+   "settings": "weight 500 · tracking -0.025em · leading 0.95 · sentence case, or tight capitals at 32–40px for a single statement",
    "css": "<link rel=\"preconnect\" href=\"https://api.fontshare.com\">\n<link rel=\"preconnect\" href=\"https://cdn.fontshare.com\" crossorigin>\n<link href=\"https://api.fontshare.com/v2/css?f[]=erode@400,500,600&display=swap\" rel=\"stylesheet\">"
   },
   "text": {
@@ -1497,7 +1497,7 @@
     600
    ],
    "italic": true,
-   "settings": "400 for body, 600 for emphasis, italic for titles of works Â· leading 1.5 Â· tracking 0",
+   "settings": "400 for body, 600 for emphasis, italic for titles of works · leading 1.5 · tracking 0",
    "css": "<link rel=\"preconnect\" href=\"https://api.fontshare.com\">\n<link rel=\"preconnect\" href=\"https://cdn.fontshare.com\" crossorigin>\n<link href=\"https://api.fontshare.com/v2/css?f[]=erode@400,500,600&display=swap\" rel=\"stylesheet\">"
   },
   "standsInFor": [
@@ -1533,7 +1533,7 @@
     400
    ],
    "italic": true,
-   "settings": "weight 400 Â· tracking -0.02em Â· leading 0.95 Â· roman capitals for the main words with lowercase italic for the connecting words at the same size, or sentence case throughout; centred lines work",
+   "settings": "weight 400 · tracking -0.02em · leading 0.95 · roman capitals for the main words with lowercase italic for the connecting words at the same size, or sentence case throughout; centred lines work",
    "css": "<link rel=\"preconnect\" href=\"https://api.fontshare.com\">\n<link rel=\"preconnect\" href=\"https://cdn.fontshare.com\" crossorigin>\n<link href=\"https://api.fontshare.com/v2/css?f[]=boska@400,500&display=swap\" rel=\"stylesheet\">"
   },
   "text": {
@@ -1545,7 +1545,7 @@
     500
    ],
    "italic": true,
-   "settings": "400 for body, 500 for emphasis Â· leading 1.5 Â· tracking 0.005em",
+   "settings": "400 for body, 500 for emphasis · leading 1.5 · tracking 0.005em",
    "css": "<link rel=\"preconnect\" href=\"https://api.fontshare.com\">\n<link rel=\"preconnect\" href=\"https://cdn.fontshare.com\" crossorigin>\n<link href=\"https://api.fontshare.com/v2/css?f[]=boska@400,500&display=swap\" rel=\"stylesheet\">"
   },
   "standsInFor": [
@@ -1579,7 +1579,7 @@
     300
    ],
    "italic": false,
-   "settings": "weight 300 with optical sizing on Â· tracking -0.05em Â· leading 0.9 Â· sentence case at 12â€“14vw; chapter headings drop to the text weight at about 30px",
+   "settings": "weight 300 with optical sizing on · tracking -0.05em · leading 0.9 · sentence case at 12–14vw; chapter headings drop to the text weight at about 30px",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&display=swap\" rel=\"stylesheet\">"
   },
   "text": {
@@ -1590,7 +1590,7 @@
     500
    ],
    "italic": true,
-   "settings": "400 for body, 500 for emphasis, italic for titles Â· leading 1.6 Â· tracking 0",
+   "settings": "400 for body, 500 for emphasis, italic for titles · leading 1.6 · tracking 0",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&display=swap\" rel=\"stylesheet\">"
   },
   "standsInFor": [
@@ -1626,7 +1626,7 @@
     300
    ],
    "italic": false,
-   "settings": "weight 100 above 96px, 300 for 28â€“36px statements Â· tracking -0.01em Â· leading 1.0 Â· capitals for the headline, sentence case for statements; never bold",
+   "settings": "weight 100 above 96px, 300 for 28–36px statements · tracking -0.01em · leading 1.0 · capitals for the headline, sentence case for statements; never bold",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link rel=\"preconnect\" href=\"https://api.fontshare.com\">\n<link rel=\"preconnect\" href=\"https://cdn.fontshare.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500&display=swap\" rel=\"stylesheet\">\n<link href=\"https://api.fontshare.com/v2/css?f[]=zodiak@100,300&display=swap\" rel=\"stylesheet\">"
   },
   "text": {
@@ -1637,7 +1637,7 @@
     500
    ],
    "italic": false,
-   "settings": "400 for body, 500 for emphasis Â· leading 1.5 Â· tracking 0",
+   "settings": "400 for body, 500 for emphasis · leading 1.5 · tracking 0",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link rel=\"preconnect\" href=\"https://api.fontshare.com\">\n<link rel=\"preconnect\" href=\"https://cdn.fontshare.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500&display=swap\" rel=\"stylesheet\">\n<link href=\"https://api.fontshare.com/v2/css?f[]=zodiak@100,300&display=swap\" rel=\"stylesheet\">"
   },
   "standsInFor": [
@@ -1675,7 +1675,7 @@
     300
    ],
    "italic": false,
-   "settings": "weight 300 Â· tracking -0.015em Â· leading 1.0 Â· sentence case; about 8vw for the headline, 40px for statements",
+   "settings": "weight 300 · tracking -0.015em · leading 1.0 · sentence case; about 8vw for the headline, 40px for statements",
    "css": "<link rel=\"preconnect\" href=\"https://api.fontshare.com\">\n<link rel=\"preconnect\" href=\"https://cdn.fontshare.com\" crossorigin>\n<link href=\"https://api.fontshare.com/v2/css?f[]=sentient@300,400,500&display=swap\" rel=\"stylesheet\">"
   },
   "text": {
@@ -1687,7 +1687,7 @@
     500
    ],
    "italic": true,
-   "settings": "400 for body, 500 for emphasis Â· leading 1.55 Â· tracking 0",
+   "settings": "400 for body, 500 for emphasis · leading 1.55 · tracking 0",
    "css": "<link rel=\"preconnect\" href=\"https://api.fontshare.com\">\n<link rel=\"preconnect\" href=\"https://cdn.fontshare.com\" crossorigin>\n<link href=\"https://api.fontshare.com/v2/css?f[]=sentient@300,400,500&display=swap\" rel=\"stylesheet\">"
   },
   "standsInFor": [
@@ -1722,7 +1722,7 @@
     400
    ],
    "italic": true,
-   "settings": "weight 400, italic for the title Â· tracking -0.01em Â· leading 1.1 Â· sentence case or all lowercase; the largest size stays near 40px",
+   "settings": "weight 400, italic for the title · tracking -0.01em · leading 1.1 · sentence case or all lowercase; the largest size stays near 40px",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&display=swap\" rel=\"stylesheet\">"
   },
   "text": {
@@ -1733,7 +1733,7 @@
     500
    ],
    "italic": true,
-   "settings": "400 for body, 500 for emphasis Â· leading 1.5 Â· tracking 0",
+   "settings": "400 for body, 500 for emphasis · leading 1.5 · tracking 0",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&display=swap\" rel=\"stylesheet\">"
   },
   "standsInFor": [
@@ -1766,7 +1766,7 @@
     500
    ],
    "italic": false,
-   "settings": "weight 500 with optical sizing on Â· tracking -0.02em Â· leading 1.05 Â· sentence case",
+   "settings": "weight 500 with optical sizing on · tracking -0.02em · leading 1.05 · sentence case",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&display=swap\" rel=\"stylesheet\">"
   },
   "text": {
@@ -1777,7 +1777,7 @@
     600
    ],
    "italic": true,
-   "settings": "400 for body, 600 for emphasis, italic for titles Â· leading 1.6 Â· tracking 0",
+   "settings": "400 for body, 600 for emphasis, italic for titles · leading 1.6 · tracking 0",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&display=swap\" rel=\"stylesheet\">"
   },
   "standsInFor": [
@@ -1812,7 +1812,7 @@
     400
    ],
    "italic": true,
-   "settings": "weight 400 Â· tracking -0.026em Â· leading 1.1 Â· sentence case at 2.6â€“3.6vw; one running line may be set in italic capitals",
+   "settings": "weight 400 · tracking -0.026em · leading 1.1 · sentence case at 2.6–3.6vw; one running line may be set in italic capitals",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=STIX+Two+Text:ital,wght@0,400;0,600;1,400;1,600&display=swap\" rel=\"stylesheet\">"
   },
   "text": {
@@ -1823,7 +1823,7 @@
     600
    ],
    "italic": false,
-   "settings": "400 for body, 600 for emphasis Â· leading 1.45 Â· tracking 0",
+   "settings": "400 for body, 600 for emphasis · leading 1.45 · tracking 0",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=STIX+Two+Text:ital,wght@0,400;0,600;1,400;1,600&display=swap\" rel=\"stylesheet\">"
   },
   "standsInFor": [
@@ -1858,7 +1858,7 @@
     400
    ],
    "italic": false,
-   "settings": "weight 400 (single heavy cut) Â· tracking -0.02em Â· leading 0.95 Â· sentence case",
+   "settings": "weight 400 (single heavy cut) · tracking -0.02em · leading 0.95 · sentence case",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Young+Serif:wght@400&family=Source+Serif+4:ital,wght@0,400;0,600;1,400;1,600&display=swap\" rel=\"stylesheet\">"
   },
   "text": {
@@ -1869,7 +1869,7 @@
     600
    ],
    "italic": true,
-   "settings": "400 for body, 600 for emphasis, italic for quotations Â· leading 1.55 Â· tracking 0",
+   "settings": "400 for body, 600 for emphasis, italic for quotations · leading 1.55 · tracking 0",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Young+Serif:wght@400&family=Source+Serif+4:ital,wght@0,400;0,600;1,400;1,600&display=swap\" rel=\"stylesheet\">"
   },
   "standsInFor": [
@@ -1904,7 +1904,7 @@
     600
    ],
    "italic": false,
-   "settings": "weight 600 Â· tracking -0.025em Â· leading 1.0 Â· sentence case",
+   "settings": "weight 600 · tracking -0.025em · leading 1.0 · sentence case",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Zilla+Slab:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&display=swap\" rel=\"stylesheet\">"
   },
   "text": {
@@ -1915,7 +1915,7 @@
     500
    ],
    "italic": true,
-   "settings": "400 for body, 500 for emphasis Â· leading 1.5 Â· tracking 0",
+   "settings": "400 for body, 500 for emphasis · leading 1.5 · tracking 0",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Zilla+Slab:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&display=swap\" rel=\"stylesheet\">"
   },
   "standsInFor": [
@@ -1946,7 +1946,7 @@
     800
    ],
    "italic": false,
-   "settings": "weight 800 Â· tracking -0.02em Â· leading 0.95 Â· sentence case or uppercase",
+   "settings": "weight 800 · tracking -0.02em · leading 0.95 · sentence case or uppercase",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Besley:wght@800&family=Libre+Franklin:wght@400;600&display=swap\" rel=\"stylesheet\">"
   },
   "text": {
@@ -1957,7 +1957,7 @@
     600
    ],
    "italic": false,
-   "settings": "400 for body, 600 for emphasis Â· leading 1.5 Â· tracking 0",
+   "settings": "400 for body, 600 for emphasis · leading 1.5 · tracking 0",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Besley:wght@800&family=Libre+Franklin:wght@400;600&display=swap\" rel=\"stylesheet\">"
   },
   "standsInFor": [
@@ -1990,7 +1990,7 @@
     800
    ],
    "italic": false,
-   "settings": "weight 800 Â· tracking -0.01em Â· leading 0.85 Â· uppercase, sized by cap height (about 14vw)",
+   "settings": "weight 800 · tracking -0.01em · leading 0.85 · uppercase, sized by cap height (about 14vw)",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Rokkitt:wght@800&family=Literata:ital,wght@0,400;0,600;1,400;1,600&display=swap\" rel=\"stylesheet\">"
   },
   "text": {
@@ -2001,7 +2001,7 @@
     600
    ],
    "italic": true,
-   "settings": "400 for body, 600 for emphasis Â· leading 1.6 Â· tracking 0",
+   "settings": "400 for body, 600 for emphasis · leading 1.6 · tracking 0",
    "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Rokkitt:wght@800&family=Literata:ital,wght@0,400;0,600;1,400;1,600&display=swap\" rel=\"stylesheet\">"
   },
   "standsInFor": [

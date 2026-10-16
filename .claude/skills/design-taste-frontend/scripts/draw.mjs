@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// tasteskill / draw â€” deal an art direction from the research library.
+// tasteskill / draw — deal an art direction from the research library.
 //
 // The script chooses, not the model: a model asked to pick a direction returns the category
 // default every time. The draw is random within what fits the brief, and it remembers recent
@@ -62,7 +62,7 @@ const DEFAULT_SECTIONS = {
   music: ['hero', 'list', 'gallery', 'about', 'cta', 'footer'],
   other: ['hero', 'intro', 'features', 'showcase', 'cta', 'footer'],
 };
-// requested role names â†’ the role vocabulary used by library/sections.json
+// requested role names → the role vocabulary used by library/sections.json
 const ROLE_ALIAS = { features: 'features', feature: 'features', benefits: 'features', services: 'features', showcase: 'showcase', product: 'showcase', demo: 'showcase', 'how-it-works': 'how-it-works', how: 'how-it-works', process: 'how-it-works', steps: 'how-it-works', testimonial: 'testimonial', testimonials: 'testimonial', quotes: 'testimonial', proof: 'proof', logos: 'proof', press: 'proof', stats: 'stats', numbers: 'stats', pricing: 'pricing', plans: 'pricing', faq: 'faq', cta: 'cta', footer: 'footer', intro: 'intro', manifesto: 'intro', about: 'about', team: 'about', work: 'work', projects: 'work', index: 'work', 'case-studies': 'work', gallery: 'gallery', images: 'gallery', list: 'list', menu: 'list', schedule: 'list', lineup: 'list', 'line-up': 'list', speakers: 'list', agenda: 'list', programme: 'list', program: 'list', timetable: 'list', rooms: 'list', tickets: 'pricing', price: 'pricing', contact: 'contact', booking: 'contact', newsletter: 'contact', signup: 'contact' };
 
 if (opt('list')) {
@@ -70,14 +70,14 @@ if (opt('list')) {
   if (what === 'sectors') console.log(SECTORS.join('\n'));
   else if (what === 'tones') console.log(TONES.join('\n'));
   else if (what === 'roles') console.log([...new Set(Object.values(ROLE_ALIAS))].join('\n'));
-  else for (const d of load('directions')) console.log(`${d.id.padEnd(30)} ${d.name} â€” ${d.sectors.join(', ')}`);
+  else for (const d of load('directions')) console.log(`${d.id.padEnd(30)} ${d.name} — ${d.sectors.join(', ')}`);
   process.exit(0);
 }
 if (opt('photos')) {
   const lib = load('photos'); const q = String(opt('photos'));
-  const line = (ph) => `- https://picsum.photos/id/${ph.id}/1600/1000 â€” ${ph.alt} Â· ${ph.tone} tone Â· ${(ph.colours || []).join(', ')}${ph.mono ? ' Â· black-and-white' : ''}${ph.calm && ph.calm !== 'none' ? ` Â· calm area: ${ph.calm}` : ''} Â· photo: ${ph.by}`;
-  if (q === 'list' || q === 'true') { for (const [id, set] of Object.entries(lib.sets)) console.log(`${id.padEnd(22)} ${String(set.photos.length).padStart(3)} photos â€” ${set.note}`); }
-  else if (lib.sets[q]) { console.log(`# ${lib.sets[q].title} â€” ${lib.sets[q].note}`); for (const ph of lib.sets[q].photos) console.log(line(ph)); }
+  const line = (ph) => `- https://picsum.photos/id/${ph.id}/1600/1000 — ${ph.alt} · ${ph.tone} tone · ${(ph.colours || []).join(', ')}${ph.mono ? ' · black-and-white' : ''}${ph.calm && ph.calm !== 'none' ? ` · calm area: ${ph.calm}` : ''} · photo: ${ph.by}`;
+  if (q === 'list' || q === 'true') { for (const [id, set] of Object.entries(lib.sets)) console.log(`${id.padEnd(22)} ${String(set.photos.length).padStart(3)} photos — ${set.note}`); }
+  else if (lib.sets[q]) { console.log(`# ${lib.sets[q].title} — ${lib.sets[q].note}`); for (const ph of lib.sets[q].photos) console.log(line(ph)); }
   else { // free-text search across all descriptions
     const words = q.toLowerCase().split(/[^a-z]+/).filter((w) => w.length >= 3);
     const hits = Object.values(lib.sets).flatMap((s) => s.photos).filter((ph) => words.some((w) => (ph.alt + ' ' + (ph.colours || []).join(' ')).toLowerCase().includes(w)));
@@ -127,7 +127,7 @@ if (opt('alternatives')) {
   const current = saved.sections.find((s) => s.role === role)?.id;
   const pool = sectionPool(dir, role, saved.input);
   if (!pool.length) { console.error('No blueprints for role ' + role + '. Roles: --list roles'); process.exit(2); }
-  const line = (s) => `- \`${s.id}\`${s.id === current ? ' (dealt)' : ''} â€” **${s.name}** (${s.shape}). ${s.blueprint.split(/(?<=\.)\s/).slice(0, 2).join(' ')}\n`;
+  const line = (s) => `- \`${s.id}\`${s.id === current ? ' (dealt)' : ''} — **${s.name}** (${s.shape}). ${s.blueprint.split(/(?<=\.)\s/).slice(0, 2).join(' ')}\n`;
   console.log(`# ${role}: blueprints that suit "${dir.name}"\n`);
   for (const s of pool) console.log(line(s));
   const software = imageryMode(saved.input) === 'interface';
@@ -185,7 +185,7 @@ if (opt('redraw')) {
     console.log('Choose the one whose way of composing can best carry an idea from your inventory (SKILL.md steps 1 and 4), not the');
     console.log('most familiar one. Then deal it in full with the same command plus `--direction <id>` (and without --options).\n');
     for (const d of options) {
-      console.log(`## \`${d.id}\` â€” ${d.name}`);
+      console.log(`## \`${d.id}\` — ${d.name}`);
       console.log(`Idea engine: ${d.idea.split(/(?<=\.)\s/).slice(0, 2).join(' ')}`);
       console.log(`Composition: ${d.composition.split(/(?<=\.)\s/).slice(0, 2).join(' ')}`);
       if (d.needsPictures) console.log('Needs: many pictures. Without photographs of its own, each is a real picture of the subject\'s world found with scripts/assets.mjs, or a drawing you make.');
@@ -318,7 +318,7 @@ function briefWords(brief) {
 function assetQueries(input) {
   const brief = String(input.brief || '');
   const notPlace = /^(?:january|february|march|april|may|june|july|august|september|october|november|december|monday|tuesday|wednesday|thursday|friday|saturday|sunday)s?$/i;
-  const placeRe = /(?:^|[\s,(])(?:in|at|near|from|on|above|below|beside|outside|off|over)\s+(\p{Lu}[\p{L}'â€™-]*(?:\s+(?:\p{Lu}[\p{L}'â€™-]*|de|da|do|dos|das|di|del|van|von|der|den))*)/gu;
+  const placeRe = /(?:^|[\s,(])(?:in|at|near|from|on|above|below|beside|outside|off|over)\s+(\p{Lu}[\p{L}'’-]*(?:\s+(?:\p{Lu}[\p{L}'’-]*|de|da|do|dos|das|di|del|van|von|der|den))*)/gu;
   const place = [...brief.matchAll(placeRe)].map((m) => m[1].trim()).find((p) => !notPlace.test(p.split(/\s+/)[0]));
   const stop = briefStop();
   const generic = new Set(['seat', 'seats', 'room', 'rooms', 'minute', 'minutes', 'hour', 'hours', 'night', 'nights', 'year', 'years', 'people', 'family', 'local', 'short', 'best', 'making', 'selling', 'serving', 'offering', 'business', 'company', 'brand', 'shop', 'store', 'studio', 'service', 'services', 'dinner', 'lunch', 'breakfast', 'included', 'online', 'modern']);
@@ -414,8 +414,8 @@ function siteCard(s, full) {
 function render(s) {
   const d = s.direction; const o = [];
   const p = (x = '') => o.push(x);
-  p(`# DIRECTION SHEET â€” ${d.name}`);
-  p(`seed ${s.seed} Â· drawn ${s.at.slice(0, 10)}${s.redraws ? ` Â· redraws: ${s.redraws}` : ''} Â· sector ${s.input.sector}${s.input.tone ? ' Â· tone ' + s.input.tone : ''}`);
+  p(`# DIRECTION SHEET — ${d.name}`);
+  p(`seed ${s.seed} · drawn ${s.at.slice(0, 10)}${s.redraws ? ` · redraws: ${s.redraws}` : ''} · sector ${s.input.sector}${s.input.tone ? ' · tone ' + s.input.tone : ''}`);
   if (s.input.brief) p(`Brief: ${s.input.brief}`);
   p();
   p('| | |'); p('| --- | --- |');
@@ -423,8 +423,8 @@ function render(s) {
   p(`| Hero | ${s.hero.name} |`);
   p(`| Type | ${s.type ? s.type.name : 'kept from the brand'} |`);
   p(`| Colour | ${s.palette ? s.palette.name : 'kept from the brand'} |`);
-  p(`| Sections | ${s.sections.map((x) => x.role + (x.name && x.name !== x.role ? ' (' + x.name + ')' : '')).join(' â†’ ')} |`);
-  p(`| Motion | ${s.motion ? s.motion.name : 'â€”'} |`);
+  p(`| Sections | ${s.sections.map((x) => x.role + (x.name && x.name !== x.role ? ' (' + x.name + ')' : '')).join(' → ')} |`);
+  p(`| Motion | ${s.motion ? s.motion.name : '—'} |`);
   p(`| Photographs | ${s.photos ? 'the "' + (s.photos.title || s.photos.set) + '" set, as atmosphere' : 'none'} |`);
   p();
   p('This is the direction for this build. Adopt it. Do not blend it with the layout you would have made anyway,');
@@ -432,9 +432,9 @@ function render(s) {
   p('with a stated brand constraint or needs an asset that does not exist, and say why in your report.');
   p();
   p('The parts of this sheet were written separately and will disagree in small ways. Settle every disagreement in this order:');
-  p('**house rules** (including type no smaller than 13px and body text of 16px or more) â†’ **the direction** (the idea, the composition habits, where the');
-  p('one accent goes) â†’ **the type system and the palette** (which face does which job, the five size steps, which colour is the ground and where the');
-  p('accent goes) â†’ **the hero blueprint** â†’ **the section blueprints**. Under each blueprint below, "Adjusted for this page" lists where it disagrees.');
+  p('**house rules** (including type no smaller than 13px and body text of 16px or more) → **the direction** (the idea, the composition habits, where the');
+  p('one accent goes) → **the type system and the palette** (which face does which job, the five size steps, which colour is the ground and where the');
+  p('accent goes) → **the hero blueprint** → **the section blueprints**. Under each blueprint below, "Adjusted for this page" lists where it disagrees.');
   p('In practice: take geometry from blueprints (columns, proportions, what sits where) and take everything else from above them. Map every size a');
   p('blueprint names onto one of your five type steps instead of adding a sixth. Use one button shape, one corner radius and one pair of page margins on');
   p('the whole page, whatever individual blueprints say. If a blueprint names a kind of typeface (a light serif, a heavy grotesk), use the dealt face.');
@@ -447,10 +447,10 @@ function render(s) {
   p('## 2. Composition'); p(d.composition); p();
   if (s.type) {
     const t = s.type;
-    p(`## 3. Type â€” ${t.name}`); p(t.note);
+    p(`## 3. Type — ${t.name}`); p(t.note);
     p('```html'); for (const l of [...new Set([t.display.css, t.text.css].filter(Boolean))]) p(l); p('```');
-    p(`- Display: **${t.display.family}** â€” ${t.display.settings}`);
-    p(`- Text: **${t.text.family}** â€” ${t.text.settings}`);
+    p(`- Display: **${t.display.family}** — ${t.display.settings}`);
+    p(`- Text: **${t.text.family}** — ${t.text.settings}`);
     if (t.scale) { p('```css'); p(':root {'); for (const [k, v] of Object.entries(t.scale)) p(`  --${k}: ${v};`); p('}'); p('```'); }
     if (d.typography) p(d.typography);
     p('The direction decides sizes and how many of them; the type system decides how this face is set. Where the two give different tracking or leading, use the values of the type system: they are tuned to this face.');
@@ -459,7 +459,7 @@ function render(s) {
   } else { p('## 3. Type'); p('Kept from the brand. ' + (d.typography || '')); p(); }
   if (s.palette) {
     const c = s.palette;
-    p(`## 4. Colour â€” ${c.name}`); p('```css'); p(':root {');
+    p(`## 4. Colour — ${c.name}`); p('```css'); p(':root {');
     for (const k of ['bg', 'surface', 'ink', 'muted', 'accent', 'accentInk']) if (c[k]) p(`  --${k.replace(/[A-Z]/g, (m) => '-' + m.toLowerCase())}: ${c[k]};`);
     (c.fields || []).forEach((f, i) => p(`  --field-${i + 1}: ${f.bg};${f.ink ? `  --field-${i + 1}-ink: ${f.ink};` : ''}`));
     p('}'); p('```'); p(c.note); if (d.colour) p(d.colour); p();
@@ -472,8 +472,8 @@ function render(s) {
     : `\`${ASSETS_CMD} "<a place, material or object from your inventory>"\``;
   const MODE = {
     interface: '**This subject is software and there are no screenshots, so its pictures are its own interface.** Wherever this sheet says photograph, image or object, build a believable fragment of the product in HTML at real size (real labels, numbers that add up, one item hovered or selected), put the attribute `data-ui` on its root, and crop or scale it the way the blueprint treats a photograph: a full-bleed close crop, a tile, the fixed half of a split. Where a fragment makes no sense, use a flat colour field with type on it. Never a fake dashboard of grey bars, never a device frame. If the product works on something physical (ships, plants, buildings, a city), one real picture of that world can carry a section: find it with `' + ASSETS_CMD + ' "<that world>"`, download it with `--get`, credit it on the page, and never let it pass for the product or its customers.',
-    'no-product-photo': '**There are no photographs of the product and none can be faked.** Wherever this sheet calls for a picture of the object, draw the object: its pieces as flat shapes in inline SVG, large, in one graphic language and in the colours that make it worth buying (a glaze, a finish, a material), never grey placeholders (references/imagery.md Â§8). **Around the object, use real pictures of its world** from the open collections: its material up close, its town in old postcards, its craft in engravings, a museum piece of the same kind, never one a visitor could take for the product itself (references/imagery.md Â§3). Start with ' + find + '. Download what you use with `--get` and credit every one on the page (`--credits` prints the footer line). Type at scale and full colour fields carry the rest; the dealt photographs only where they plainly do not pretend to be the product. In your report, say that product photography is needed and which drawings it will replace, and list every found picture with its source and licence.',
-    atmosphere: '**The project has no photographs of its own yet.** First choice: **real pictures of the subject\'s world from the open collections**: its city and street in old postcards and photographs, an old map of the neighbourhood, its materials up close, its trade in engravings, museum objects of its kind (references/imagery.md Â§3). Start with ' + find + '. Download what you use into the project with `--get` and credit every one on the page (`--credits` prints the footer line). They show the world around the client, never the client\'s own room, dish, product, person or team. Second, for what no honest picture exists of: draw the subject\'s own things in code, large, in one flat graphic language and the palette\'s real colours (its tiles, its windows, its objects; references/imagery.md Â§8). Third: the dealt photographs, only where an honestly generic picture fits (the sea, the weather, a material), never one a visitor could take for the thing itself and never an unrelated scene. One treatment for all of them. If this direction is built on photographs, plan the set before building (four to six pictures of one family) and reuse them at different crops and scales instead of finding or drawing a new picture for every slot; keep drawings as `<symbol>` + `<use>` or generate them with a small script so the page stays light. List every found picture (with its source and licence), every dealt photograph and every drawing that stands in for photography in your report.',
+    'no-product-photo': '**There are no photographs of the product and none can be faked.** Wherever this sheet calls for a picture of the object, draw the object: its pieces as flat shapes in inline SVG, large, in one graphic language and in the colours that make it worth buying (a glaze, a finish, a material), never grey placeholders (references/imagery.md §8). **Around the object, use real pictures of its world** from the open collections: its material up close, its town in old postcards, its craft in engravings, a museum piece of the same kind, never one a visitor could take for the product itself (references/imagery.md §3). Start with ' + find + '. Download what you use with `--get` and credit every one on the page (`--credits` prints the footer line). Type at scale and full colour fields carry the rest; the dealt photographs only where they plainly do not pretend to be the product. In your report, say that product photography is needed and which drawings it will replace, and list every found picture with its source and licence.',
+    atmosphere: '**The project has no photographs of its own yet.** First choice: **real pictures of the subject\'s world from the open collections**: its city and street in old postcards and photographs, an old map of the neighbourhood, its materials up close, its trade in engravings, museum objects of its kind (references/imagery.md §3). Start with ' + find + '. Download what you use into the project with `--get` and credit every one on the page (`--credits` prints the footer line). They show the world around the client, never the client\'s own room, dish, product, person or team. Second, for what no honest picture exists of: draw the subject\'s own things in code, large, in one flat graphic language and the palette\'s real colours (its tiles, its windows, its objects; references/imagery.md §8). Third: the dealt photographs, only where an honestly generic picture fits (the sea, the weather, a material), never one a visitor could take for the thing itself and never an unrelated scene. One treatment for all of them. If this direction is built on photographs, plan the set before building (four to six pictures of one family) and reuse them at different crops and scales instead of finding or drawing a new picture for every slot; keep drawings as `<symbol>` + `<use>` or generate them with a small script so the page stays light. List every found picture (with its source and licence), every dealt photograph and every drawing that stands in for photography in your report.',
     own: '**Use the images that belong to the project in every picture slot.** For slots they cannot fill, real pictures of the subject\'s world from the open collections come next (start with ' + find + '; credit them on the page), then the dealt photographs.',
   };
   p(MODE[s.imagery || 'atmosphere']); p(); p(d.imagery);
@@ -487,26 +487,26 @@ function render(s) {
     p('texture. They are atmosphere, never a stand-in for a specific product, dish, person or interface. List the ones you use in your report so');
     p('they can be replaced.');
     if (s.photos.treatment) p(`Treatment: ${s.photos.treatment}`);
-    for (const ph of s.photos.photos) p(`- \`https://picsum.photos/id/${ph.id}/1600/1000\` â€” ${ph.alt} Â· ${ph.tone} tone Â· ${(ph.colours || []).join(', ')}${ph.mono ? ' Â· black-and-white' : ''}${ph.lookalike ? ' Â· **could be taken for the product: never use it as the product**' : ''}${ph.calm && ph.calm !== 'none' ? ` Â· calm area: ${ph.calm}` : ''} Â· native ${ph.ratio >= 1.15 ? 'landscape' : ph.ratio <= 0.87 ? 'portrait' : 'square'} Â· photo: ${ph.by}`);
+    for (const ph of s.photos.photos) p(`- \`https://picsum.photos/id/${ph.id}/1600/1000\` — ${ph.alt} · ${ph.tone} tone · ${(ph.colours || []).join(', ')}${ph.mono ? ' · black-and-white' : ''}${ph.lookalike ? ' · **could be taken for the product: never use it as the product**' : ''}${ph.calm && ph.calm !== 'none' ? ` · calm area: ${ph.calm}` : ''} · native ${ph.ratio >= 1.15 ? 'landscape' : ph.ratio <= 0.87 ? 'portrait' : 'square'} · photo: ${ph.by}`);
     p('The last two path numbers are width and height: request the exact crop you render (`/1200/1500` for a 4:5 portrait, `/2400/1350` for a hero) and');
     p('add `?grayscale` to desaturate. ' + (s.imagery === 'interface' ? 'Use at most two.' : 'Use three to six of them, not all eight.') + ' Always set `width`, `height`, `alt` and `loading="lazy"` (not on the hero image).');
-    if (s.photos.others?.length) p(`Other sets that fit this brief: ${s.photos.others.join(', ')} â€” \`node draw.mjs --photos <set>\` prints one in full; \`--photos list\` shows all sets. Taking photographs from another set is your call and is not a redraw; keep them to one light and one treatment.`);
+    if (s.photos.others?.length) p(`Other sets that fit this brief: ${s.photos.others.join(', ')} — \`node draw.mjs --photos <set>\` prints one in full; \`--photos list\` shows all sets. Taking photographs from another set is your call and is not a redraw; keep them to one light and one treatment.`);
   } else if (d.photos === false) {
     p(); p('This direction does not lead with photographs; it still carries the picture floor below, with real pictures placed where the direction allows them.');
   }
   p();
   const adjust = (bp) => { const n = adjustments(bp, s); if (n.length) { p(); p('Adjusted for this page:'); for (const x of n) p(`- ${x}`); } };
-  p(`## 6. Hero â€” ${s.hero.name}`); p(s.hero.blueprint); p(); p(`On a phone: ${s.hero.mobile}`); if (s.hero.headline) p(`Headline: ${s.hero.headline}`); adjust(s.hero); p();
+  p(`## 6. Hero — ${s.hero.name}`); p(s.hero.blueprint); p(); p(`On a phone: ${s.hero.mobile}`); if (s.hero.headline) p(`Headline: ${s.hero.headline}`); adjust(s.hero); p();
   p('## 7. Sections, in order');
   p('Each is a composition to rebuild with this project\'s content. Keep the geometry; change the subject. Re-order or drop a');
   p('section when the argument of the page needs it (see references/copy.md), never to fall back to a card grid.');
   s.sections.forEach((sec, i) => {
     p();
     if (!sec.blueprint) { p(`### ${i + 1}. ${sec.role}`); p('No blueprint in the library for this role. Compose it from the direction above, using a layout shape not used by its neighbours.'); return; }
-    p(`### ${i + 1}. ${sec.role} â€” ${sec.name} (${sec.shape})`); p(sec.blueprint); if (sec.mobile) p(`On a phone: ${sec.mobile}`); adjust(sec);
+    p(`### ${i + 1}. ${sec.role} — ${sec.name} (${sec.shape})`); p(sec.blueprint); if (sec.mobile) p(`On a phone: ${sec.mobile}`); adjust(sec);
   });
   p();
-  if (s.motion) { p(`## 8. Motion â€” ${s.motion.name}`); p(s.motion.description); p('This is the signature move, the one loud moment. Around it the page still needs the rest of the motion layer (SKILL.md step 9): an entrance for the parts of every section, feedback on every control, and one moving picture. The inspector fails a page that barely moves. Recipes: references/motion.md.'); p(); }
+  if (s.motion) { p(`## 8. Motion — ${s.motion.name}`); p(s.motion.description); p('This is the signature move, the one loud moment. Around it the page still needs the rest of the motion layer (SKILL.md step 9): an entrance for the parts of every section, feedback on every control, and one moving picture. The inspector fails a page that barely moves. Recipes: references/motion.md.'); p(); }
   if (d.richness) { p('## 9. Where the richness comes from'); p(d.richness); p(); }
   if (d.pitfalls) { p('## 10. How this direction goes wrong'); p(d.pitfalls); p(); }
   if (s.references?.length) {
@@ -520,6 +520,6 @@ function render(s) {
   p('no cream-and-terracotta, no violet. `inspect.mjs` measures all of it.');
   if (s.allow?.length) p(`This direction is allowed: ${s.allow.join(', ')} (the inspector reads this from the saved sheet).`);
   p();
-  p(`Saved to ${sheetPath.split('\\').join('/')} Â· reprint with \`node draw.mjs --show\``);
+  p(`Saved to ${sheetPath.split('\\').join('/')} · reprint with \`node draw.mjs --show\``);
   return o.join('\n');
 }

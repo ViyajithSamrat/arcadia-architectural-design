@@ -23,7 +23,7 @@ scrolls, and fails it under eight elements. The motion layer has four parts:
   direction sheet from `draw.mjs` names one. Build that one well; it is the only move allowed to be
   loud.
 - **Section entrances, choreographed per section:** the parts of each section arrive in reading order
-  (heading, text, picture, details), staggered 60â€“90ms, rising 16â€“32px with opacity, once. Vary the
+  (heading, text, picture, details), staggered 60–90ms, rising 16–32px with opacity, once. Vary the
   manner with the content instead of stamping one preset everywhere: a list arrives row by row, a
   picture opens from a mask or settles from a slight scale, a figure counts up once, a statement rises
   line by line.
@@ -49,8 +49,8 @@ anything; choreographed motion with one protected moment says somebody did.
    Moving between two places on screen: ease-in-out. Colour and opacity on hover: `ease`. Constant
    travel (marquee, progress): `linear`. `ease-in` makes interfaces feel slow because the first frames
    barely move; do not use it. The CSS keyword curves are weak, so use the tokens below.
-4. **How long?** Press feedback 100â€“160ms. Hover 150â€“200ms. Menus and popovers 150â€“250ms. Dialogs and
-   drawers 250â€“450ms. Section and hero reveals 500â€“900ms. Leaving is quicker than arriving (about 70%).
+4. **How long?** Press feedback 100–160ms. Hover 150–200ms. Menus and popovers 150–250ms. Dialogs and
+   drawers 250–450ms. Section and hero reveals 500–900ms. Leaving is quicker than arriving (about 70%).
 
 ## 3. Tokens
 
@@ -95,9 +95,9 @@ Stagger at most four things. With a headline of two lines this is short and read
 ```
 
 ```html
-<h1 data-rise style="--i:0">â€¦</h1>
-<p data-rise style="--i:1">â€¦</p>
-<a data-rise style="--i:2" class="button">â€¦</a>
+<h1 data-rise style="--i:0">…</h1>
+<p data-rise style="--i:1">…</p>
+<a data-rise style="--i:2" class="button">…</a>
 ```
 
 ### Masked line reveal (the classic gallery headline)
@@ -243,7 +243,7 @@ it in JavaScript.
 ```
 
 Things open from where they were triggered (`transform-origin` at the trigger). Nothing enters from
-`scale(0)`; start at 0.95â€“0.98. A centred dialog is the one case that scales from its centre.
+`scale(0)`; start at 0.95–0.98. A centred dialog is the one case that scales from its centre.
 
 ## 5. Signature moves
 
@@ -257,7 +257,7 @@ The direction sheet names one. Each of these was seen repeatedly on the studied 
 | Pinned story | A heading holds while its items scroll past | Sticky recipe |
 | Index with preview | Text rows; the hovered row shows its image | List with image preview recipe |
 | Curtain footer | The last section is revealed from under the page as you reach the end | `position: sticky; bottom: 0` footer under a main with a background and `z-index` |
-| Slow crossfade | Hero image crossfades through 3â€“4 photographs, 5â€“6s each | Stacked images, opacity keyframes, pause when the tab is hidden |
+| Slow crossfade | Hero image crossfades through 3–4 photographs, 5–6s each | Stacked images, opacity keyframes, pause when the tab is hidden |
 | Edge-to-edge marquee | One line of very large type travels sideways, slowly | Duplicate the content, `translateX(-50%)` linear loop, pause on hover and under reduced motion |
 | Drag row | A horizontally scrollable row of large images with scroll snapping | `overflow-x: auto; scroll-snap-type: x mandatory`, no library |
 | Colour by chapter | Each chapter is its own full-bleed colour field, so the ground changes at section edges; a fixed header takes the ink of the chapter beneath | Section backgrounds in CSS; `base.js` sets `--header-ink` from `data-ink`. Never recolour the whole page from an observer |

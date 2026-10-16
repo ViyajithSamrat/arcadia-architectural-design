@@ -20,7 +20,7 @@ below are hand tallies from those notes, so read them as "about").
 ## 1. What strong pages do
 
 - **Tight margins, content to the edges.** About 45 of 114 use outer margins of 32px or less; only
-  about 8 use 80px or more. The centred 1100â€“1300px container is the minority among strong sites and
+  about 8 use 80px or more. The centred 1100–1300px container is the minority among strong sites and
   the usual frame of the ones the panel called stock.
 - **Text hangs from an off-centre line.** About 22 anchor text to one fixed line that is neither the
   centre nor the margin: a third across, 42%, the midpoint.
@@ -41,7 +41,7 @@ below are hand tallies from those notes, so read them as "about").
 
 ```css
 :root {
-  --margin: clamp(1rem, 2.2vw, 2rem);   /* 16â€“32px: tight, so content reaches the edges */
+  --margin: clamp(1rem, 2.2vw, 2rem);   /* 16–32px: tight, so content reaches the edges */
   --gutter: clamp(0.75rem, 1.4vw, 1.5rem);
 }
 .wrap { padding-inline: var(--margin); }
@@ -52,7 +52,7 @@ below are hand tallies from those notes, so read them as "about").
 - Do not wrap the page in a `max-width: 1200px; margin: auto` container by reflex. Let large things
   (type, images, colour fields) run the full width, and constrain only the measure of running text
   (`max-width` in `ch` on the paragraph, not on the page).
-- On very wide screens cap the layout at about 1760â€“1920px, or let type sized in `vw` stop growing with
+- On very wide screens cap the layout at about 1760–1920px, or let type sized in `vw` stop growing with
   a `clamp()`.
 - Directions that call for wide margins (uneven photographs, the quiet instrument) say so on the
   sheet; follow the sheet.
@@ -82,8 +82,8 @@ the work.
 
 - Decide where the void is and keep it clean: no stray caption, no decorative shape, no faint
   watermark.
-- The gap between sections is clearly larger than any gap inside one (120â€“220px on desktop,
-  72â€“112px on a phone).
+- The gap between sections is clearly larger than any gap inside one (120–220px on desktop,
+  72–112px on a phone).
 - Related things sit close; unrelated things sit far. If a heading is equidistant from the paragraph
   above and the one below, fix it: at least twice as much space above as below.
 - When a section looks empty, the answer is almost never "add something". Make the main element
@@ -100,7 +100,7 @@ points this way, including several above 7.5.
   monument, the footer is the name again. If the object's shape is the motif, the button and the image
   masks carry it.
 - **No two neighbours share a layout.** Use the shape of each dealt blueprint (list, split, statement,
-  full-bleed, mosaic, table, strip, pinned â€¦). Count them in the screenshot; a shape used three times
+  full-bleed, mosaic, table, strip, pinned …). Count them in the screenshot; a shape used three times
   is the template showing.
 - **Alternate dense and empty, image and type, light and dark** so the scroll has rhythm.
 - **A repeated module is for archives only** (a work index, a menu, a schedule). Anywhere else,
@@ -108,7 +108,7 @@ points this way, including several above 7.5.
 - **Break the system once.** After the page has established its rule, one planned exception (a single
   centred line, one inverted section, one image at a different scale) is what makes the rule visible.
 - **Short pages are fine.** A quarter of the studied sites are one or two screens. Do not add sections
-  to seem complete; each one must carry a claim (see `copy.md` Â§1).
+  to seem complete; each one must carry a claim (see `copy.md` §1).
 
 ## 6. Navigation
 
@@ -149,7 +149,7 @@ lose usability points; weak ones are often just broken.
 - Re-author line breaks; re-crop images to portrait (`object-position` per breakpoint, or a different
   crop size in the image URL); keep unevenness with alternating widths rather than making everything
   full width.
-- Margins 16â€“20px. Body text 16â€“18px. Touch targets at least 44px high.
+- Margins 16–20px. Body text 16–18px. Touch targets at least 44px high.
 - Check 390px in the inspector's screenshots for every round: sideways scroll and three-line headlines
   usually appear here first.
 
@@ -171,7 +171,7 @@ From the panel's notes on the 54 sites scoring under 6.8 (counts out of 54):
 - A phone layout that is the desktop shrunk, or broken (about 8).
 - Fixed elements sitting on content; careless details such as colliding lines (about 7 and 5).
 
-And the faults of the best sites, which are not to be copied: body text at 9â€“13px (about 24 of the 90
+And the faults of the best sites, which are not to be copied: body text at 9–13px (about 24 of the 90
 sites at 7.5 or more), information hidden behind the concept (about 20), the idea running out
 mid-page (about 15), text over footage with no scrim (about 12), gates and blank first paints (about
 12), floating elements colliding with content (about 11), and a first screen with no statement of what

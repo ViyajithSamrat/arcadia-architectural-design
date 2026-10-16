@@ -1,7 +1,7 @@
 // probe() runs INSIDE the page (it is serialised and evaluated through cdp.mjs), so it must stay
 // self-contained: no imports, no closures over module scope.
-// It measures what a design reviewer looks at â€” headline line counts, the type system, colour,
-// surfaces, decoration â€” and the specific tells this skill bans.
+// It measures what a design reviewer looks at — headline line counts, the type system, colour,
+// surfaces, decoration — and the specific tells this skill bans.
 export function probe() {
   const W = innerWidth, H = innerHeight, SY = scrollY;
   const round = (n, d = 2) => Math.round(n * 10 ** d) / 10 ** d;
@@ -140,7 +140,7 @@ export function probe() {
       position: cx < 0.42 ? 'left' : cx > 0.58 ? 'right' : 'center',
       widthRatio: round(r.width / W), top: Math.round(r.top + SY), mixedFonts: fams.size > 1 ? [...fams] : undefined,
       gradientText: texts.some((o) => el.contains(o.el) && o.clipText) || undefined, tag: el.tagName.toLowerCase(),
-      // a title (h1â€“h6, or unmarked large text) or a statement (a paragraph, quotation or list item set large)
+      // a title (h1–h6, or unmarked large text) or a statement (a paragraph, quotation or list item set large)
       kind: el.closest('h1,h2,h3,h4,h5,h6,[role="heading"]') || el.querySelector('h1,h2,h3,h4,h5,h6,[role="heading"]') ? 'heading'
         : t.el.closest('p, blockquote, li, dd, q, figcaption') || text.length > 150 ? 'statement' : 'heading',
     };
@@ -204,7 +204,7 @@ export function probe() {
   }
 
   // --- decorative numbering: 01 / 02 / (03) / 04. / 001 / "Step 02"
-  const numbered = texts.filter((t) => !t.inCode && !t.inUI && (/^[(\[\/#]?\s?0\d{1,2}\s?[)\]\/.:â€”â€“-]?$/.test(t.text) || /^0\d\s?[\/.â€”â€“-]\s/.test(t.text) || /^(step|phase|no\.?|nÂ°|nÂº|chapter|part|fig\.?)\s?0\d{1,2}\b/i.test(t.text)));
+  const numbered = texts.filter((t) => !t.inCode && !t.inUI && (/^[(\[\/#]?\s?0\d{1,2}\s?[)\]\/.:—–-]?$/.test(t.text) || /^0\d\s?[\/.—–-]\s/.test(t.text) || /^(step|phase|no\.?|n°|nº|chapter|part|fig\.?)\s?0\d{1,2}\b/i.test(t.text)));
 
   // --- type system
   const famChars = new Map(); const sizeChars = new Map(); let totalChars = 0; let monoChars = 0; let monoProse = 0; const monoFams = new Set(); const monoSamples = [];
@@ -316,7 +316,7 @@ export function probe() {
     const sh = cs.boxShadow;
     if (sh !== 'none' && !/^rgba?\(0, 0, 0, 0\) 0px 0px 0px 0px$/.test(sh)) {
       const outer = sh.split(/,(?![^(]*\))/).some((part) => !/inset/.test(part) && !/ 0px 0px 0px 0px/.test(part) && !/rgba\(\d+, \d+, \d+, 0\)/.test(part));
-      if (outer) { if (isOverlay(el) || el.closest('[data-ui]')) shadowOverlay++; else { shadowStatic++; if (shadowSamples.length < 4) shadowSamples.push(label(el) + ' â†’ ' + sh.slice(0, 80)); } }
+      if (outer) { if (isOverlay(el) || el.closest('[data-ui]')) shadowOverlay++; else { shadowStatic++; if (shadowSamples.length < 4) shadowSamples.push(label(el) + ' → ' + sh.slice(0, 80)); } }
     }
     if (cs.backgroundImage.includes('gradient(')) {
       if ((cs.webkitBackgroundClip || cs.backgroundClip || '').includes('text')) gradientText++;
@@ -325,7 +325,7 @@ export function probe() {
         const stops = [...cs.backgroundImage.matchAll(/rgba?\(([^)]+)\)/g)].map((mm) => mm[1].split(/[,\s/]+/).filter(Boolean).map(Number));
         const exotic = /oklch|oklab|color\(|lab\(|lch\(|hsl/.test(cs.backgroundImage);
         const scrim = !exotic && stops.length > 0 && stops.every((c) => Math.max(c[0], c[1], c[2]) - Math.min(c[0], c[1], c[2]) <= 14) && stops.some((c) => c.length > 3 && c[3] < 1);
-        if (scrim) scrims++; else { gradients++; if (gradientSamples.length < 4) gradientSamples.push(label(el) + ' â†’ ' + cs.backgroundImage.slice(0, 110)); }
+        if (scrim) scrims++; else { gradients++; if (gradientSamples.length < 4) gradientSamples.push(label(el) + ' → ' + cs.backgroundImage.slice(0, 110)); }
       }
     }
     if ((cs.backdropFilter && cs.backdropFilter !== 'none') || (cs.webkitBackdropFilter && cs.webkitBackdropFilter !== 'none')) blurred++;

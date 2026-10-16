@@ -1,4 +1,4 @@
-# Critique â€” judging the render
+# Critique — judging the render
 
 `inspect.mjs` passing means nothing banned or broken was measured. It says nothing about whether the
 page is good. This file is how you find out. Use it on the screenshots, never on the code: you wrote
@@ -44,7 +44,7 @@ sheets. Make each pass on its own; do not blend them.
    Do the crops share ratios? Is anything a grey box, a stretched photo, a fake screen made of bars?
    Does the photography share one light and one grade, or is it a stock mix?
 9. **Sameness.** Write one word for each section's layout (split, list, full-bleed, grid, statement,
-   index â€¦). The same word twice in a row, or three times on the page, is the template showing.
+   index …). The same word twice in a row, or three times on the page, is the template showing.
 10. **Phone.** Is the mobile screen a composition of its own, with its own crop and its own line
     breaks, or the desktop page squeezed? Is the first screen still one clear thing?
 11. **Fullness.** Go through the desktop sheets screen by screen. Is each screen a composed poster, or
@@ -65,41 +65,41 @@ sheets. Make each pass on its own; do not blend them.
     If either answer is weak, that is the first problem of the round, ahead of any detail.
 
 A note from testing: in blind comparisons a richer page full of template devices beat a cleaner page
-that was thin, every time. The house rules remove the devices; passes 11â€“13 are where you make sure the
+that was thin, every time. The house rules remove the devices; passes 11–13 are where you make sure the
 page did not lose its substance with them.
 
 ## 2. The score
 
-Score like an Awwwards juror: four criteria, 1â€“10 each, weighted **design 40%, usability 30%,
+Score like an Awwwards juror: four criteria, 1–10 each, weighted **design 40%, usability 30%,
 creativity 20%, content 10%**.
 
-**Design (40%)** â€” composition, typography, colour, imagery, craft.
-- 9â€“10: every screen holds as a poster. Nothing could be removed or moved.
+**Design (40%)** — composition, typography, colour, imagery, craft.
+- 9–10: every screen holds as a poster. Nothing could be removed or moved.
 - 8: confident and coherent; one or two soft spots a designer would notice.
 - 7: clean and professional, a clear system, little tension.
 - 6: tidy but anonymous. Reads as a kit.
 - 5 or less: weak hierarchy, accidental spacing, default type, mismatched images.
 
-**Usability (30%)** â€” orientation in three seconds, readable text, obvious actions, honest mobile.
-- 9â€“10: you know what it is, who it is for and what to do without scrolling; flawless on a phone.
+**Usability (30%)** — orientation in three seconds, readable text, obvious actions, honest mobile.
+- 9–10: you know what it is, who it is for and what to do without scrolling; flawless on a phone.
 - 8: clear and comfortable; minor friction (a long section, a small target).
 - 7: works, with one real problem (weak contrast somewhere, a cramped phone layout).
 - 6 or less: you have to hunt, or something breaks.
 
-**Creativity (20%)** â€” an idea you can state in a sentence, carried through.
-- 9â€“10: a concept specific to this subject that you have not seen applied this way.
+**Creativity (20%)** — an idea you can state in a sentence, carried through.
+- 9–10: a concept specific to this subject that you have not seen applied this way.
 - 8: a clear idea with one memorable move.
 - 7: a tasteful execution of a known approach.
 - 6 or less: the category default.
 
-**Content (10%)** â€” words and pictures that are specific, true-sounding and edited.
-- 9â€“10: every line could only be about this subject; imagery is the subject.
-- 7â€“8: clear and concrete, some generic lines.
+**Content (10%)** — words and pictures that are specific, true-sounding and edited.
+- 9–10: every line could only be about this subject; imagery is the subject.
+- 7–8: clear and concrete, some generic lines.
 - 6 or less: slogans, filler, stock.
 
-`overall = 0.4Â·design + 0.3Â·usability + 0.2Â·creativity + 0.1Â·content`
+`overall = 0.4·design + 0.3·usability + 0.2·creativity + 0.1·content`
 
-For calibration: real Sites of the Day land around 7.5â€“8.0 overall from the jury. An honest 8.5 is
+For calibration: real Sites of the Day land around 7.5–8.0 overall from the jury. An honest 8.5 is
 rare. If your first score for your own work is 9, score it again as the juror who did not build it.
 
 ## 3. Caps
@@ -131,16 +131,16 @@ Write it down; do not just think it. Use exactly this shape so rounds can be com
 
 ```
 ROUND n
-Seen in one second: â€¦
-Idea (one sentence): â€¦
-Live thing: â€¦
-Layout words by section: hero=â€¦ / â€¦=â€¦ / â€¦
-Scores: design _ Â· usability _ Â· creativity _ Â· content _ â†’ overall _._
-Caps applied: â€¦
+Seen in one second: …
+Idea (one sentence): …
+Live thing: …
+Layout words by section: hero=… / …=… / …
+Scores: design _ · usability _ · creativity _ · content _ → overall _._
+Caps applied: …
 Top three problems (most visible first), each with the screenshot it shows in and the fix:
-1. â€¦
-2. â€¦
-3. â€¦
+1. …
+2. …
+3. …
 ```
 
 Name problems the way a designer would to a colleague: "the supporting paragraph starts 40px left of
@@ -166,6 +166,6 @@ remains, or let a picture or a colour field take the space.
 
 ## 6. When to stop
 
-Run at most three rounds: critique â†’ fix the top three â†’ re-inspect â†’ critique. Stop early when a round
+Run at most three rounds: critique → fix the top three → re-inspect → critique. Stop early when a round
 finds no problem a stranger would notice. If round three still scores under 7.5, say so plainly in
 your report, with the remaining problems listed; do not round up.

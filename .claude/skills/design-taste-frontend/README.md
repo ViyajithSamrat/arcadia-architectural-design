@@ -30,7 +30,7 @@ render before calling the work done.
    rubric, fixes the top three problems and repeats, at most three rounds.
 
 Five rounds of blind tests against a no-skill baseline and another design skill are recorded in
-`references/research.md` Â§11.
+`references/research.md` §11.
 
 ## Contents
 
@@ -72,10 +72,10 @@ a repository under `.claude/skills/`.
 - `assets.mjs --video` finds short clips of the subject's world, takes a 720p-or-smaller rendition,
   refuses files over 25 MB unless `--max-mb` is passed, and saves a poster frame with each clip; how
   to use one on a page (muted loop, poster, stopped under reduced motion) is in
-  `references/imagery.md` Â§11.
+  `references/imagery.md` §11.
 - Fonts are loaded from Google Fonts and Fontshare. Check each face's licence for your use.
 - The scores in `references/research.md` are model judgements from screenshots, not Awwwards scores.
 - The draw history lives in `~/.taste-skill/history.json` (set `TASTE_SKILL_HISTORY` to move it).
   Delete it to reset.
-- A build takes an agent roughly 30â€“45 minutes and a few hundred thousand tokens with the full
+- A build takes an agent roughly 30–45 minutes and a few hundred thousand tokens with the full
   look-and-fix loop; most of that is finding or drawing pictures when a project has no photographs.

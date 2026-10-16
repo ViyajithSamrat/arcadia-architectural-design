@@ -1,4 +1,4 @@
-# Tells â€” the dated registry
+# Tells — the dated registry
 
 A tell is a device that makes a page read as generated. Tells are not bad design in themselves; most
 began as good ideas on good sites. They became tells by being produced by default, everywhere, without
@@ -11,16 +11,16 @@ inspector fails the page; **warned** means it flags it and you need a reason.
 
 ## Contents
 
-1. First wave (2023â€“2024)
+1. First wave (2023–2024)
 2. Second wave (2025)
-3. Third wave (2025â€“2026): the "fix" that became the look
+3. Third wave (2025–2026): the "fix" that became the look
 4. Gallery fashion, banned as house style
 5. Structural tells
 6. Copy tells
 7. Motion tells
 8. Why removal is not enough
 
-## 1. First wave (2023â€“2024)
+## 1. First wave (2023–2024)
 
 | Tell | Status | Do instead |
 | --- | --- | --- |
@@ -44,11 +44,11 @@ inspector fails the page; **warned** means it flags it and you need a reason.
 | Bento grid of rounded tiles as the feature section | warned as card rows | A composed section; tiles only in the dense-tiles direction, filled, strict sizes |
 | Near-black ground with one neon accent and a glow | banned via shadow, gradient | A dealt dark palette, no glow |
 | Floating rounded pill navigation with blur | warned | A plain bar |
-| Fake dashboard hero built from grey bars and donut charts | no rule; see imagery.md Â§7 | A real interface fragment, or no image |
+| Fake dashboard hero built from grey bars and donut charts | no rule; see imagery.md §7 | A real interface fragment, or no image |
 | Decorative status dot ("Available for work", pulsing "live") | lint: bounce | Remove |
 | Fade-and-rise on every section | no rule; see motion.md | One signature move |
 
-## 3. Third wave (2025â€“2026): the "fix" that became the look
+## 3. Third wave (2025–2026): the "fix" that became the look
 
 The remedy published for the first two waves was "warm it up and make it editorial". Models adopted
 the remedy wholesale and it is now the most recognisable generated look of all.
@@ -75,7 +75,7 @@ and a page built without them has to find real structure.
 | Index numbering: 01 / 02 / 03, (001), "Step 02", numbered section markers | banned | Order by position, scale, or the words; `<ol>` when it is truly a list |
 | Thin rules: hairline dividers, ruled grids, 1px outlined boxes and tiles | banned (boxes: 3 or more) | Space, tone steps, filled shapes, a thick bar if a bar is the idea |
 | Design-tool chrome as ornament: crosshairs, crop marks, selection handles, dashed guides, rulers | banned via hairline, dashed | Remove |
-| Agency micro-meta: local time, coordinates, weather, version stamps, "Â©2026 â€” Scroll", middle-dot strings | lint: copy; micro-label | Remove |
+| Agency micro-meta: local time, coordinates, weather, version stamps, "©2026 — Scroll", middle-dot strings | lint: copy; micro-label | Remove |
 | Tiny uppercase letter-spaced captions scattered around the viewport | banned (3 or more) | Sentence case at readable size, placed with the content it describes |
 
 Tiny tracked capitals are the one item in this group the data condemns as well: 16% of top sites
@@ -86,25 +86,25 @@ against 57% of weak ones.
 | Tell | Status | Do instead |
 | --- | --- | --- |
 | Headline as a full sentence at display size, three or four lines | banned (over two lines) | A title of about five words; the rest goes below |
-| Stock section order: hero, logos, features, testimonial, pricing, CTA | no rule; see copy.md Â§1 | The order of the argument |
+| Stock section order: hero, logos, features, testimonial, pricing, CTA | no rule; see copy.md §1 | The order of the argument |
 | Every section the same layout family | critique.md pass 9 | Different composition per section, from the sheet |
 | Everything centred | warned over 72% | Left-anchored, one centred moment |
-| One medium border radius (12â€“16px) on everything | none | Square or fully round, chosen once |
+| One medium border radius (12–16px) on everything | none | Square or fully round, chosen once |
 | Nine nearly equal font sizes | warned over 9 | Five sizes, far apart |
-| Invented social proof: logos, quotes, star rows, "10,000+ teams" | copy.md Â§5 | Real proof, or none |
+| Invented social proof: logos, quotes, star rows, "10,000+ teams" | copy.md §5 | Real proof, or none |
 | Text or a CSS box where a picture belongs | critique.md cap | A real picture, or a design that needs none |
 
 ## 6. Copy tells
 
 Flagged by `lint.mjs`: the genre's verbs and adjectives (unlock, supercharge, seamless, elevate,
-effortless, cutting-edge, all-in-one â€¦); the correction ("not just X, it's Y"); tricolon headlines;
+effortless, cutting-edge, all-in-one …); the correction ("not just X, it's Y"); tricolon headlines;
 "Get started" and "Learn more" as labels; more than a handful of em dashes; lorem ipsum. See
-`copy.md` Â§6.
+`copy.md` §6.
 
 ## 7. Motion tells
 
 Identical fade-up on every block; a dozen staggered hero entrances; hover lift on every card; bounce
-easing; infinite loops that mean nothing; reveals that fail and leave a blank band. See `motion.md` Â§7.
+easing; infinite loops that mean nothing; reveals that fail and leave a blank band. See `motion.md` §7.
 
 ## 8. Why removal is not enough
 

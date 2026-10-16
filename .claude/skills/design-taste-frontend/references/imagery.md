@@ -192,7 +192,7 @@ real footage with `--video` (section 11).
 - **Let images touch edges.** Full-bleed, or bleeding off one side, reads as designed. An image
   floating with equal margins on all sides reads as placed by default.
 - **Overlap sparingly and on purpose:** a headline whose last line runs over the top edge of the
-  picture, a small image overlapping a large one by a fixed 40â€“80px. One overlap per screen at most.
+  picture, a small image overlapping a large one by a fixed 40–80px. One overlap per screen at most.
 - **Square corners** unless the direction or the one-motif shape says otherwise. If rounded, one radius
   for every image on the page.
 - **No frames:** no borders, no shadows, no device mock-ups, no browser chrome around pictures.
@@ -214,7 +214,7 @@ One treatment for the whole page:
 Not treatments: colour washes over photographs, duotone overlays, blur, grain overlays, vignettes,
 tilted "polaroid" frames with shadows.
 
-For text on a photograph, a neutral scrim covering only the text area: a solid block at 40â€“55% black,
+For text on a photograph, a neutral scrim covering only the text area: a solid block at 40–55% black,
 or a fade from 55% black to transparent over the lower third. Never a coloured overlay.
 
 ## 7. Showing software
@@ -230,7 +230,7 @@ or a fade from 55% black to transparent over the lower third. Never a coloured o
   borders, a shadow on its open menu). Put the attribute `data-ui` on the fragment's root element: the
   inspector and the linter then leave what is inside alone, and hold the page around it to the house
   rules. `data-ui` is for cropped fragments only; wrapping a heading or a whole section in it fails.
-  Write the fragment's CSS under a `[data-ui]` selector (`[data-ui] .row { â€¦ }`) so the linter can
+  Write the fragment's CSS under a `[data-ui]` selector (`[data-ui] .row { … }`) so the linter can
   tell it apart from page styles.
 - If the user supplies real screenshots, show them large and uncropped at least once.
 
@@ -270,7 +270,7 @@ found ones show the world around the client, the drawings show the client's own 
 This is a legitimate design, not a gap to disguise. Only 7 of the studied sites use no imagery at all,
 and they hold their own: a median panel score of 7.5 against 7.2 for the whole set.
 
-- Make the typography the image: one statement at 10â€“14vw, a list set at 5vw, numerals at display size.
+- Make the typography the image: one statement at 10–14vw, a list set at 5vw, numerals at display size.
 - Use colour at scale: a full field, an inverted section, a two-field split.
 - Use the subject's own shape as one flat motif if the direction calls for it (a circle, an arc, a
   notch), drawn in CSS, cropped by the viewport.
@@ -296,7 +296,7 @@ A dealt photograph further down the page:
 The credits, as `--credits` prints them, in the footer:
 
 ```html
-<p class="credits">Pictures: <a href="https://commons.wikimedia.org/wiki/File:Fig_(Ficus_carica_L.);_57_segments_of_flowers_and_fruits_at_Wellcome_V0043000.jpg">â€œFig (Ficus carica L.): 57 segments of flowers and fruitsâ€</a>, <a href="https://creativecommons.org/publicdomain/mark/1.0/">public domain</a>, via Wikimedia Commons.</p>
+<p class="credits">Pictures: <a href="https://commons.wikimedia.org/wiki/File:Fig_(Ficus_carica_L.);_57_segments_of_flowers_and_fruits_at_Wellcome_V0043000.jpg">“Fig (Ficus carica L.): 57 segments of flowers and fruits”</a>, <a href="https://creativecommons.org/publicdomain/mark/1.0/">public domain</a>, via Wikimedia Commons.</p>
 ```
 
 - Always `width` and `height` (or `aspect-ratio` in CSS) so nothing jumps while loading.

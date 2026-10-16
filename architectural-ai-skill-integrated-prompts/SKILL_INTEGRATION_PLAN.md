@@ -1,4 +1,4 @@
-# Skill Integration Plan â€” Architectural AI Design Web Prototype
+# Skill Integration Plan — Architectural AI Design Web Prototype
 
 ## Chosen operating model
 

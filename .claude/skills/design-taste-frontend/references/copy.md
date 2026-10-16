@@ -26,10 +26,10 @@ Answer in one line each, in a scratch note:
 Then list the page as claims, one per section, each with its proof:
 
 ```
-1. It is a three-legged oak stool, made to order.             â†’ the stool, large
-2. Each seat is cut from one board, so the grain is yours.    â†’ three close-ups
-3. It takes six weeks, and you can follow it.                 â†’ the stages, photographed
-4. It costs 240 and is delivered by the maker.                â†’ price, button
+1. It is a three-legged oak stool, made to order.             → the stool, large
+2. Each seat is cut from one board, so the grain is yours.    → three close-ups
+3. It takes six weeks, and you can follow it.                 → the stages, photographed
+4. It costs 240 and is delivered by the maker.                → price, button
 ```
 
 A section with no claim is filler; delete it. This is also how you escape the stock order of
@@ -46,11 +46,11 @@ and fails the page otherwise.
 The constraint is arithmetic, so do it before you fall in love with a sentence:
 
 ```
-characters per line â‰ˆ line width in px Ã· (font size in px Ã— k)
+characters per line ≈ line width in px ÷ (font size in px × k)
 
-k â‰ˆ 0.40  condensed faces
-k â‰ˆ 0.50  most grotesks and serifs at display size, tight tracking
-k â‰ˆ 0.58  wide / extended faces, all-caps settings
+k ≈ 0.40  condensed faces
+k ≈ 0.50  most grotesks and serifs at display size, tight tracking
+k ≈ 0.58  wide / extended faces, all-caps settings
 ```
 
 | Where | Line width | Size | Per line | Two-line budget |
@@ -102,8 +102,8 @@ Shapes to avoid, because they are the average of every landing page:
 
 - The mad-lib: "The AI-powered platform for modern teams".
 - The tricolon: "Fast. Simple. Secure." or "Plan. Build. Ship."
-- The correction: "It's not just a tool, it's a workflow". Also "More than a â€¦".
-- "X, reimagined / redefined / made simple". "Welcome to â€¦". "Meet â€¦" for a product nobody has met.
+- The correction: "It's not just a tool, it's a workflow". Also "More than a …".
+- "X, reimagined / redefined / made simple". "Welcome to …". "Meet …" for a product nobody has met.
 - A question the reader did not ask.
 - A headline that needs its colon: "Ledgerly: invoicing for freelancers". Drop the name, it is in the
   navigation.
@@ -143,7 +143,7 @@ When the brief supplies no proof, use what is true by construction:
   launch. Do not put real company names or real people in it.
 
 **Sample details are different from proof, and they are expected.** Where the brief gives the shape of
-the content but not every detail (six rooms "from â‚¬140", "a short menu", twelve speakers), write the
+the content but not every detail (six rooms "from €140", "a short menu", twelve speakers), write the
 full set of plausible details: each room with a name, a bed, a view and its own rate; each dish with
 its price; each speaker with a talk title. A design can only be judged at its real density, and a page
 that shows one rate where six rooms exist looks unfinished. List every sample detail in the report so
@@ -161,17 +161,17 @@ the client confirms or replaces it.
   to explore)", fake photo credits, status lines such as "Available for work" with a dot, strings of
   words separated by middle dots or slashes.
 - The em dash as a habit. One or two on a page read as writing; ten read as a model. Use a full stop.
-- Explainer captions that narrate the design: "A clean, minimal layout forâ€¦".
+- Explainer captions that narrate the design: "A clean, minimal layout for…".
 - Step labels that duplicate numbers: "Step 1", "Phase 02".
 - Three parallel items everywhere: three features, three stats, three steps. Use the number the
   content has.
 
 ## 7. Micro-typography
 
-- Curly quotes and apostrophes (â€œ â€ â€™), a real ellipsis (â€¦), an en dash for ranges (9â€“5).
+- Curly quotes and apostrophes (“ ” ’), a real ellipsis (…), an en dash for ranges (9–5).
 - Non-breaking space between a number and its unit, and before the last short word of a headline
   when it would otherwise orphan (`&nbsp;`).
 - `font-variant-numeric: tabular-nums` where numbers line up in columns (prices, tables).
 - `text-wrap: balance` on headings, `text-wrap: pretty` on paragraphs.
-- No all-caps for anything longer than three words; if you set caps, add 0.02â€“0.06em tracking.
+- No all-caps for anything longer than three words; if you set caps, add 0.02–0.06em tracking.
 - No text under 13px. No centred paragraphs longer than three lines. No justified text.

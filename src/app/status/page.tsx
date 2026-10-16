@@ -51,7 +51,7 @@ export default function StatusPage() {
         Optional services are off until you add their settings. &ldquo;Configured&rdquo; only
         means the settings are present. It does not mean the service has been tested.
       </p>
-      <Suspense fallback={<p>Checking configurationâ€¦</p>}>
+      <Suspense fallback={<p>Checking configuration…</p>}>
         <StatusPanel />
       </Suspense>
     </div>

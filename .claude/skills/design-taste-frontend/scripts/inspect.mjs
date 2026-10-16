@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// tasteskill / inspect â€” render the page in a real browser, measure it, and photograph it.
+// tasteskill / inspect — render the page in a real browser, measure it, and photograph it.
 //
 //   node inspect.mjs <url | path/to/file.html> [--out DIR] [--widths 1440,768,390] [--allow rule,rule] [--json]
 //
@@ -174,32 +174,32 @@ if (asJson) { console.log(JSON.stringify(report, null, 1)); process.exit(merged.
 
 const d = report.viewports[0].metrics;
 const line = (s = '') => console.log(s);
-line(`TASTESKILL Â· INSPECT   ${report.url}`);
+line(`TASTESKILL · INSPECT   ${report.url}`);
 line('');
 line('MEASURED (first viewport listed)');
-if (d.hero) line(`  hero headline   "${d.hero.text.slice(0, 70)}"  ${d.hero.words} words Â· ${d.hero.lines} line(s) Â· ${d.hero.size}px (${d.hero.vw}vw) Â· ${d.hero.font} ${d.hero.weight} Â· tracking ${d.hero.tracking}em Â· leading ${d.hero.leading}`);
-for (const v of report.viewports.slice(1)) if (v.metrics.hero) line(`  @${v.width}px          ${v.metrics.hero.lines} line(s) Â· ${v.metrics.hero.size}px`);
+if (d.hero) line(`  hero headline   "${d.hero.text.slice(0, 70)}"  ${d.hero.words} words · ${d.hero.lines} line(s) · ${d.hero.size}px (${d.hero.vw}vw) · ${d.hero.font} ${d.hero.weight} · tracking ${d.hero.tracking}em · leading ${d.hero.leading}`);
+for (const v of report.viewports.slice(1)) if (v.metrics.hero) line(`  @${v.width}px          ${v.metrics.hero.lines} line(s) · ${v.metrics.hero.size}px`);
 line(`  typefaces       ${d.type.families.filter((f) => f.share >= 0.02).map((f) => `${f.family} ${Math.round(f.share * 100)}%`).join(', ')}`);
 line(`  sizes in use    ${d.type.sizes.join(' / ')} px${d.type.body ? `   body ${d.type.body.size}px / ${d.type.body.leading}` : ''}`);
-line(`  colour          page ${d.color.bodyBg}${d.color.sectionBgs.length ? ' Â· sections ' + d.color.sectionBgs.map((s) => s.color).slice(0, 6).join(' ') : ''}${d.color.button ? ' Â· button ' + d.color.button.bg : ''}`);
-line(`  page            ${d.page.screens} screens Â· ${d.page.words} words Â· ${d.page.img} images Â· hero media ${d.heroMedia[0] ? Math.round(d.heroMedia[0].ratio * 100) + '% ' + d.heroMedia[0].type : 'none'}`);
-line(`  headings        ${d.headingSummary.count} Â· longest ${d.headingSummary.maxLines} line(s) Â· median ${d.headingSummary.medianWords ?? '-'} words`);
+line(`  colour          page ${d.color.bodyBg}${d.color.sectionBgs.length ? ' · sections ' + d.color.sectionBgs.map((s) => s.color).slice(0, 6).join(' ') : ''}${d.color.button ? ' · button ' + d.color.button.bg : ''}`);
+line(`  page            ${d.page.screens} screens · ${d.page.words} words · ${d.page.img} images · hero media ${d.heroMedia[0] ? Math.round(d.heroMedia[0].ratio * 100) + '% ' + d.heroMedia[0].type : 'none'}`);
+line(`  headings        ${d.headingSummary.count} · longest ${d.headingSummary.maxLines} line(s) · median ${d.headingSummary.medianWords ?? '-'} words`);
 line('');
 const fails = merged.filter((f) => f.level === 'FAIL'), warns = merged.filter((f) => f.level === 'WARN');
-if (!fails.length && !warns.length) line('FINDINGS  none. Measurements are clean â€” now judge the pictures.');
-for (const [title, list] of [['FAIL â€” fix every one of these', fails], ['WARN â€” fix, or be able to defend', warns]]) {
+if (!fails.length && !warns.length) line('FINDINGS  none. Measurements are clean — now judge the pictures.');
+for (const [title, list] of [['FAIL — fix every one of these', fails], ['WARN — fix, or be able to defend', warns]]) {
   if (!list.length) continue;
   line(title);
   for (const f of list) {
     line(`  [${f.id}] @${f.width}px${f.alsoAt ? ' (+' + f.alsoAt.join(', ') + ')' : ''}  ${f.message}`);
-    line(`      â†’ ${f.fix}`);
+    line(`      → ${f.fix}`);
   }
   line('');
 }
-line('LOOK AT THE RENDER â€” open these with your image viewer / Read tool before saying anything about quality:');
+line('LOOK AT THE RENDER — open these with your image viewer / Read tool before saying anything about quality:');
 const rel = (p) => relative(process.cwd(), p).split('\\').join('/');
 for (const im of report.images) { line(`  ${(im.viewport + ' ' + im.width + 'px').padEnd(15)} ${rel(im.fold)}`); for (const p of im.pages) line(`  ${''.padEnd(15)} ${rel(p)}`); }
 line('');
 line(`report: ${rel(join(outDir, 'report.json'))}`);
-line(fails.length ? `RESULT: ${fails.length} FAIL, ${warns.length} WARN â€” not done.` : `RESULT: 0 FAIL, ${warns.length} WARN â€” measurements pass. Passing the meter is the floor, not the grade: score the screenshots with references/critique.md.`);
+line(fails.length ? `RESULT: ${fails.length} FAIL, ${warns.length} WARN — not done.` : `RESULT: 0 FAIL, ${warns.length} WARN — measurements pass. Passing the meter is the floor, not the grade: score the screenshots with references/critique.md.`);
 process.exit(fails.length ? 1 : 0);

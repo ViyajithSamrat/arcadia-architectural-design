@@ -22,7 +22,7 @@ others.
 - **Sample.** 248 sites collected on 5 October 2026: 156 from One Page Love (the latest gallery pages
   and the category listings) and 92 Awwwards Sites of the Day (the three most recent listing pages).
   247 loaded; 246 were re-measured with the final probe.
-- **Capture.** Headless Chrome at 1440Ã—900 and 390Ã—844. For each site: the first viewport, five more
+- **Capture.** Headless Chrome at 1440×900 and 390×844. For each site: the first viewport, five more
   frames while scrolling with real wheel input, the mobile first viewport, and a measurement pass in
   the page (computed styles, text geometry, colours, fonts actually loaded).
 - **Panel.** 21 model reviewers each studied about 12 sites from the screenshots and the measurements,
@@ -45,7 +45,7 @@ others.
 | | All 235 | One Page Love (151) | Awwwards (84) |
 | --- | --- | --- | --- |
 | Median overall | 7.2 | 7.1 | 7.5 |
-| Middle half | 6.8â€“7.6 | | |
+| Middle half | 6.8–7.6 | | |
 | 8.0 or higher | 25 sites (11%) | | |
 | 7.5 or higher | 90 sites (38%) | | |
 | Under 6.5 | 29 sites | | |
@@ -71,7 +71,7 @@ Recurring engines among the 7.3+ sites, each the basis of a direction in the lib
 - **The name is the hero.** Wordmarks as wide as the screen, a photograph set inside the name like a
   letter, a name split to opposite corners with the page between.
 - **One motif from the subject drives everything.** A tool's octagonal section as button, mask and
-  loader; two circles for two accounts; a cafÃ©'s stripes.
+  loader; two circles for two accounts; a café's stripes.
 - **Dressed as another category.** A money app as a streetwear drop; an industrial roaster as a design
   object; a parcel service as a fairground.
 - **The place carries it.** One full-bleed view and a name along the bottom edge.
@@ -89,7 +89,7 @@ sites' signature layout.
 | Hero headline | All | Top | Weak |
 | --- | --- | --- | --- |
 | Words, median | 5 | 5 | 5 |
-| Words, middle half | 3â€“9 | 2â€“8 | 3â€“8 |
+| Words, middle half | 3–9 | 2–8 | 3–8 |
 | Characters, median | 32 | | |
 | One line at 1440 | 47% | | |
 | Two lines or fewer at 1440 | 70% | 71% | 83% |
@@ -106,14 +106,14 @@ the gallery already meets on desktop and that takes care to meet on a phone.
 | | All | Top | Weak |
 | --- | --- | --- | --- |
 | Hero size, median | 72px (5.0vw) | 6.0vw | 4.7vw |
-| Hero size, middle half | 3.0â€“7.6vw | 2.5â€“9.7vw | 2.7â€“6.1vw |
+| Hero size, middle half | 3.0–7.6vw | 2.5–9.7vw | 2.7–6.1vw |
 | Largest text on the page, median | 6.4vw | 8.4vw | 5.0vw |
 | Largest text, upper quarter starts at | 10.4vw | 12.5vw | 6.7vw |
 | Hero on a phone, median | 40px | | |
 | Hero tracking, median (middle half) | -0.01em (-0.03 to 0) | | |
-| Hero leading, median (middle half) | 1.0 (0.95â€“1.1) | | |
-| Body size, median (middle half) | 16px (14â€“18) | | |
-| Headline Ã· body, median | 4.3 | 4.7 | 4.0 |
+| Hero leading, median (middle half) | 1.0 (0.95–1.1) | | |
+| Body size, median (middle half) | 16px (14–18) | | |
+| Headline ÷ body, median | 4.3 | 4.7 | 4.0 |
 | Typefaces carrying 3%+ of text | one 31%, two 45%, three 22% | | |
 | Distinct font sizes, median | 8 | | |
 
@@ -173,7 +173,7 @@ first, and a page that cannot lean on them has to find structure in space, tone 
 - Primary buttons are neutral (black, white, grey) on 52% of sites. One site in 246 has a terracotta
   button; none has a violet one.
 - Median number of distinct section grounds: 2 on top sites, 1 on weak sites.
-- Button shape: top sites square (0â€“2px) 52%, fully round 23%, small radius 19%, medium (9â€“16px) 6%.
+- Button shape: top sites square (0–2px) 52%, fully round 23%, small radius 19%, medium (9–16px) 6%.
   Weak sites fully round 59%, medium 24%, square 18%.
 - Media corners are square on 73% of sites; where rounded, the median radius is 12px.
 - Buttons in the first viewport: none on 55% of top sites and 39% of weak ones.
@@ -188,7 +188,7 @@ first, and a page that cannot lean on them has to find structure in space, tone 
   3D render 11%, illustration 9%, video 6%, type only 3%. Median panel score is lowest for
   illustration-led (6.9) and product-interface-led (7.1) pages and highest for video and type-only
   (7.5).
-- Page length, median: 8.7 screens and 575 words (middle half 1.6â€“14.4 screens, 250â€“956 words). A
+- Page length, median: 8.7 screens and 575 words (middle half 1.6–14.4 screens, 250–956 words). A
   quarter of the sites are a single screen or two.
 - Navigation: a median of 3 links; fixed or sticky on 66%.
 - Density (panel): airy 46%, balanced 45%, dense 9%. Alignment: centred 33%, mixed 31%, left-anchored
@@ -200,7 +200,7 @@ first, and a page that cannot lean on them has to find structure in space, tone 
 **From the panel's written notes on the 114 sites scoring 7.3 or more** (hand tallies, approximate;
 `layout.md` turns these into practice):
 
-- Outer margins of 32px or less on about 45; 80px or more on about 8. A centred 700â€“1300px container
+- Outer margins of 32px or less on about 45; 80px or more on about 8. A centred 700–1300px container
   on about 15, several of them the pages the panel called stock.
 - Text anchored to a fixed off-centre line on about 22. Text docked in corners or at opposite ends of
   a baseline on about 25 and 15.
@@ -223,7 +223,7 @@ first, and a page that cannot lean on them has to find structure in space, tone 
   pill badge, two buttons and a screenshot about 9; stock modules after a distinctive hero about 8,
   plus about 17 in the middle band; a characterless default typeface about 13; text too small or too
   faint about 13; never saying what the thing is about 12.
-- Faults of the best sites (90 at 7.5 or more), not to be copied: text at 9â€“13px about 24;
+- Faults of the best sites (90 at 7.5 or more), not to be copied: text at 9–13px about 24;
   information hidden behind the concept about 20; the idea running out mid-page about 15; text over
   footage with no scrim about 12; gates, preloaders and blank first paints about 12.
 
@@ -254,7 +254,7 @@ could own. (Several use devices this skill bans; take the idea, not the ornament
 | Cursor Compile | One Page Love | 8.3 | The event name drawn as seven looping one-line curves in seven colours, more signature than logotype, on an otherwise whisper-quiet off-white page. |
 | The New Industrials | One Page Love | 8.3 | A long-read essay laid out inside a drafting grid, where colour fields shift as you read and machine parts drift through the margins and finally assemble into the publisher's initials. |
 | Wild | One Page Love | 8.3 | A studio essay in which everything decorative is drawn on one square-pixel grid: the hero heatmap, the icons, the diagrams, the lettering and the footer. |
-| HildÃ©n & Kaira | Awwwards | 8.3 | The agency name is cast in liquid chrome across the full width, and the same chrome becomes the objects that float through the page, tying the pitch to one material. |
+| Hildén & Kaira | Awwwards | 8.3 | The agency name is cast in liquid chrome across the full width, and the same chrome becomes the objects that float through the page, tying the pitch to one material. |
 | PX Push | Awwwards | 8.2 | A design subscription presented as a retro broadcast: the entire site is seen through a CRT screen, with a chrome logo token as its mascot. |
 | Illoca | Awwwards | 8.2 | Software for architects sold as a drafting table: a two-colour illustrated studio on graph paper that the scroll pushes into until the drawing fills the screen. |
 | Aspen Search | Awwwards | 8.2 | The page is a tile system with no margins: the two-word name is split across cells that alternate type, dithered image, black and one mint green. |

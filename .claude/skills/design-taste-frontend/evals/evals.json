@@ -12,7 +12,7 @@
     {
       "id": 2,
       "name": "restaurant-osteria",
-      "prompt": "Make a one-page website for Osteria Nove, a 38-seat Italian restaurant in Alfama, Lisbon. Handmade pasta, a short natural wine list, dinner only, Tuesday to Saturday from 19:00. Address: Rua dos RemÃ©dios 9. Reservations by phone (+351 21 000 0009) or email (mesa@osterianove.pt). The page needs the menu (invent a believable short one: antipasti, pasta, dolci, with prices in euros), hours, address and how to book. We have no photographs yet. Static HTML/CSS/JS.",
+      "prompt": "Make a one-page website for Osteria Nove, a 38-seat Italian restaurant in Alfama, Lisbon. Handmade pasta, a short natural wine list, dinner only, Tuesday to Saturday from 19:00. Address: Rua dos Remédios 9. Reservations by phone (+351 21 000 0009) or email (mesa@osterianove.pt). The page needs the menu (invent a believable short one: antipasti, pasta, dolci, with prices in euros), hours, address and how to book. We have no photographs yet. Static HTML/CSS/JS.",
       "expected_output": "A one-page restaurant site with a specific idea (for example the page as the menu itself), the menu set typographically without divider lines, practical information easy to find, bundled photographs used only as atmosphere and listed for replacement, and all house rules met.",
       "files": []
     },
