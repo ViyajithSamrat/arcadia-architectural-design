@@ -58,3 +58,5 @@ next-env.d.ts
 /.claude/skills/minimalist-ui/
 /.claude/skills/redesign-existing-projects/
 /.claude/skills/stitch-design-taste/
+# Generated Graphify output
+/graphify-out/

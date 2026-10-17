@@ -4,7 +4,7 @@ A concept-design prototype. A customer describes a building, an interior, or a g
 
 Outputs are conceptual design ideas, not construction drawings, CAD/BIM models, or code-compliant plans.
 
-**Current state: Phase 1 (foundation) only.** The customer journeys, database, payments, and AI features are not built yet. Nothing in the running app pretends otherwise.
+**Current state: Phase 2 (database, sign-in, private storage) is implemented but awaiting approval.** The customer journeys, payment screens, and AI features are not built yet. The database layer is verified only against an in-process Postgres, not a live Supabase project. See `supabase/README.md`.
 
 ## What exists now
 
@@ -14,6 +14,7 @@ Outputs are conceptual design ideas, not construction drawings, CAD/BIM models, 
 - Safe not-found, error, and global-error pages that do not reveal internal details.
 - Environment validation (`src/lib/env/schema.ts`): every variable is optional, a provided value must be well-formed, and problems are reported by variable name only.
 - Unit tests for the environment check, integration statuses, and the health route.
+- Phase 2: versioned SQL migrations in `supabase/` (tables, row level security, workflow guards, private storage), magic-link sign-in routes (`/sign-in`, `/auth/callback`), and database security tests. Sign-in shows a "not configured" state until Supabase settings are supplied.
 
 ## Requirements
 
@@ -34,7 +35,7 @@ Open `/status` or `/api/health` to see the configuration state.
 ```bash
 npm run lint
 npm run typecheck
-npm test
+npm test           # unit tests plus database security tests (no Supabase account needed)
 npm run build
 ```
 
@@ -54,7 +55,14 @@ src/app/                 Pages, error pages, and API routes
 src/components/          Shared layout and UI components
 src/lib/env/             Environment schema and validation
 src/lib/integrations/    Integration status (presence only, never values)
+supabase/                Migrations, rollbacks, and database/storage documentation
+src/lib/supabase/        Supabase clients (user session, and server-only service role)
+src/lib/auth/            Session and admin guards
+src/lib/db/              Database vocabulary (statuses, transitions)
+src/lib/storage/         Private-bucket path helpers
+src/proxy.ts             Refreshes the sign-in session cookies
 tests/unit/              Unit tests
+tests/db/                Database security tests (in-process Postgres)
 architectural-ai-design-spec/            Product and technical specification
 architectural-ai-skill-integrated-prompts/   Phase prompts and build orchestration
 ```
@@ -68,8 +76,8 @@ architectural-ai-skill-integrated-prompts/   Phase prompts and build orchestrati
 
 ## Roadmap
 
-1. Foundation (this phase)
-2. Database, sign-in, and private storage
+1. Foundation (done)
+2. Database, sign-in, and private storage (implemented, awaiting approval)
 3. Customer journeys and quote
 4. Payment evidence and admin review
 5. AI text and voice
