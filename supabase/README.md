@@ -151,3 +151,19 @@ LIVE_SUPABASE=1 npx vitest run --config vitest.live.config.mts
 ```
 
 It creates its own `@example.test` users each run and clears only `pricing_rules` and the `pricing_mode` setting before starting.
+
+## Payment evidence and review (Phase 4)
+
+**Migration 6, `20261018000100_payment_proof_limits.sql`** (rollback: `supabase/rollbacks/20261018000100_payment_proof_limits.down.sql`) sets bucket-level limits on `project-files`: images only (JPEG, PNG, WebP) and at most 5 MiB. Storage enforces them for every caller, including the service role, so they hold even if the application's own checks are bypassed. The bucket is shared, so the limit also applies to reference photos and generated files: **Phase 6 must revisit it** (for example for larger output or an SVG floor plan) in a new migration. The numbers are repeated in `src/lib/payments/evidence.ts`; keep them in step. Applied to the local stack only (`npx supabase migration up --local`); not applied to any hosted project.
+
+Rollback by hand: `update storage.buckets set file_size_limit = null, allowed_mime_types = null where id = 'project-files';`
+
+**Payment instructions** come from the environment (`PAYMENT_MODE=manual`, `PAYMENT_UPI_ID` and/or `PAYMENT_INSTRUCTIONS`, optional `PAYMENT_ACCOUNT_NAME`, `PAYMENT_CURRENCY`, which must match the quote currency). With any of them missing the customer sees "Payment instructions not configured" and cannot submit. A value containing the word DEMO makes the page show "DEMO - DO NOT TRANSFER MONEY". Use demo values only in the git-ignored `.env.local`; real details are the business owner's to supply.
+
+**Customer submission** is `POST /api/payments` (multipart), a Route Handler rather than a Server Action: Server Actions accept 1 MB unless `serverActions.bodySizeLimit` is raised, and that limit is global to every action. The route checks origin, declared size (413), content type (415) and the session before it reads the body, then re-checks ownership, project status, the accepted quote and the file's real type (magic bytes). The receipt image is optional. The row carries no status or decision; the database sets and guards those.
+
+**Administrator review** is at `/admin/payments` (no navigation link is shown: the pages and actions check the role on the server). Verify and reject are Server Actions that call `admin_verify_payment` / `admin_reject_payment` through the administrator's own session. Proof images are shown through 60-second signed links. Verification needs the amount received to equal the accepted quote total (also enforced by the database) and an explicit confirmation. The rejection reason is shown to the customer; the internal note is not.
+
+Not part of this phase: starting generation and releasing assets. Verification does not start anything.
+
+Tests: `tests/unit/payment-*.test.ts`, `tests/db/payment-proof-limits.test.ts`, the payment cases in `tests/db/index-usage.test.ts`, and `tests/live/payments-live.live.test.ts` (local stack).

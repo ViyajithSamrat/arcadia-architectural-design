@@ -73,7 +73,7 @@ describe.skipIf(!ENABLED)("live local Supabase", () => {
 
   // ------------------------------------------------------------ 2. schema
   describe("migrations and schema", () => {
-    it("applied all five migrations in filename order", () => {
+    it("applied every migration in filename order", () => {
       const files = readdirSync(path.join(process.cwd(), "supabase/migrations")).filter((f) => f.endsWith(".sql")).sort();
       const applied = sql("select version from supabase_migrations.schema_migrations order by version").split("\n");
       expect(applied).toEqual(files.map((f) => f.split("_")[0]));

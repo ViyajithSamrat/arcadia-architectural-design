@@ -10,7 +10,7 @@ export type StatusInfo = {
   /** What the customer should do (or expect) next. */
   next: string;
   /** Where the next action lives, relative to /projects/<id>; null when there is none. */
-  actionPath: "" | "/edit" | "/brief" | "/quote" | null;
+  actionPath: "" | "/edit" | "/brief" | "/quote" | "/payment" | null;
   actionLabel: string | null;
 };
 
@@ -47,21 +47,21 @@ export const STATUS_INFO: Readonly<Record<ProjectStatus, StatusInfo>> = {
   },
   AWAITING_PAYMENT: {
     label: "Quote accepted, awaiting payment",
-    next: "Payment instructions will be available in the next phase of this prototype. Nothing is due yet.",
-    actionPath: "/quote",
-    actionLabel: "View accepted quote",
+    next: "Follow the payment instructions, then submit your transfer details for review. Nothing is verified until a person checks it.",
+    actionPath: "/payment",
+    actionLabel: "Go to payment",
   },
   PAYMENT_PROOF_SUBMITTED: {
     label: "Payment evidence submitted",
     next: "A person will check your transfer. Submission is not verification.",
-    actionPath: null,
-    actionLabel: null,
+    actionPath: "/payment",
+    actionLabel: "View payment status",
   },
   PAYMENT_REJECTED: {
     label: "Payment evidence rejected",
     next: "The payment could not be confirmed. See the reason and submit again.",
-    actionPath: null,
-    actionLabel: null,
+    actionPath: "/payment",
+    actionLabel: "See the reason and submit again",
   },
   PAYMENT_VERIFIED: {
     label: "Payment verified",

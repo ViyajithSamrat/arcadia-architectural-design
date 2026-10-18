@@ -101,6 +101,12 @@ describe("indexes are used by the queries they exist for", () => {
       expectIndex: /payments_status_created_idx|payments_one_pending_per_project/,
     },
     {
+      name: "administrator payment queue (recent decisions, newest first, one decided status)",
+      sql: `select * from public.payments where status = 'REJECTED' order by created_at desc limit 20`,
+      indexes: ["payments_status_created_idx"],
+      expectIndex: /payments_status_created_idx/,
+    },
+    {
       name: "a project's payment history",
       sql: `select * from public.payments where project_id = '${projectId}' order by created_at desc`,
       indexes: ["payments_project_created_idx", "payments_one_pending_per_project"],

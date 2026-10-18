@@ -106,8 +106,8 @@ async function QuoteContent({ params }: Props) {
         <QuoteTable quote={quote} />
         <Notice tone="info" title="Before you accept">
           <p>
-            Accepting confirms these items and amounts. Payment instructions will be available in the next phase of this
-            prototype; nothing is due now.
+            Accepting confirms these items and amounts. After you accept, the payment instructions appear on the next page;
+            nothing is due until then.
           </p>
         </Notice>
         <AcceptQuoteButton projectId={project.id} quoteId={quote.id} />
@@ -123,15 +123,18 @@ async function QuoteContent({ params }: Props) {
       </Notice>
       <QuoteTable quote={quote} />
       {project.status === "AWAITING_PAYMENT" ? (
-        <Notice tone="warning" title="Payment instructions are not available yet">
+        <Notice tone="warning" title="Next: payment">
           <p>
-            Payment instructions will be available in the next phase of this prototype. Do not transfer any money yet.
-            Nothing here has been paid or verified.
+            Follow the payment instructions, then submit your transfer details for review. Nothing is paid or verified
+            until a person has checked it.
           </p>
         </Notice>
       ) : null}
-      <Link href={`/projects/${project.id}`} className={buttonPrimary}>
-        Back to project
+      <Link
+        href={project.status === "AWAITING_PAYMENT" ? `/projects/${project.id}/payment` : `/projects/${project.id}`}
+        className={buttonPrimary}
+      >
+        {project.status === "AWAITING_PAYMENT" ? "Go to payment" : "Back to project"}
       </Link>
     </>
   );

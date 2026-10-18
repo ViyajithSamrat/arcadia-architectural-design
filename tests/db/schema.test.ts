@@ -146,13 +146,15 @@ describe("schema structure and privileges", () => {
     }
   });
 
-  it("creates one private storage bucket with no invented size or type limits", async () => {
+  it("creates one private storage bucket limited to 5 MiB JPEG, PNG and WebP images (owner decision, Phase 4)", async () => {
     const buckets = await as(db, superuser, (q) =>
       q<{ id: string; public: boolean; file_size_limit: number | null; allowed_mime_types: string[] | null }>(
         "select id, public, file_size_limit, allowed_mime_types from storage.buckets",
       ),
     );
-    expect(buckets).toEqual([{ id: "project-files", public: false, file_size_limit: null, allowed_mime_types: null }]);
+    expect(buckets).toEqual([
+      { id: "project-files", public: false, file_size_limit: 5242880, allowed_mime_types: ["image/jpeg", "image/png", "image/webp"] },
+    ]);
   });
 });
 
