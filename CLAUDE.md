@@ -665,9 +665,9 @@ If the owner only asks for an explanation or plan, do not begin modifying code. 
 **Read `handoff.md` first when resuming.** It holds the exact state, commands and open decisions. This section keeps only the durable rules.
 
 ### Status (as of 2026-10-18)
-- Phases 1, 1.1, 2 and 3 are done and committed locally. Nothing is pushed.
+- Phases 1, 1.1, 2, 3 and 4 are done and committed locally (Phase 4: `85f0acf`). Nothing is pushed.
 - Verification against a **local** Supabase stack (Docker) passed: live suite 43/43, browser journey 20/20 on both `localhost` and `127.0.0.1`. The two defects found there were fixed and committed locally as `2644c3b`.
-- Phase 4 (payment evidence and admin) is approved and in progress; see `handoff.md`. No hosted Supabase project exists.
+- Phase 4 (manual payment evidence and admin review) is implemented and verified against the **local** stack only: unit and PGlite suite 391/391, live suite 64/64, browser journey 39/39 on both `localhost` and `127.0.0.1`. Migration 6 (`20261018000100_payment_proof_limits.sql`, bucket limited to 5 MiB JPEG/PNG/WebP, rollback in `supabase/rollbacks/`) is applied to the local database only. Phase 5 has not started. No hosted Supabase project exists.
 
 ### Standing rules
 - Stop at every phase boundary and wait for approval. Plan first, implement only when approved.
