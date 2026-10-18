@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { getSupabasePublicConfig, resolveAppOrigin } from "@/lib/supabase/config";
+import { getSupabasePublicConfig } from "@/lib/supabase/config";
+import { resolveRequestOrigin } from "@/lib/supabase/origin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 /**
@@ -7,7 +8,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
  * which rules out open-redirect abuse.
  */
 export async function GET(request: Request): Promise<Response> {
-  const origin = resolveAppOrigin(request.url);
+  const origin = resolveRequestOrigin(request);
   const code = new URL(request.url).searchParams.get("code");
   if (!code || !getSupabasePublicConfig()) {
     return NextResponse.redirect(`${origin}/sign-in?error=1`);

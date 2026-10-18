@@ -129,3 +129,25 @@ For local development only, `supabase/demo/pricing_rules.demo.sql` loads unverif
 - Rule keys the application asks for are defined in `src/lib/journeys/quote.ts` (`QUOTE_LINES`, `tax_percent`). A line is requested only when the customer's answers imply a quantity above zero; a missing rule for a requested line means "Pricing not configured".
 - `add_on_rate` is stored but not used yet. `included_quantity` (free units) and `minimum_charge` (floor for a requested line) are applied.
 - `tests/db/demo-seed.test.ts` checks that the file loads against the real schema and produces a complete quote for each project type.
+
+## Local live verification (real Supabase services, no account, no cost)
+
+`supabase/config.toml` is the CLI's generated local configuration, with one change: the redirect allowlist holds `http://127.0.0.1:3000/auth/callback` and `http://localhost:3000/auth/callback`. No `seed.sql` exists, so no data is loaded automatically (demo pricing stays opt-in).
+
+```bash
+npx supabase start -x studio,realtime,imgproxy,edge-runtime,logflare,vector,supavisor,postgres-meta   # needs Docker; applies the 5 migrations
+npx supabase status -o env      # local URL and keys: copy NEXT_PUBLIC_SUPABASE_URL, ..._ANON_KEY and SUPABASE_SERVICE_ROLE_KEY into .env.local (git-ignored); keep the file to plain KEY=value lines (no comments, no byte-order mark: the CLI also reads .env.local and fails on both, and PowerShell's Set-Content -Encoding utf8 adds a BOM)
+npx supabase stop               # when finished (add --no-backup to discard the local data)
+```
+
+Use one host name consistently within a sign-in: the cookie that completes the magic link is host-specific, so start and finish on the same one. Either `http://localhost:3000` or `http://127.0.0.1:3000` works; the sign-in link returns to the host the browser used.
+
+**Origin policy** (`src/lib/supabase/origin.ts`, used by sign-in, sign-out and the callback): the expected origin is `NEXT_PUBLIC_APP_URL` when set, otherwise the request's own origin. For local development only, `localhost` and `127.0.0.1` count as the same machine (same scheme and port). Any other `Origin` gets 403, and `X-Forwarded-*` headers are never read. In production set `NEXT_PUBLIC_APP_URL` to the public https URL: only that origin is then accepted. Magic-link emails appear in the local inbox at `http://127.0.0.1:54324`.
+
+`tests/live/supabase-live.live.test.ts` checks the real stack: migration order, RLS on every table, sign-in and sessions, ownership isolation, the Phase 3 service layer end to end, forbidden status moves, private storage, the payment gate and the audit trail. It is not part of `npm test` and refuses to run unless the Supabase URL is this machine:
+
+```bash
+LIVE_SUPABASE=1 npx vitest run --config vitest.live.config.mts
+```
+
+It creates its own `@example.test` users each run and clears only `pricing_rules` and the `pricing_mode` setting before starting.

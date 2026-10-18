@@ -1,19 +1,15 @@
 import { z } from "zod";
-import { getSupabasePublicConfig, resolveAppOrigin } from "@/lib/supabase/config";
+import { getSupabasePublicConfig } from "@/lib/supabase/config";
+import { isAllowedOrigin, resolveRequestOrigin } from "@/lib/supabase/origin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const bodySchema = z.object({ email: z.email().max(254) });
 
 const GENERIC = { ok: true, message: "If that address can sign in, a link is on its way." };
 
-function sameOrigin(request: Request): boolean {
-  const origin = request.headers.get("origin");
-  return origin === null || origin === new URL(request.url).origin;
-}
-
 /** Sends a magic link. The response never reveals whether an account exists. */
 export async function POST(request: Request): Promise<Response> {
-  if (!sameOrigin(request)) {
+  if (!isAllowedOrigin(request)) {
     return Response.json({ error: { code: "BAD_ORIGIN", message: "Request not allowed." } }, { status: 403 });
   }
   if (!getSupabasePublicConfig()) {
@@ -29,7 +25,7 @@ export async function POST(request: Request): Promise<Response> {
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.auth.signInWithOtp({
     email: body.data.email,
-    options: { emailRedirectTo: `${resolveAppOrigin(request.url)}/auth/callback` },
+    options: { emailRedirectTo: `${resolveRequestOrigin(request)}/auth/callback` },
   });
   if (error && (error.status === undefined || error.status >= 500 || error.status === 429)) {
     return Response.json(
