@@ -1,20 +1,26 @@
 @import "tailwindcss";
 
 /*
- * Foundation palette (04_UI_UX.md): warm off-white, charcoal text, restrained
- * deep-green accent. System fonts only, so no external font requests.
- * Text colours keep at least 4.5:1 contrast on their backgrounds.
+ * Palette shared with the landing page (04_UI_UX.md): warm off-white, charcoal text,
+ * restrained deep-green accent. System fonts only, so no external font requests.
+ * Text colours keep at least 4.5:1 contrast on their backgrounds. The interface is
+ * light only, to match the landing page.
  */
 :root {
-  --background: #faf7f2;
-  --surface: #ffffff;
-  --foreground: #232323;
-  --muted: #55514b;
-  --border: #d9d3c8;
-  --accent: #1f4d3a;
+  color-scheme: light;
+  --background: #edebe6;
+  --surface: #f6f3ec;
+  --foreground: #1d1e1b;
+  --muted: #56584f;
+  --border: #c9c2b4;
+  --accent: #24513b;
   --accent-contrast: #ffffff;
   --warning-bg: #fdf1dc;
   --warning-fg: #6b4300;
+  --danger-bg: #fbe9e7;
+  --danger-fg: #8a1c10;
+  --success-bg: #e4f0e8;
+  --success-fg: #1a3d2c;
 }
 
 @theme inline {
@@ -27,21 +33,12 @@
   --color-accent-contrast: var(--accent-contrast);
   --color-warning-bg: var(--warning-bg);
   --color-warning-fg: var(--warning-fg);
-  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #151513;
-    --surface: #1e1e1b;
-    --foreground: #f1ede4;
-    --muted: #b8b2a6;
-    --border: #3a3832;
-    --accent: #7fc4a2;
-    --accent-contrast: #0f1a14;
-    --warning-bg: #3a2a0c;
-    --warning-fg: #f3d9a0;
-  }
+  --color-danger-bg: var(--danger-bg);
+  --color-danger-fg: var(--danger-fg);
+  --color-success-bg: var(--success-bg);
+  --color-success-fg: var(--success-fg);
+  --font-sans: Jost, Futura, "Century Gothic", "Avenir Next", Avenir, "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: "Bodoni 72", "Bodoni MT", Didot, "Didot LT STD", "Hoefler Text", Georgia, "Times New Roman", serif;
 }
 
 body {

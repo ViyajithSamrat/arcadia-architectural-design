@@ -117,3 +117,15 @@ A first live smoke test (owner-approved, on a fresh free project) should: apply 
 - **Types** are hand-written (`src/lib/db/schema.ts`, drift-tested against the migrations); switch to generated types once the Supabase CLI is set up.
 - **Model configuration** (env vs `site_settings`) and **payment destination source** remain open.
 - **Free-plan note:** the free plan pauses inactive projects and limits storage and email; confirm current limits before the demo. No paid service was used or needed.
+
+## Demonstration pricing (Phase 3)
+
+The migrations seed **no** prices. Quotes are calculated on the server from `pricing_rules`; with no rules the interface says "Pricing not configured" and refuses to create a quote.
+
+For local development only, `supabase/demo/pricing_rules.demo.sql` loads unverified demonstration rates (INR, 18% tax) and a `site_settings` row `pricing_mode = {"mode":"demo"}`. Quotes built from them are stored with a `DEMO:` prefix on `pricing_rule_version` and are labelled "Demo rates" wherever they are shown.
+
+- It is **not** `supabase/seed.sql`, so `supabase db reset` never applies it. Run it by hand against a local or throwaway database.
+- Never run it against production. To go live, an administrator enters approved rates and removes or changes the `pricing_mode` row.
+- Rule keys the application asks for are defined in `src/lib/journeys/quote.ts` (`QUOTE_LINES`, `tax_percent`). A line is requested only when the customer's answers imply a quantity above zero; a missing rule for a requested line means "Pricing not configured".
+- `add_on_rate` is stored but not used yet. `included_quantity` (free units) and `minimum_charge` (floor for a requested line) are applied.
+- `tests/db/demo-seed.test.ts` checks that the file loads against the real schema and produces a complete quote for each project type.

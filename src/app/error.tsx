@@ -7,7 +7,7 @@
  */
 export default function ErrorPage({ retry }: { error: unknown; retry: () => void }) {
   return (
-    <div role="alert" className="space-y-4">
+    <div role="alert" className="mx-auto w-full max-w-4xl space-y-4 px-4 py-10 sm:px-6">
       <h1 className="text-3xl font-semibold tracking-tight">Something went wrong</h1>
       <p className="text-muted">
         We could not show this page. You can try again. If the problem continues, please come
