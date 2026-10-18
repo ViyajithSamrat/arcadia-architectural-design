@@ -659,3 +659,28 @@ When the owner asks to start the project and the phase prompt files are availabl
 If the owner only asks for an explanation or plan, do not begin modifying code. If phase prompts are missing, explain what is missing and ask the owner to put them in the project workspace.
 
 ------------------------------------------------------------------------
+
+## 19. Current Project State and Standing Rules (update this section at each phase boundary)
+
+**Read `handoff.md` first when resuming.** It holds the exact state, commands and open decisions. This section keeps only the durable rules.
+
+### Status (as of 2026-10-18)
+- Phases 1, 1.1, 2 and 3 are done and committed locally. Nothing is pushed.
+- Verification against a **local** Supabase stack (Docker) passed: live suite 43/43, browser journey 20/20 on both `localhost` and `127.0.0.1`. The two defects found there were fixed and committed locally as `2644c3b`.
+- Phase 4 (payment evidence and admin) is approved and in progress; see `handoff.md`. No hosted Supabase project exists.
+
+### Standing rules
+- Stop at every phase boundary and wait for approval. Plan first, implement only when approved.
+- Do not commit, push, apply migrations to any hosted project, create hosted resources, or spend money without explicit approval. No attribution lines in commit messages.
+- Never print, paste or commit secrets. `.env.local` stays git-ignored and must contain only plain `KEY=value` lines (no comments, no BOM), because the Supabase CLI also reads it.
+- Do not change migrations, RLS or workflow rules to make a test pass; explain proposed security or schema changes first.
+- Report only checks that were actually run. Live integrations count as verified only against the real service (local stack counts as local only).
+- Use the Write tool for multi-line files; large Bash heredocs fail on this machine.
+- Read `node_modules/next/dist/docs/` before writing Next.js code (see `AGENTS.md`); the project uses Cache Components, so request-time reads belong behind `<Suspense>` and `connection()`.
+
+### Architecture facts that are easy to get wrong
+- Quotes are priced only on the server from `pricing_rules`; no rates, taxes or currency symbols in UI code (a test enforces this). No rules means "Pricing not configured". Demo rates live only in `supabase/demo/pricing_rules.demo.sql` and are labelled "Demo rates".
+- Customers cannot change project status. Status changes go through server code with an ownership check and conditional updates; the database guards stay the last line of defence.
+- Admin verify, reject and release must use the admin's own session client, never the service role. An admin starts generation only after payment is verified.
+- Brief, voice and image providers are mock or disabled until their phases; live mode reports "unavailable" instead of silently using a mock.
+- Sign-in origin policy is in `src/lib/supabase/origin.ts`; set `NEXT_PUBLIC_APP_URL` in any deployment.
