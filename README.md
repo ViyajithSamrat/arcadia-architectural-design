@@ -4,7 +4,7 @@ A concept-design prototype. A customer describes a building, an interior, or a g
 
 Outputs are conceptual design ideas, not construction drawings, CAD/BIM models, or code-compliant plans.
 
-**Current state: Phases 1 to 4 are implemented and committed locally; Phase 5 (AI text and optional voice) is a foundation that is built, uncommitted and awaiting commit review.** The customer journey, manual payment evidence and administrator review work against a local Supabase stack. The AI usage ledger (migration 7) is applied to the local database only. No hosted Supabase project exists and nothing is pushed. Live AI providers have not been called: see `docs/PROVIDERS.md`. See `supabase/README.md` for the database.
+**Current state: Phases 1 to 4 and the Phase 5 foundation are implemented and committed locally; Phase 6A/6A-2 (a labelled mock image generator with the administrator and customer screens; no real provider) is implemented and uncommitted.** The customer journey, manual payment evidence and administrator review work against a local Supabase stack, and an administrator can now generate placeholder images, review them and release them (`/admin/generation`); the customer sees them only after release (`/projects/[id]/results`). The AI usage ledger (migration 7) is applied to the local database only. No hosted Supabase project exists and nothing is pushed. Live AI providers have not been called and there is no real image generation: see `docs/PROVIDERS.md`. See `supabase/README.md` for the database.
 
 ## What exists now
 
@@ -80,8 +80,8 @@ architectural-ai-skill-integrated-prompts/   Phase prompts and build orchestrati
 2. Database, sign-in, and private storage (done)
 3. Customer journeys and quote (done)
 4. Payment evidence and admin review (done)
-5. AI text and voice (foundation built and mock-tested, uncommitted; ledger migration applied locally; voice off and not yet built)
-6. Image generation and controlled release
+5. AI text and voice (foundation committed, mock-tested; ledger migration applied locally; voice off and not yet built)
+6. Image generation and controlled release (6A and 6A-2: mock generator, server-side orchestration and the administrator and customer screens; no live provider; uncommitted)
 7. End-to-end QA and demo handoff
 
 Each phase is approved by the project owner before the next one starts.
