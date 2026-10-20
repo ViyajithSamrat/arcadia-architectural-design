@@ -111,7 +111,7 @@ describe("provider selection", () => {
   });
 
   it("reports the live provider as unavailable instead of silently using the mock", () => {
-    expect(() => getBriefProvider("live")).toThrow(BriefProviderUnavailableError);
+    expect(() => getBriefProvider("live", {})).toThrow(BriefProviderUnavailableError);
   });
 });
 

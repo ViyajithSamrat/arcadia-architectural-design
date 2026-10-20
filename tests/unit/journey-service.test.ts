@@ -190,6 +190,8 @@ describe("creating the brief", () => {
   it("reports the live provider as unavailable instead of using the mock", async () => {
     userDb.seed("projects", [project()]);
     vi.stubEnv("PROVIDER_MODE", "live");
+    vi.stubEnv("OPENROUTER_API_KEY", "");
+    vi.stubEnv("OPENROUTER_TEXT_MODEL", "");
     const result = await createBrief(user(), service(), ME, PROJECT);
     vi.unstubAllEnvs();
     expect(result).toMatchObject({ ok: false, message: expect.stringMatching(/not available/i) });

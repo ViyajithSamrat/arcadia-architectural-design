@@ -9,6 +9,7 @@ import {
   type Brief,
   type BriefProvider,
 } from "./brief";
+import { refusalMessage, withUsage } from "@/lib/providers/budget";
 import { minorToDecimal } from "./money";
 import {
   computeQuote,
@@ -194,7 +195,16 @@ export async function createBrief(
   let produced: unknown;
   try {
     const p = typeof provider === "function" ? provider() : provider;
-    produced = await p.generate({ projectType: project.project_type, sourceLanguage: project.source_language ?? "en", requirements: check.requirements });
+    const input = { projectType: project.project_type, sourceLanguage: project.source_language ?? "en", requirements: check.requirements };
+    if (p.usage) {
+      // A provider that costs something or is rate limited: reserve its usage first. If the
+      // reservation is refused (or cannot be made) nothing is called.
+      const guarded = await withUsage(service, { customerId: userId, projectId }, p.usage, (hooks) => p.generate(input, hooks));
+      if (!guarded.ok) return fail(refusalMessage(guarded.reason));
+      produced = guarded.value;
+    } else {
+      produced = await p.generate(input);
+    }
   } catch (error) {
     if (error instanceof BriefProviderUnavailableError) return fail(error.message);
     return fail("The brief could not be created. Please try again.");

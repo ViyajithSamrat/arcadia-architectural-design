@@ -64,6 +64,16 @@ describe("indexes are used by the queries they exist for", () => {
         insert into public.design_assets (project_id, asset_type, storage_path, mime_type, created_at)
         select p.id, 'REFERENCE', p.id::text || '/references/' || n || '.jpg', 'image/jpeg', now() - (random() * interval '60 days')
         from public.projects p cross join generate_series(1, 2) n`);
+      // AI usage ledger: mostly OpenRouter requests, few Gnani credits, spread over 60 days.
+      await q(`
+        with ua as (select array_agg(id order by id) as ids from auth.users where email like 'u%')
+        insert into public.ai_usage (customer_id, provider, operation, unit, units_estimated, status, created_at)
+        select ua.ids[1 + (g % ${SCALE.users})],
+               case when g % 100 = 0 then 'gnani' else 'openrouter' end,
+               case when g % 100 = 0 then 'stt' else 'brief' end,
+               case when g % 100 = 0 then 'credit' else 'request' end,
+               1, 'SUCCEEDED', now() - (random() * interval '60 days')
+        from generate_series(1, 30000) g cross join ua`);
       await q(`
         with pa as (select array_agg(id order by id) as ids from public.projects)
         insert into public.audit_events (action, project_id, "timestamp")
@@ -129,6 +139,21 @@ describe("indexes are used by the queries they exist for", () => {
       sql: `select * from public.design_assets where project_id = '${projectId}' and is_released order by created_at desc`,
       indexes: ["design_assets_project_released_idx"],
       expectIndex: /design_assets_project_released_idx/,
+    },
+    {
+      name: "budget guard: one customer's recent usage (per-customer limit)",
+      sql: `select coalesce(sum(greatest(units_estimated, coalesce(units_reported, 0))), 0) from public.ai_usage
+            where customer_id = '${customerId}' and provider = 'openrouter' and unit = 'request'
+              and status <> 'NOT_SENT' and created_at > now() - interval '60 minutes'`,
+      indexes: ["ai_usage_customer_idx", "ai_usage_provider_time_idx"],
+      expectIndex: /ai_usage_customer_idx|ai_usage_provider_time_idx/,
+    },
+    {
+      name: "budget guard: provider-wide usage in the last 24 hours (daily cap)",
+      sql: `select coalesce(sum(greatest(units_estimated, coalesce(units_reported, 0))), 0) from public.ai_usage
+            where provider = 'openrouter' and unit = 'request' and status <> 'NOT_SENT' and created_at > now() - interval '24 hours'`,
+      indexes: ["ai_usage_provider_time_idx"],
+      expectIndex: /ai_usage_provider_time_idx/,
     },
     {
       name: "audit history of a project",

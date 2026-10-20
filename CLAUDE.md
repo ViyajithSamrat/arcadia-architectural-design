@@ -664,10 +664,14 @@ If the owner only asks for an explanation or plan, do not begin modifying code. 
 
 **Read `handoff.md` first when resuming.** It holds the exact state, commands and open decisions. This section keeps only the durable rules.
 
-### Status (as of 2026-10-18)
+### Status (as of 2026-10-20)
 - Phases 1, 1.1, 2, 3 and 4 are done and committed locally (Phase 4: `85f0acf`). Nothing is pushed.
 - Verification against a **local** Supabase stack (Docker) passed: live suite 43/43, browser journey 20/20 on both `localhost` and `127.0.0.1`. The two defects found there were fixed and committed locally as `2644c3b`.
-- Phase 4 (manual payment evidence and admin review) is implemented and verified against the **local** stack only: unit and PGlite suite 391/391, live suite 64/64, browser journey 39/39 on both `localhost` and `127.0.0.1`. Migration 6 (`20261018000100_payment_proof_limits.sql`, bucket limited to 5 MiB JPEG/PNG/WebP, rollback in `supabase/rollbacks/`) is applied to the local database only. Phase 5 has not started. No hosted Supabase project exists.
+- Phase 4 (manual payment evidence and admin review) is implemented and verified against the **local** stack only: unit and PGlite suite 391/391, live suite 64/64, browser journey 39/39 on both `localhost` and `127.0.0.1`. Migration 6 (`20261018000100_payment_proof_limits.sql`, bucket limited to 5 MiB JPEG/PNG/WebP, rollback in `supabase/rollbacks/`) is applied to the local database only. No hosted Supabase project exists.
+- Phase 5 (AI text and optional voice) **foundation exists but is UNCOMMITTED** (HEAD is still `8a54e6f`): provider interfaces, budget guard, OpenRouter brief adapter (the model supplies wording only; the server composes the stored brief) and Gnani adapters (voice **disabled by default**; no voice routes or UI yet). **No live OpenRouter or Gnani call has ever been made**; default tests block the network. See `docs/PROVIDERS.md`.
+- Migration 7 (`20261018000200_ai_usage.sql`, AI usage ledger and budget guard) was revised after a SQL audit (all findings fixed; see `handoff.md` sections 0.D, 0.K and 0.L) and is **applied to the LOCAL Supabase database only** (rollback in `supabase/rollbacks/`). Last recorded results, from the migration-application session on 2026-10-20 and not re-run when this text was written: `npm test` 566/566, local live suite 80/80 (includes 16 real-PostgreSQL ledger tests: parallel reservations, lock timeout, PostgREST error codes, privileges), typecheck, lint and build clean. **Still unverified:** any hosted Supabase project or hosted pooler, real-PostgreSQL rehearsal of the rollback, live OpenRouter/Gnani behaviour, and a mock browser journey after the migration revision.
+- Gnani: absolute ceiling 5,000 credits, fail closed, no automatic retries or parallel calls, voice off by default. No credit conversion is documented, so none may be assumed; the host and auth must be confirmed against the owner's account. Every live provider call needs the owner's explicit approval for that specific test; synthetic data only.
+- Next action: commit review of the Phase 5 foundation (owner decision). Keep Phase 5 uncommitted until separately approved; voice routes/UI, live smoke tests and image generation are later steps.
 
 ### Standing rules
 - Stop at every phase boundary and wait for approval. Plan first, implement only when approved.
@@ -682,5 +686,5 @@ If the owner only asks for an explanation or plan, do not begin modifying code. 
 - Quotes are priced only on the server from `pricing_rules`; no rates, taxes or currency symbols in UI code (a test enforces this). No rules means "Pricing not configured". Demo rates live only in `supabase/demo/pricing_rules.demo.sql` and are labelled "Demo rates".
 - Customers cannot change project status. Status changes go through server code with an ownership check and conditional updates; the database guards stay the last line of defence.
 - Admin verify, reject and release must use the admin's own session client, never the service role. An admin starts generation only after payment is verified.
-- Brief, voice and image providers are mock or disabled until their phases; live mode reports "unavailable" instead of silently using a mock.
+- Voice and image providers are disabled until their phases. The brief provider is the labelled mock unless `PROVIDER_MODE=live` with OpenRouter configured; live mode reports "unavailable" instead of silently using a mock. AI output is untrusted: it is validated strictly and the server composes the stored brief; every provider call reserves usage in the budget guard first.
 - Sign-in origin policy is in `src/lib/supabase/origin.ts`; set `NEXT_PUBLIC_APP_URL` in any deployment.

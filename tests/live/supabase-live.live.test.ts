@@ -79,11 +79,11 @@ describe.skipIf(!ENABLED)("live local Supabase", () => {
       expect(applied).toEqual(files.map((f) => f.split("_")[0]));
     });
 
-    it("created the ten tables with RLS enabled on every one", () => {
+    it("created the eleven tables with RLS enabled on every one", () => {
       const rows = sql(
         "select relname || ':' || relrowsecurity from pg_class c join pg_namespace n on n.oid = c.relnamespace where n.nspname = 'public' and c.relkind = 'r' order by relname",
       ).split("\n");
-      expect(rows).toHaveLength(10);
+      expect(rows).toHaveLength(11);
       expect(rows.every((r) => r.endsWith(":true"))).toBe(true);
     });
 

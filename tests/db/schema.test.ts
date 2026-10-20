@@ -4,6 +4,7 @@ import { Scenario, as, createAdmin, createDatabase, createUser, expectError, ser
 
 const TABLES = [
   "admin_users",
+  "ai_usage",
   "project_status_transitions",
   "projects",
   "quotes",

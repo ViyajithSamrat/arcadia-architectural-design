@@ -4,7 +4,7 @@ A concept-design prototype. A customer describes a building, an interior, or a g
 
 Outputs are conceptual design ideas, not construction drawings, CAD/BIM models, or code-compliant plans.
 
-**Current state: Phase 2 (database, sign-in, private storage) is implemented but awaiting approval.** The customer journeys, payment screens, and AI features are not built yet. The database layer is verified only against an in-process Postgres, not a live Supabase project. See `supabase/README.md`.
+**Current state: Phases 1 to 4 are implemented and committed locally; Phase 5 (AI text and optional voice) is a foundation that is built, uncommitted and awaiting commit review.** The customer journey, manual payment evidence and administrator review work against a local Supabase stack. The AI usage ledger (migration 7) is applied to the local database only. No hosted Supabase project exists and nothing is pushed. Live AI providers have not been called: see `docs/PROVIDERS.md`. See `supabase/README.md` for the database.
 
 ## What exists now
 
@@ -77,10 +77,10 @@ architectural-ai-skill-integrated-prompts/   Phase prompts and build orchestrati
 ## Roadmap
 
 1. Foundation (done)
-2. Database, sign-in, and private storage (implemented, awaiting approval)
-3. Customer journeys and quote
-4. Payment evidence and admin review
-5. AI text and voice
+2. Database, sign-in, and private storage (done)
+3. Customer journeys and quote (done)
+4. Payment evidence and admin review (done)
+5. AI text and voice (foundation built and mock-tested, uncommitted; ledger migration applied locally; voice off and not yet built)
 6. Image generation and controlled release
 7. End-to-end QA and demo handoff
 

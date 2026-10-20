@@ -167,3 +167,7 @@ Rollback by hand: `update storage.buckets set file_size_limit = null, allowed_mi
 Not part of this phase: starting generation and releasing assets. Verification does not start anything.
 
 Tests: `tests/unit/payment-*.test.ts`, `tests/db/payment-proof-limits.test.ts`, the payment cases in `tests/db/index-usage.test.ts`, and `tests/live/payments-live.live.test.ts` (local stack).
+
+## AI usage ledger (Phase 5, migration 7: applied to the local database only)
+
+`supabase/migrations/20261018000200_ai_usage.sql` (rollback `supabase/rollbacks/20261018000200_ai_usage.down.sql`) adds the `ai_usage` ledger and two service-only functions, `ai_usage_reserve` and `ai_usage_finish`, that enforce a per-customer limit, a provider-wide ceiling (clamped to 5,000 credits in SQL for Gnani) and an in-flight cap atomically before any AI provider call. The migration was revised after a SQL audit and is **applied to the LOCAL Supabase database only** (`npx supabase migration up --local`); no hosted project exists. Tests: the in-memory database (`tests/db/ai-usage.test.ts`, plus EXPLAIN cases in `tests/db/index-usage.test.ts`) and the real local PostgreSQL stack (`tests/live/ai-usage-live.live.test.ts`: parallel reservations, lock timeout, PostgREST error codes, privileges). **Not verified:** hosted Supabase or a hosted connection pooler, and the rollback on real PostgreSQL (rehearsed only in the in-memory database). Details and provider status: `docs/PROVIDERS.md`.

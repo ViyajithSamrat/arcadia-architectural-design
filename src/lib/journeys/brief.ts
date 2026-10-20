@@ -1,5 +1,9 @@
 import { z } from "zod";
 import type { ProjectType } from "@/lib/db/schema";
+import { getOpenRouterConfig } from "@/lib/providers/config";
+import type { ProviderHooks } from "@/lib/providers/interfaces";
+import { createOpenRouterBriefProvider } from "@/lib/providers/openrouter";
+import type { UsagePlan } from "@/lib/providers/budget";
 import { JOURNEY_STEPS, optionLabel, type FieldSpec } from "./steps";
 import type { StepData } from "./validation";
 
@@ -48,7 +52,9 @@ export type BriefInput = {
 /** A brief producer. Its result is unvalidated; callers must pass it through parseBrief. */
 export interface BriefProvider {
   readonly id: "mock" | "openrouter";
-  generate(input: BriefInput): Promise<unknown>;
+  /** Set by providers that cost something or are rate limited: the budget guard reserves this first. */
+  readonly usage?: UsagePlan;
+  generate(input: BriefInput, hooks?: ProviderHooks): Promise<unknown>;
 }
 
 export class BriefProviderUnavailableError extends Error {
@@ -135,10 +141,12 @@ function choice(type: ProjectType, requirements: Record<string, StepData>, stepI
   return optionLabel(field, value);
 }
 
-type Built = Pick<
+export type BriefFacts = Pick<
   Brief,
   "dimensionsAndUnits" | "roomOrZoneList" | "stylePreferences" | "budgetBand" | "englishBrief" | "assumptions" | "missingOptionalDetails"
 >;
+
+type Built = BriefFacts;
 
 function buildEmptyPlot(r: Record<string, StepData>): Built {
   const space = r.space ?? {};
@@ -279,6 +287,16 @@ function buildLandscape(r: Record<string, StepData>): Built {
 }
 
 /**
+ * The facts of a brief that come from the customer's own validated answers alone, with no
+ * model involved: dimensions, rooms, styles, budget band and a plain-language summary.
+ * Live providers add wording on top; they never supply or change these.
+ */
+export function buildBriefFacts(input: BriefInput): BriefFacts {
+  const r = input.requirements;
+  return input.projectType === "EMPTY_PLOT" ? buildEmptyPlot(r) : input.projectType === "INTERIOR" ? buildInterior(r) : buildLandscape(r);
+}
+
+/**
  * Produces a brief from the answers alone, with no model. It is deterministic, never
  * invents a value the customer did not give, and is labelled as mock output in the
  * stored metadata so the interface can say so.
@@ -287,8 +305,7 @@ export const mockBriefProvider: BriefProvider = {
   id: "mock",
   async generate(input) {
     const r = input.requirements;
-    const built: Built =
-      input.projectType === "EMPTY_PLOT" ? buildEmptyPlot(r) : input.projectType === "INTERIOR" ? buildInterior(r) : buildLandscape(r);
+    const built: Built = buildBriefFacts(input);
     const description = typeof r.description?.text === "string" ? r.description.text : null;
     const englishBrief = description ? `${built.englishBrief}\n\nCustomer notes: ${description}` : built.englishBrief;
     const missingOptionalDetails = description ? built.missingOptionalDetails : ["Your own description"].concat(built.missingOptionalDetails);
@@ -314,12 +331,18 @@ export const mockBriefProvider: BriefProvider = {
 };
 
 /**
- * Chooses the provider. The live OpenRouter provider belongs to the AI phase, so until
- * then "live" mode reports unavailable instead of quietly falling back to the mock.
+ * Chooses the provider. "live" uses OpenRouter when it is configured and otherwise reports
+ * the service unavailable: it never quietly falls back to the mock.
  */
-export function getBriefProvider(mode: string | undefined): BriefProvider {
+export function getBriefProvider(
+  mode: string | undefined,
+  env: Record<string, string | undefined> = process.env,
+  deps: { fetch?: typeof fetch } = {},
+): BriefProvider {
   if (mode === "live") {
-    throw new BriefProviderUnavailableError("The live brief service is not available yet.");
+    const config = getOpenRouterConfig(env);
+    if (!config) throw new BriefProviderUnavailableError("The live brief service is not available yet.");
+    return createOpenRouterBriefProvider(config, deps);
   }
   return mockBriefProvider;
 }

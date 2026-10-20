@@ -49,6 +49,21 @@ export const envSchema = z.object({
   GNANI_STT_MODEL: optionalText,
   GNANI_TTS_MODEL: optionalText,
   GNANI_TTS_VOICE: optionalText,
+  // Gnani voice is OFF unless GNANI_VOICE_ENABLED=true AND every limit below has a value (Phase 5).
+  GNANI_VOICE_ENABLED: optionalText,
+  GNANI_LANGUAGES: optionalText,
+  GNANI_STT_MAX_SECONDS: optionalText,
+  GNANI_TTS_MAX_CHARS: optionalText,
+  GNANI_CREDITS_PER_STT_SECOND: optionalText,
+  GNANI_CREDITS_PER_TTS_CHAR: optionalText,
+  GNANI_MAX_CREDITS_PER_REQUEST: optionalText,
+  GNANI_CUSTOMER_CREDITS_PER_HOUR: optionalText,
+  GNANI_BUDGET_CREDITS: optionalText,
+
+  // AI request limits (Phase 5)
+  PROVIDER_TIMEOUT_MS: optionalText,
+  AI_BRIEFS_PER_HOUR: optionalText,
+  OPENROUTER_DAILY_REQUEST_CAP: optionalText,
 
   // Manual payment display values (no gateway secrets)
   PAYMENT_MODE: optionalText,
