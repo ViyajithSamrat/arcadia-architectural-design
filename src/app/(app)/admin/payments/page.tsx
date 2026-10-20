@@ -56,6 +56,11 @@ async function Queue() {
         <p className="text-muted">
           A customer&apos;s submission is a claim, not proof. Verify only after you have seen the credit in the receiving account.
         </p>
+        <p>
+          <Link href="/admin/generation" className="underline underline-offset-4">
+            Image generation
+          </Link>
+        </p>
       </header>
       <section aria-labelledby="pending-title" className="space-y-3">
         <h2 id="pending-title" className="text-xl font-semibold">

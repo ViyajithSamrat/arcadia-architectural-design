@@ -40,6 +40,8 @@ export const envSchema = z.object({
   OPENROUTER_IMAGE_MODEL: optionalText,
   OPENROUTER_HTTP_REFERER: optionalUrl,
   OPENROUTER_APP_TITLE: optionalText,
+  // Images per generation request (Phase 6, mock only for now); parsed and clamped in code.
+  MAX_GENERATION_IMAGES: optionalText,
 
   // Gnani speech-to-text / text-to-speech (server-only; details unverified)
   GNANI_API_KEY: optionalText,

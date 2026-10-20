@@ -10,7 +10,7 @@ export type StatusInfo = {
   /** What the customer should do (or expect) next. */
   next: string;
   /** Where the next action lives, relative to /projects/<id>; null when there is none. */
-  actionPath: "" | "/edit" | "/brief" | "/quote" | "/payment" | null;
+  actionPath: "" | "/edit" | "/brief" | "/quote" | "/payment" | "/results" | null;
   actionLabel: string | null;
 };
 
@@ -90,8 +90,8 @@ export const STATUS_INFO: Readonly<Record<ProjectStatus, StatusInfo>> = {
   RELEASED: {
     label: "Designs released",
     next: "Your concepts have been released to your account.",
-    actionPath: null,
-    actionLabel: null,
+    actionPath: "/results",
+    actionLabel: "View your concepts",
   },
   CANCELLED: {
     label: "Cancelled",

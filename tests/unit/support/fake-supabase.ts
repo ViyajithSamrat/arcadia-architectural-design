@@ -9,14 +9,14 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  */
 
 type Row = Record<string, unknown>;
-type Filter = { column: string; kind: "eq" | "is" | "in"; value: unknown };
+type Filter = { column: string; kind: "eq" | "is" | "in" | "notnull"; value: unknown };
 
 export class FakeDb {
   tables: Record<string, Row[]> = {};
   /** Every write, in order, for assertions: `${table}.${insert|update}`. */
   writes: { op: string; table: string; payload: Row }[] = [];
   /** Make the next matching write fail, to test error handling. */
-  failNext: { table: string; op: "insert" | "update"; code?: string } | null = null;
+  failNext: { table: string; op: "insert" | "update" | "delete"; code?: string } | null = null;
   /** Handlers for `rpc(name, args)`; an unknown name returns an error. */
   rpcHandlers: Record<string, (args: Row) => { data?: unknown; error?: { code?: string; message: string } | null }> = {};
   rpcCalls: { name: string; args: Row }[] = [];
@@ -26,6 +26,8 @@ export class FakeDb {
   removals: string[] = [];
   signed: { path: string; seconds: number }[] = [];
   failUpload = false;
+  /** Column defaults the real database applies on insert, by table (for example a new job is QUEUED). */
+  defaults: Record<string, Row> = {};
 
   seed(table: string, rows: Row[]) {
     this.tables[table] = [...(this.tables[table] ?? []), ...rows.map((r) => ({ ...r }))];
@@ -73,7 +75,7 @@ export class FakeDb {
 
 class Query implements PromiseLike<{ data: unknown; error: unknown }> {
   private filters: Filter[] = [];
-  private op: "select" | "insert" | "update" = "select";
+  private op: "select" | "insert" | "update" | "delete" = "select";
   private payload: Row = {};
   private returning = false;
   private orderBy: { column: string; ascending: boolean } | null = null;
@@ -97,6 +99,16 @@ class Query implements PromiseLike<{ data: unknown; error: unknown }> {
   update(payload: Row) {
     this.op = "update";
     this.payload = payload;
+    return this;
+  }
+  delete() {
+    this.op = "delete";
+    return this;
+  }
+  /** Only the `.not(column, "is", null)` form is supported. */
+  not(column: string, operator: string, value: unknown) {
+    if (operator !== "is" || value !== null) throw new Error("fake .not() supports only (column, 'is', null)");
+    this.filters.push({ column, kind: "notnull", value: null });
     return this;
   }
   eq(column: string, value: unknown) {
@@ -130,7 +142,7 @@ class Query implements PromiseLike<{ data: unknown; error: unknown }> {
 
   private matches(row: Row) {
     return this.filters.every((f) =>
-      f.kind === "is" ? (row[f.column] ?? null) === f.value : f.kind === "in" ? (f.value as unknown[]).includes(row[f.column]) : row[f.column] === f.value,
+      f.kind === "is" ? (row[f.column] ?? null) === f.value : f.kind === "notnull" ? (row[f.column] ?? null) !== null : f.kind === "in" ? (f.value as unknown[]).includes(row[f.column]) : row[f.column] === f.value,
     );
   }
 
@@ -149,9 +161,12 @@ class Query implements PromiseLike<{ data: unknown; error: unknown }> {
 
     let affected: Row[];
     if (this.op === "insert") {
-      const row = { id: randomUUID(), created_at: new Date().toISOString(), ...this.payload };
+      const row = { id: randomUUID(), created_at: new Date().toISOString(), ...(db.defaults[this.table] ?? {}), ...this.payload };
       rows.push(row);
       affected = [row];
+    } else if (this.op === "delete") {
+      affected = rows.filter((r) => this.matches(r));
+      db.tables[this.table] = rows.filter((r) => !affected.includes(r));
     } else if (this.op === "update") {
       affected = rows.filter((r) => this.matches(r));
       for (const r of affected) Object.assign(r, this.payload);
