@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { AccessGate } from "@/components/journey/access-gate";
 import { BriefReviewForm } from "@/components/journey/brief-review-form";
 import { CreateBriefButton } from "@/components/journey/journey-actions";
+import { ReadbackSummary } from "@/components/journey/readback-summary";
 import { Loading } from "@/components/journey/loading";
 import { Notice } from "@/components/journey/notice";
 import { buttonPrimary, buttonSecondary } from "@/components/journey/styles";
@@ -141,6 +142,8 @@ async function BriefContent({ params, searchParams }: Props) {
           empty="Nothing else is open."
         />
       </section>
+
+      <ReadbackSummary text={brief.customerReadbackText} />
 
       <section aria-labelledby="text-title" className="space-y-3">
         <h2 id="text-title" className="text-xl font-semibold">

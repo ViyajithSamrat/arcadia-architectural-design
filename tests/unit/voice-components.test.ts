@@ -7,6 +7,7 @@ vi.mock("@/app/(app)/projects/actions", () => ({ saveStepAction: vi.fn() }));
 
 const { VoiceCapture } = await import("@/components/journey/voice-capture");
 const { StepForm } = await import("@/components/journey/step-form");
+const { ReadbackSummary } = await import("@/components/journey/readback-summary");
 const { getVoiceView, TANGLISH_DEMO } = await import("@/lib/journeys/voice");
 const { MOCK_TRANSCRIPT } = await import("@/lib/providers/mock-speech");
 const copy = await import("@/lib/voice/copy");
@@ -94,5 +95,32 @@ describe("the description step", () => {
   it("shows no voice controls on other steps", () => {
     const out = html(createElement(StepForm, { projectId: ID, projectType: "EMPTY_PLOT", stepId: "space", initial: {}, voice: mockView }));
     expect(out).not.toContain("Speak your description");
+  });
+});
+
+describe("ReadbackSummary (PR-009: text fallback while no text-to-speech is connected)", () => {
+  it("keeps the summary visible as text and explains why it cannot be heard", () => {
+    const out = html(createElement(ReadbackSummary, { text: "  A new two-floor home on a 30 × 40 ft plot.  " }));
+    expect(out).toContain("Read-back summary");
+    expect(out).toContain("A new two-floor home on a 30 × 40 ft plot.");
+    expect(out).toContain(copy.READBACK_TEXT_FALLBACK);
+    expect(copy.READBACK_TEXT_FALLBACK).toMatch(/not available in this version, so it is shown here as text/);
+  });
+
+  it("offers nothing that looks like working audio", () => {
+    const out = html(createElement(ReadbackSummary, { text: "Summary" }));
+    expect(out).not.toMatch(/<audio|<button|Play|Listen to/i);
+  });
+
+  it("says so when the brief has no separate summary, and still explains the fallback", () => {
+    const out = html(createElement(ReadbackSummary, { text: "   " }));
+    expect(out).toContain("No separate summary was produced for this brief");
+    expect(out).toContain(copy.READBACK_TEXT_FALLBACK);
+  });
+
+  it("renders the summary as text, never as markup", () => {
+    const out = renderToStaticMarkup(createElement(ReadbackSummary, { text: "<script>alert(1)</script>" }));
+    expect(out).not.toContain("<script>");
+    expect(out).toContain("&lt;script&gt;");
   });
 });
