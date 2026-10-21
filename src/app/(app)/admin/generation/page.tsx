@@ -68,6 +68,10 @@ async function Queue() {
           <Link href="/admin/payments" className="underline underline-offset-4">
             Payments to review
           </Link>
+          {" · "}
+          <Link href="/admin/pricing" className="underline underline-offset-4">
+            Pricing
+          </Link>
         </p>
       </header>
       <Section id="ready-title" title="Ready to generate" empty="No project is waiting to be generated." rows={by("can_start", "blocked_leftovers")} />

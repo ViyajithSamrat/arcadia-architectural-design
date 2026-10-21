@@ -60,6 +60,10 @@ async function Queue() {
           <Link href="/admin/generation" className="underline underline-offset-4">
             Image generation
           </Link>
+          {" · "}
+          <Link href="/admin/pricing" className="underline underline-offset-4">
+            Pricing
+          </Link>
         </p>
       </header>
       <section aria-labelledby="pending-title" className="space-y-3">
