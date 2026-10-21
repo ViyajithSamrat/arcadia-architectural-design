@@ -1,4 +1,5 @@
 import { isSet } from "@/lib/env/schema";
+import { getVoiceMode, LIVE_STT_WIRED } from "@/lib/journeys/voice";
 
 /**
  * Integration status for optional services (Phase 1 foundation).
@@ -8,9 +9,13 @@ import { isSet } from "@/lib/env/schema";
  * "configured_unverified" until a later phase tests it with the real provider.
  */
 
-export type IntegrationId = "supabase" | "openrouter" | "gnani" | "payment_display";
+export type IntegrationId = "supabase" | "openrouter" | "gnani" | "voice_input" | "payment_display";
 
-export type IntegrationState = "not_configured" | "partial" | "configured_unverified";
+/**
+ * "mock_only": a labelled mock answers instead of the real service.
+ * "live_blocked": the live settings are complete but the live path is switched off in code.
+ */
+export type IntegrationState = "not_configured" | "partial" | "configured_unverified" | "mock_only" | "live_blocked";
 
 export type IntegrationStatus = {
   id: IntegrationId;
@@ -32,6 +37,8 @@ type Definition = {
   allOf: string[];
   /** At least one variable listed here must be set (when the list is non-empty). */
   anyOf?: string[];
+  /** Appended to the message when the settings are present. */
+  note?: string;
 };
 
 const DEFINITIONS: Definition[] = [
@@ -49,9 +56,10 @@ const DEFINITIONS: Definition[] = [
   },
   {
     id: "gnani",
-    label: "Gnani (speech-to-text and text-to-speech)",
+    label: "Gnani account settings (speech-to-text and text-to-speech)",
     neededInPhase: 5,
     allOf: ["GNANI_API_KEY"],
+    note: "A key alone does not switch voice input on: see Voice input.",
   },
   {
     id: "payment_display",
@@ -77,7 +85,7 @@ function evaluate(def: Definition, raw: Record<string, string | undefined>): Int
 
   const message =
     state === "configured_unverified"
-      ? `Settings are present. This does not confirm the service works; it is tested in Phase ${def.neededInPhase}.`
+      ? `Settings are present. This does not confirm the service works; it is tested in Phase ${def.neededInPhase}.${def.note ? ` ${def.note}` : ""}`
       : state === "partial"
         ? `Partly configured. Still missing: ${missing.join(", ")}.`
         : `Not configured. Needed from Phase ${def.neededInPhase}. The app runs without it and related features stay off.`;
@@ -92,7 +100,50 @@ function evaluate(def: Definition, raw: Record<string, string | undefined>): Int
   };
 }
 
+const VOICE_LABEL = "Voice input (speech-to-text)";
+
+/**
+ * Voice input as the transcribe route will actually behave, from the same voice mode and live
+ * gate the route uses. Names of missing settings only; never a value.
+ */
+export function getVoiceInputStatus(raw: Record<string, string | undefined>): IntegrationStatus {
+  const base = { id: "voice_input" as const, label: VOICE_LABEL, neededInPhase: 5 };
+  const mode = getVoiceMode(raw);
+  switch (mode.kind) {
+    case "off":
+      return { ...base, state: "not_configured", missing: ["GNANI_VOICE_ENABLED"], message: "Not configured. Voice input is off, so descriptions are typed." };
+    case "invalid":
+      return { ...base, state: "partial", missing: ["GNANI_VOICE_ENABLED (empty, mock or true)"], message: "GNANI_VOICE_ENABLED has a value that is not recognised, so voice input is unavailable." };
+    case "mock":
+      return {
+        ...base,
+        state: "mock_only",
+        missing: [],
+        message: "Mock only. Recordings are answered by a labelled MOCK transcriber: nothing is transcribed and no speech service is called.",
+      };
+    case "live_unavailable":
+      return { ...base, state: "partial", missing: mode.missing, message: `Live speech-to-text was requested but is unavailable. Still missing: ${mode.missing.join(", ")}.` };
+    case "live":
+      return LIVE_STT_WIRED
+        ? {
+            ...base,
+            state: "configured_unverified",
+            missing: [],
+            message: "Live speech-to-text is switched on. This does not confirm the service works; it has not been verified against Gnani.",
+          }
+        : {
+            ...base,
+            state: "live_blocked",
+            missing: [],
+            message: "Live settings are present, but live speech-to-text is switched off in this version of the code, so voice input is unavailable.",
+          };
+  }
+}
+
 /** Status of every optional integration. Safe to expose: names and states only. */
 export function getIntegrationStatuses(raw: Record<string, string | undefined>): IntegrationStatus[] {
-  return DEFINITIONS.map((def) => evaluate(def, raw));
+  const statuses = DEFINITIONS.map((def) => evaluate(def, raw));
+  const gnani = statuses.findIndex((s) => s.id === "gnani");
+  statuses.splice(gnani + 1, 0, getVoiceInputStatus(raw));
+  return statuses;
 }

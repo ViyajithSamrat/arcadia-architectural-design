@@ -171,6 +171,10 @@ export function planOpenRouterBrief(config: OpenRouterConfig): UsagePlan {
 
 export type GnaniPlan = { ok: true; plan: UsagePlan } | { ok: false; reason: "unmeasurable" | "per_request" };
 
+/** The limits a Gnani plan needs. STT-only settings are enough for STT; TTS without its rate is unmeasurable. */
+export type GnaniPlanConfig = Pick<GnaniConfig, "creditsPerSttSecond" | "maxCreditsPerRequest" | "customerCreditsPerHour" | "budgetCredits"> &
+  Partial<Pick<GnaniConfig, "creditsPerTtsChar" | "ttsModel">>;
+
 const ceil2 = (n: number) => Math.ceil(n * 100) / 100;
 
 /**
@@ -181,8 +185,8 @@ const ceil2 = (n: number) => Math.ceil(n * 100) / 100;
  *
  * @param amount seconds of audio for STT, characters for TTS
  */
-export function planGnaniCall(operation: "stt" | "tts", amount: number, config: GnaniConfig): GnaniPlan {
-  const rate = operation === "stt" ? config.creditsPerSttSecond : config.creditsPerTtsChar;
+export function planGnaniCall(operation: "stt" | "tts", amount: number, config: GnaniPlanConfig): GnaniPlan {
+  const rate = operation === "stt" ? config.creditsPerSttSecond : (config.creditsPerTtsChar ?? Number.NaN);
   const units = ceil2(Math.ceil(amount) * rate);
   if (!Number.isFinite(units) || units <= 0) return { ok: false, reason: "unmeasurable" };
   if (units > config.maxCreditsPerRequest) return { ok: false, reason: "per_request" };
@@ -191,7 +195,7 @@ export function planGnaniCall(operation: "stt" | "tts", amount: number, config: 
     plan: {
       provider: "gnani",
       operation,
-      model: operation === "tts" ? config.ttsModel : null,
+      model: operation === "tts" ? (config.ttsModel ?? null) : null,
       unit: "credit",
       units,
       limits: {

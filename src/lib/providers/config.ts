@@ -194,3 +194,73 @@ export function getGnaniReadiness(env: RawEnv = process.env): GnaniReadiness {
     },
   };
 }
+
+/** GNANI_LANGUAGES, limited to the codes Gnani documents; anything else is dropped. */
+export function configuredGnaniLanguages(env: RawEnv = process.env): string[] {
+  const listed = (isSet(env, "GNANI_LANGUAGES") ? String(env.GNANI_LANGUAGES).split(",") : [])
+    .map((l) => l.trim())
+    .filter((l) => (GNANI_STT_LANGUAGES as readonly string[]).includes(l));
+  return [...new Set(listed)];
+}
+
+/** Longest recording accepted, in seconds: GNANI_STT_MAX_SECONDS, never more than 30. */
+export function gnaniSttMaxSeconds(env: RawEnv = process.env): number {
+  return whole(env, "GNANI_STT_MAX_SECONDS", 30, 1, 30);
+}
+
+/** What speech-to-text alone needs. Nothing about text-to-speech. */
+export type GnaniSttConfig = Pick<
+  GnaniConfig,
+  "apiKey" | "baseUrl" | "sttPath" | "timeoutMs" | "languages" | "maxSttSeconds" | "creditsPerSttSecond" | "maxCreditsPerRequest" | "customerCreditsPerHour" | "budgetCredits"
+>;
+
+export type GnaniSttReadiness = { ready: true; config: GnaniSttConfig } | { ready: false; missing: string[] };
+
+/**
+ * Speech-to-text readiness on its own, so an STT-only account does not need any
+ * text-to-speech setting. Same fail-closed rules as getGnaniReadiness: switched on
+ * explicitly, an allowed https host (the allow-list is not widened here), a path, documented
+ * languages and every spending limit. Missing settings are listed by NAME only.
+ */
+export function getGnaniSttReadiness(env: RawEnv = process.env): GnaniSttReadiness {
+  const missing: string[] = [];
+  const need = (ok: boolean, name: string) => {
+    if (!ok) missing.push(name);
+  };
+
+  need(isSet(env, "GNANI_VOICE_ENABLED") && String(env.GNANI_VOICE_ENABLED).trim().toLowerCase() === "true", "GNANI_VOICE_ENABLED=true");
+  need(isSet(env, "GNANI_API_KEY"), "GNANI_API_KEY");
+  const baseUrl = gnaniBaseUrl(env);
+  need(baseUrl !== null, "GNANI_BASE_URL (an allowed https host)");
+  const sttPath = isSet(env, "GNANI_STT_ENDPOINT") ? String(env.GNANI_STT_ENDPOINT).trim() : "";
+  need(safePath(sttPath), "GNANI_STT_ENDPOINT (a path)");
+  const languages = configuredGnaniLanguages(env);
+  need(languages.length > 0, "GNANI_LANGUAGES (documented codes, comma separated)");
+  const perSecond = positive(env, "GNANI_CREDITS_PER_STT_SECOND");
+  const perRequest = positive(env, "GNANI_MAX_CREDITS_PER_REQUEST");
+  const perCustomer = positive(env, "GNANI_CUSTOMER_CREDITS_PER_HOUR");
+  const budget = positive(env, "GNANI_BUDGET_CREDITS");
+  need(perSecond !== null, "GNANI_CREDITS_PER_STT_SECOND");
+  need(perRequest !== null, "GNANI_MAX_CREDITS_PER_REQUEST");
+  need(perCustomer !== null, "GNANI_CUSTOMER_CREDITS_PER_HOUR");
+  need(budget !== null, "GNANI_BUDGET_CREDITS");
+
+  if (missing.length > 0 || baseUrl === null || perSecond === null || perRequest === null || perCustomer === null || budget === null) {
+    return { ready: false, missing };
+  }
+  return {
+    ready: true,
+    config: {
+      apiKey: String(env.GNANI_API_KEY).trim(),
+      baseUrl,
+      sttPath,
+      timeoutMs: getProviderTimeoutMs(env),
+      languages,
+      maxSttSeconds: gnaniSttMaxSeconds(env),
+      creditsPerSttSecond: perSecond,
+      maxCreditsPerRequest: perRequest,
+      customerCreditsPerHour: perCustomer,
+      budgetCredits: Math.min(budget, GNANI_HARD_CEILING_CREDITS),
+    },
+  };
+}

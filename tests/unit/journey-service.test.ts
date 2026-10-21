@@ -92,6 +92,9 @@ describe("starting and answering", () => {
     expect(result.ok).toBe(true);
     expect(userDb.writes[0].payload).toMatchObject({ customer_id: ME, project_type: "INTERIOR" });
     expect(userDb.writes[0].payload).not.toHaveProperty("status");
+    // R1-C: customers may not write the language (or transcript) columns; the database default applies.
+    expect(userDb.writes[0].payload).not.toHaveProperty("source_language");
+    expect(userDb.writes[0].payload).not.toHaveProperty("transcript_original");
   });
 
   it("saves a valid step and points to the next one", async () => {

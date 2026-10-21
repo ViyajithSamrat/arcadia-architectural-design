@@ -95,7 +95,7 @@ describe.skipIf(!ENABLED)("live local Supabase: payment evidence and review", ()
     const created = await createDraftProject(a.client, a.id, "EMPTY_PLOT");
     if (!created.ok) throw new Error("setup: draft project");
     projectId = created.projectId;
-    for (const [stepId, data] of Object.entries(REQUIREMENTS.EMPTY_PLOT)) await saveStep(a.client, a.id, projectId, stepId, data);
+    for (const [stepId, data] of Object.entries(REQUIREMENTS.EMPTY_PLOT)) await saveStep(a.client, a.id, projectId, stepId, data, undefined, { service: () => service });
     expect(await createBrief(a.client, service, a.id, projectId, mockBriefProvider)).toEqual({ ok: true });
     expect(await reviewBrief(a.client, service, a.id, projectId, "approve", "Approved brief.", true)).toEqual({ ok: true });
     expect(await createQuote(a.client, service, a.id, projectId)).toEqual({ ok: true });

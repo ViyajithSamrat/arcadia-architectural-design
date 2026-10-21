@@ -11,6 +11,7 @@ import {
   createBrief,
   createDraftProject,
   createQuote,
+  readTranscriptInput,
   reviewBrief,
   saveStep,
   type ServiceResult,
@@ -58,11 +59,16 @@ export async function startProjectAction(slug: string): Promise<ActionState> {
   redirect(`/projects/${result.projectId}/edit`);
 }
 
-export async function saveStepAction(projectId: string, stepId: string, data: Record<string, unknown>): Promise<ActionState> {
+export async function saveStepAction(projectId: string, stepId: string, data: Record<string, unknown>, voice?: unknown): Promise<ActionState> {
   if (!isId(projectId) || typeof stepId !== "string" || typeof data !== "object" || data === null || Array.isArray(data)) {
     return BAD_REQUEST;
   }
-  const result = await run(({ supabase, user }) => saveStep(supabase, user.id, projectId, stepId, data));
+  // A transcript the customer chose to use; the service validates it before anything is written.
+  const transcript = voice === undefined ? undefined : readTranscriptInput(voice);
+  if (transcript === null) return BAD_REQUEST;
+  // The trusted client is created only if the description step needs it.
+  const options = { service: createSupabaseServiceClient };
+  const result = await run(({ supabase, user }) => saveStep(supabase, user.id, projectId, stepId, data, transcript, options));
   if (!result.ok) return failure(result);
   refresh(projectId);
   redirect(

@@ -65,3 +65,13 @@ describe("isSet", () => {
     expect(typeof isSet({ A: "secret" }, "A")).toBe("boolean");
   });
 });
+
+describe("VOICE_TRANSCRIPT_SECRET", () => {
+  it("is optional, and when set must be at least 32 characters; the value is never reported", () => {
+    expect(parseEnv({ VOICE_TRANSCRIPT_SECRET: "" }).ok).toBe(true);
+    expect(parseEnv({ VOICE_TRANSCRIPT_SECRET: "a".repeat(32) }).ok).toBe(true);
+    const short = parseEnv({ VOICE_TRANSCRIPT_SECRET: "short-SECRET" });
+    expect(short.ok).toBe(false);
+    expect(JSON.stringify(short)).not.toContain("short-SECRET");
+  });
+});

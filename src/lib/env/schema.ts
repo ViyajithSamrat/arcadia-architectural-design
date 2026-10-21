@@ -61,6 +61,8 @@ export const envSchema = z.object({
   GNANI_MAX_CREDITS_PER_REQUEST: optionalText,
   GNANI_CUSTOMER_CREDITS_PER_HOUR: optionalText,
   GNANI_BUDGET_CREDITS: optionalText,
+  // Signs voice transcripts so a save can tell them from typed text (server-only, R1-B).
+  VOICE_TRANSCRIPT_SECRET: z.preprocess(blankToUndefined, z.string().trim().min(32, "Use at least 32 characters.").optional()),
 
   // AI request limits (Phase 5)
   PROVIDER_TIMEOUT_MS: optionalText,

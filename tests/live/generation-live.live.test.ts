@@ -82,7 +82,7 @@ describe.skipIf(!ENABLED)("live local Supabase: mock generation and controlled r
     const created = await createDraftProject(u.client, u.id, type);
     if (!created.ok) throw new Error("setup: draft project");
     const id = created.projectId;
-    for (const [stepId, data] of Object.entries(REQUIREMENTS[type])) await saveStep(u.client, u.id, id, stepId, data);
+    for (const [stepId, data] of Object.entries(REQUIREMENTS[type])) await saveStep(u.client, u.id, id, stepId, data, undefined, { service: () => service });
     expect(await createBrief(u.client, service, u.id, id, mockBriefProvider)).toEqual({ ok: true });
     expect(await reviewBrief(u.client, service, u.id, id, "approve", "Approved brief for a synthetic test project.", true)).toEqual({ ok: true });
     expect(await createQuote(u.client, service, u.id, id)).toEqual({ ok: true });

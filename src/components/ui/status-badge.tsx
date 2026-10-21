@@ -4,6 +4,8 @@ const LABELS: Record<IntegrationState, { text: string; symbol: string }> = {
   not_configured: { text: "Not configured", symbol: "○" },
   partial: { text: "Partly configured", symbol: "◐" },
   configured_unverified: { text: "Configured, not yet verified", symbol: "●" },
+  mock_only: { text: "Mock only", symbol: "◇" },
+  live_blocked: { text: "Live switched off in code", symbol: "⊘" },
 };
 
 /**

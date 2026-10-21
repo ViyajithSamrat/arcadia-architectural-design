@@ -10,6 +10,9 @@ import {
   type BriefProvider,
 } from "./brief";
 import { refusalMessage, withUsage } from "@/lib/providers/budget";
+import { containsMockTranscript } from "@/lib/providers/mock-speech";
+import { MOCK_BRIEF_REFUSED, MOCK_DESCRIPTION_REFUSED } from "@/lib/voice/copy";
+import { TRANSCRIPT_TOKEN_MAX_CHARS, transcriptVerificationKeys, verifyTranscriptToken, type TranscriptClaims } from "@/lib/voice/provenance";
 import { minorToDecimal } from "./money";
 import {
   computeQuote,
@@ -21,6 +24,7 @@ import {
 } from "./quote";
 import { findStep, JOURNEY_STEPS } from "./steps";
 import { validateRequirements, validateStep, type StepData } from "./validation";
+import { isLiveTranscriptionWired } from "./voice";
 
 /**
  * The customer journey's server-side rules. Every function:
@@ -124,11 +128,77 @@ export function readStoredBrief(project: Pick<ProjectRow, "english_brief_json">)
 export async function createDraftProject(supabase: Client, userId: string, type: ProjectType): Promise<ServiceResult<{ projectId: string }>> {
   const { data, error } = await supabase
     .from("projects")
-    .insert({ customer_id: userId, project_type: type, source_language: "en", requirements_json: { schemaVersion: 1 } })
+    // source_language is left to the database default ('en'): customers may not set it.
+    .insert({ customer_id: userId, project_type: type, requirements_json: { schemaVersion: 1 } })
     .select("id")
     .single();
   if (error || !data) return fail("We could not start your project. Please try again.");
   return { ok: true, projectId: String(data.id) };
+}
+
+/**
+ * A voice transcript the customer chose to use for the description: the text as it came back
+ * (`original`), the text "Use this text" put into the description (`used`, after any edits in
+ * the transcript box), and the provenance token the transcribe route signed over `original`.
+ * The source and language are read from the verified token only, never from the browser.
+ */
+export type TranscriptInput = { original: string; used: string; provenance: string };
+
+const TRANSCRIPT_MAX_CHARS = 5000;
+
+/** A trimmed, non-empty string of at most 5,000 characters, or null. */
+function transcriptText(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const text = value.trim();
+  return text.length === 0 || text.length > TRANSCRIPT_MAX_CHARS ? null : text;
+}
+
+/**
+ * Validates the SHAPE of an untrusted transcript payload: the text as it came back, the text
+ * put into the description, and a provenance token of bounded size. Anything else is null.
+ * Whether the token is genuine is decided in saveStep, against the signed-in user and project.
+ */
+export function readTranscriptInput(value: unknown): TranscriptInput | null {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return null;
+  const { original, used, provenance } = value as Record<string, unknown>;
+  const originalText = transcriptText(original);
+  const usedText = transcriptText(used);
+  if (originalText === null || usedText === null) return null;
+  if (typeof provenance !== "string" || provenance.length === 0 || provenance.length > TRANSCRIPT_TOKEN_MAX_CHARS) return null;
+  return { original: originalText, used: usedText, provenance };
+}
+
+/** A transcript whose provenance token verified: its text and what the server signed about it. */
+type VerifiedTranscript = { original: string; claims: TranscriptClaims };
+
+/** The language a project has unless a live transcript says otherwise (what createDraftProject sets). */
+const DEFAULT_SOURCE_LANGUAGE = "en";
+
+type TranscriptColumns = { transcript_original: string | null; transcript_corrected: string | null; source_language: string };
+
+/**
+ * The transcript and language columns after a description save, so none of them is left stale:
+ *  - With a chosen transcript whose provenance verified: the text as it came back and the
+ *    description as saved. The language comes from the signed claims only, and only when a
+ *    live speech service is wired, the server signed it as a Gnani transcript and the text is
+ *    not the mock; a mock (all of R1-A) or demo-only selection never claims a language.
+ *  - Without one, while the description still equals the saved transcript's corrected text:
+ *    the transcript is kept (and its language only if it could have been live).
+ *  - Without one, once the description was replaced by typing: the transcript is cleared and
+ *    the language goes back to the default, as for any typed description.
+ */
+function descriptionColumns(project: ProjectRow, saved: string | null, voice: VerifiedTranscript | undefined, liveTranscription: boolean): TranscriptColumns {
+  if (voice) {
+    const { source, sourceLanguage } = voice.claims;
+    const trusted = liveTranscription && source === "gnani" && sourceLanguage !== null && !containsMockTranscript(voice.original);
+    return { transcript_original: voice.original, transcript_corrected: saved, source_language: trusted && sourceLanguage ? sourceLanguage : DEFAULT_SOURCE_LANGUAGE };
+  }
+  const original = project.transcript_original ?? null;
+  if (original !== null && saved === (project.transcript_corrected ?? null)) {
+    const language = liveTranscription ? (project.source_language ?? DEFAULT_SOURCE_LANGUAGE) : DEFAULT_SOURCE_LANGUAGE;
+    return { transcript_original: original, transcript_corrected: saved, source_language: language };
+  }
+  return { transcript_original: null, transcript_corrected: null, source_language: DEFAULT_SOURCE_LANGUAGE };
 }
 
 export async function saveStep(
@@ -137,27 +207,74 @@ export async function saveStep(
   projectId: string,
   stepId: string,
   raw: StepData,
+  transcript?: TranscriptInput,
+  options: {
+    liveTranscription?: boolean;
+    /** Checks a provenance token; by default against VOICE_TRANSCRIPT_SECRET and this process's mock key. */
+    verifyTranscript?: (token: string, expected: { userId: string; projectId: string; transcript: string }) => TranscriptClaims | null;
+    /**
+     * The trusted client for the description step. Customers cannot write the transcript and
+     * language columns (migration 20261021000100), so that step is saved by the server, after
+     * the ownership, status and provenance checks above, in one conditional update.
+     */
+    service?: () => Client;
+  } = {},
 ): Promise<ServiceResult<{ nextStepId: string | null }>> {
   const project = await getOwnedProject(supabase, userId, projectId);
   if (!project) return fail(NOT_FOUND);
   if (!EDITABLE_PROJECT_STATUSES.includes(project.status)) return fail("This project can no longer be edited.");
   const step = findStep(project.project_type, stepId);
   if (!step) return fail("That step does not exist.");
+  const voice = transcript === undefined ? undefined : readTranscriptInput(transcript);
+  if (voice === null || (voice && !step.isDescription)) return fail("That request was not valid.");
 
   const result = validateStep(step, raw);
   if (!result.ok) return fail("Please fix the highlighted answers.", { fieldErrors: result.errors });
 
+  const text = step.isDescription ? (result.data as Record<string, unknown>).text : undefined;
+  // The mock placeholder is never saved as the customer's description, whatever the screen did.
+  if (containsMockTranscript(text)) return fail("Please fix the highlighted answers.", { fieldErrors: { text: MOCK_DESCRIPTION_REFUSED } });
+
   const stored = typeof project.requirements_json === "object" && project.requirements_json ? project.requirements_json : {};
   const update: Record<string, unknown> = { requirements_json: { ...stored, schemaVersion: 1, [stepId]: result.data } };
+  if (step.isDescription) {
+    // Only columns whose value changes are written, so a typed save on a project that never
+    // used voice writes exactly what it did before. The status is never touched here.
+    const saved = typeof text === "string" && text.trim().length > 0 ? text : null;
+    // A transcript counts only while the description is still exactly the text it put there,
+    // and only with a genuine, unexpired token issued to this user for this project and this
+    // exact text. Otherwise the save is a typed save: nothing the browser sent is stored as a
+    // transcript, so it cannot pass typed text off as a speech service's output.
+    const chosen = voice && saved === voice.used ? voice : undefined;
+    const verify = options.verifyTranscript ?? ((token, expected) => verifyTranscriptToken(token, expected, transcriptVerificationKeys()));
+    const claims = chosen ? verify(chosen.provenance, { userId, projectId: project.id, transcript: chosen.original }) : null;
+    const verified = chosen && claims ? { original: chosen.original, claims } : undefined;
+    const columns = descriptionColumns(project, saved, verified, options.liveTranscription ?? isLiveTranscriptionWired());
+    if ((project.transcript_original ?? null) !== columns.transcript_original) update.transcript_original = columns.transcript_original;
+    if ((project.transcript_corrected ?? null) !== columns.transcript_corrected) update.transcript_corrected = columns.transcript_corrected;
+    if ((project.source_language ?? DEFAULT_SOURCE_LANGUAGE) !== columns.source_language) update.source_language = columns.source_language;
+  }
   // Changing an answer makes any earlier brief out of date, so it is cleared.
   if (project.english_brief_json || project.english_brief_text) {
     update.english_brief_json = null;
     update.english_brief_text = null;
   }
-  const { data, error } = await supabase
+  // Other steps keep the customer's own session (row level security applies). The description
+  // step goes through the trusted client; the same id, owner and status conditions make it
+  // one atomic write that refuses a project changed or locked since it was read.
+  let writer: Client = supabase;
+  if (step.isDescription) {
+    if (!options.service) return fail(GENERIC);
+    try {
+      writer = options.service();
+    } catch {
+      return fail(GENERIC);
+    }
+  }
+  const { data, error } = await writer
     .from("projects")
     .update(update)
-    .eq("id", projectId)
+    .eq("id", project.id)
     .eq("customer_id", userId)
     .eq("status", project.status)
     .select("id");
@@ -191,6 +308,8 @@ export async function createBrief(
   if (!check.complete) {
     return fail("Some required answers are missing, so the brief cannot be created yet.", { missing: check.missingRequiredFields });
   }
+  // A placeholder is not the customer's words: it never reaches any brief writer.
+  if (containsMockTranscript(check.requirements.description?.text)) return fail(MOCK_BRIEF_REFUSED);
 
   let produced: unknown;
   try {

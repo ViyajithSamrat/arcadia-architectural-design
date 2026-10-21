@@ -66,6 +66,9 @@ const BUILDING_STYLES: readonly Option[] = [
   { value: "industrial", label: "Industrial" },
 ];
 
+/** Longest free-text description; a voice transcript is cut to this before it fills the field. */
+export const DESCRIPTION_MAX_CHARS = 2000;
+
 const DESCRIPTION_STEP: StepSpec = {
   id: "description",
   title: "In your own words",
@@ -77,7 +80,7 @@ const DESCRIPTION_STEP: StepSpec = {
       kind: "textarea",
       name: "text",
       label: "Describe your project",
-      max: 2000,
+      max: DESCRIPTION_MAX_CHARS,
       rows: 6,
       hint: "For example: what the space is used for, what you like, what you want to avoid.",
     },

@@ -172,7 +172,7 @@ describe.skipIf(!ENABLED)("live local Supabase", () => {
 
     it("A saves every step, then creates the brief (DRAFT -> BRIEF_REVIEW)", async () => {
       for (const [stepId, data] of Object.entries(REQUIREMENTS.EMPTY_PLOT)) {
-        const saved = await saveStep(users.a.client, users.a.id, projectA, stepId, data);
+        const saved = await saveStep(users.a.client, users.a.id, projectA, stepId, data, undefined, { service: () => service });
         expect(saved, stepId).toMatchObject({ ok: true });
       }
       expect(await createBrief(users.a.client, service, users.a.id, projectA, mockBriefProvider)).toEqual({ ok: true });
@@ -182,7 +182,7 @@ describe.skipIf(!ENABLED)("live local Supabase", () => {
     });
 
     it("changing an answer clears the brief; creating it again restores it", async () => {
-      await saveStep(users.a.client, users.a.id, projectA, "description", { text: "Changed my mind" });
+      await saveStep(users.a.client, users.a.id, projectA, "description", { text: "Changed my mind" }, undefined, { service: () => service });
       expect((await getOwnedProject(users.a.client, users.a.id, projectA))?.english_brief_json).toBeNull();
       expect(await createBrief(users.a.client, service, users.a.id, projectA, mockBriefProvider)).toEqual({ ok: true });
     });
@@ -194,6 +194,20 @@ describe.skipIf(!ENABLED)("live local Supabase", () => {
         expect(res.error, JSON.stringify(patch)).not.toBeNull();
       }
       expect((await getOwnedProject(users.a.client, users.a.id, projectA))?.status).toBe("BRIEF_REVIEW");
+    });
+
+    it("A cannot write the transcript or language columns directly through the API (R1-C)", async () => {
+      // The project is still editable (BRIEF_REVIEW), so only the R1-C restriction can refuse these.
+      const attempts = [{ transcript_original: "typed but claimed as speech" }, { transcript_corrected: "edited" }, { source_language: "ta-IN" }];
+      for (const patch of attempts) {
+        const res = await users.a.client.from("projects").update(patch).eq("id", projectA).select("id");
+        expect(res.error, JSON.stringify(patch)).not.toBeNull();
+      }
+      const insert = await users.a.client.from("projects").insert({ customer_id: users.a.id, project_type: "INTERIOR", transcript_original: "fake" });
+      expect(insert.error).not.toBeNull();
+      const row = await getOwnedProject(users.a.client, users.a.id, projectA);
+      expect(row?.transcript_original ?? null).toBeNull();
+      expect(row?.source_language).toBe("en");
     });
 
     it("approval is refused without confirmation, and works with it (BRIEF_REVIEW -> BRIEF_APPROVED)", async () => {

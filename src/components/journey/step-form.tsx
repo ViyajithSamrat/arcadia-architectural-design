@@ -6,11 +6,12 @@ import { saveStepAction, type ActionState } from "@/app/(app)/projects/actions";
 import type { ProjectType } from "@/lib/db/schema";
 import { findStep, JOURNEY_STEPS, type FieldSpec } from "@/lib/journeys/steps";
 import { readStepForm, validateStep, type StepData } from "@/lib/journeys/validation";
+import type { VoiceView } from "@/lib/journeys/voice";
+import { containsMockTranscript } from "@/lib/providers/mock-speech";
+import { MOCK_DESCRIPTION_REFUSED, MOCK_IN_DESCRIPTION_NOTICE } from "@/lib/voice/copy";
 import { Notice } from "./notice";
 import { buttonPrimary, buttonSecondary, input } from "./styles";
-
-import type { VoiceState } from "@/lib/journeys/voice";
-export type { VoiceState };
+import { VoiceCapture, type TranscriptChoice } from "./voice-capture";
 
 type Props = {
   projectId: string;
@@ -18,8 +19,11 @@ type Props = {
   stepId: string;
   /** Previously saved answers for this step. */
   initial: StepData;
-  voice: VoiceState;
+  voice: VoiceView;
 };
+
+/** The description field a chosen transcript fills. */
+const DESCRIPTION_FIELD = "text";
 
 function Field({
   field,
@@ -184,8 +188,26 @@ export function StepForm({ projectId, projectType, stepId, initial, voice }: Pro
   const [state, setState] = useState<ActionState>(undefined);
   const [clientErrors, setClientErrors] = useState<Record<string, string>>({});
   const [pending, start] = useTransition();
+  // The transcript chosen on this visit, saved with the description through the normal step save.
+  const [transcript, setTranscript] = useState<TranscriptChoice | null>(null);
+  const [mockInDescription, setMockInDescription] = useState(() => containsMockTranscript(initial[DESCRIPTION_FIELD]));
 
   if (!step) return null;
+
+  function applyTranscript(choice: TranscriptChoice) {
+    const field = formRef.current?.querySelector<HTMLTextAreaElement>(`textarea[name="${DESCRIPTION_FIELD}"]`);
+    if (!field) return;
+    field.value = choice.text;
+    field.focus();
+    setTranscript(choice);
+    setMockInDescription(containsMockTranscript(choice.text));
+  }
+
+  /** Keeps the mock warning true to what the description holds now, as the customer types. */
+  function onInput(event: React.FormEvent<HTMLFormElement>) {
+    const target = event.target as HTMLTextAreaElement;
+    if (step?.isDescription && target.name === DESCRIPTION_FIELD) setMockInDescription(containsMockTranscript(target.value));
+  }
   const errors = { ...(state && !state.ok ? state.fieldErrors : undefined), ...clientErrors };
   const isLast = index === steps.length - 1;
   const previous = index > 0 ? steps[index - 1].id : null;
@@ -194,22 +216,30 @@ export function StepForm({ projectId, projectType, stepId, initial, voice }: Pro
     event.preventDefault();
     if (!step) return;
     const data = readStepForm(step, new FormData(event.currentTarget));
-    // Quick feedback only; the server repeats the check and is the one that counts.
+    // Quick feedback only; the server repeats both checks and is the one that counts.
     const result = validateStep(step, data);
-    if (!result.ok) {
+    const found: Record<string, string> = result.ok ? {} : { ...result.errors };
+    if (step.isDescription && containsMockTranscript(data[DESCRIPTION_FIELD])) found[DESCRIPTION_FIELD] = MOCK_DESCRIPTION_REFUSED;
+    if (Object.keys(found).length > 0) {
       setState(undefined);
-      setClientErrors(result.errors);
-      const first = step.fields.find((f) => result.errors[f.name]);
+      setClientErrors(found);
+      const first = step.fields.find((f) => found[f.name]);
       const target = first ? formRef.current?.querySelector<HTMLElement>(`[name="${first.name}"]`) : null;
       target?.focus();
       return;
     }
     setClientErrors({});
-    start(async () => setState(await saveStepAction(projectId, step.id, data)));
+    // The transcript goes with the save only while the description is still exactly the text it
+    // put there, and only with the server's provenance token (the server verifies it again).
+    const voice =
+      step.isDescription && transcript && transcript.provenance && data[DESCRIPTION_FIELD] === transcript.text
+        ? { original: transcript.original, used: transcript.text, provenance: transcript.provenance }
+        : undefined;
+    start(async () => setState(await (voice ? saveStepAction(projectId, step.id, data, voice) : saveStepAction(projectId, step.id, data))));
   }
 
   return (
-    <form ref={formRef} onSubmit={onSubmit} noValidate className="space-y-6" aria-describedby={`${idPrefix}-intro`}>
+    <form ref={formRef} onSubmit={onSubmit} onInput={onInput} noValidate className="space-y-6" aria-describedby={`${idPrefix}-intro`}>
       <div className="space-y-1">
         <p className="text-sm text-muted">
           Step {index + 1} of {steps.length}
@@ -226,7 +256,25 @@ export function StepForm({ projectId, projectType, stepId, initial, voice }: Pro
         </Notice>
       ) : null}
 
-      {step.isDescription ? <VoiceNotice voice={voice} /> : null}
+      {step.isDescription ? (
+        voice.state === "mock" || voice.state === "live" ? (
+          <VoiceCapture
+            projectId={projectId}
+            mode={voice.state}
+            languages={voice.languages}
+            maxSeconds={voice.maxSeconds}
+            uploadTimeoutMs={voice.uploadTimeoutMs}
+            onUse={applyTranscript}
+          />
+        ) : (
+          <VoiceNotice voice={voice} />
+        )
+      ) : null}
+      {step.isDescription && mockInDescription ? (
+        <Notice tone="warning" role="status" title="Mock transcript in your description">
+          <p>{MOCK_IN_DESCRIPTION_NOTICE}</p>
+        </Notice>
+      ) : null}
       {step.showsUploadNotice ? <UploadNotice /> : null}
 
       <div className="grid gap-5 sm:grid-cols-2">
@@ -259,15 +307,14 @@ export function StepForm({ projectId, projectType, stepId, initial, voice }: Pro
   );
 }
 
-function VoiceNotice({ voice }: { voice: VoiceState }) {
-  return (
+function VoiceNotice({ voice }: { voice: VoiceView }) {
+  return voice.state === "unavailable" ? (
+    <Notice tone="info" title="Voice input unavailable">
+      <p>Speaking your description is unavailable right now. Typing works for the whole journey.</p>
+    </Notice>
+  ) : (
     <Notice tone="info" title="Voice input not configured">
-      <p>
-        {voice === "configured_not_enabled"
-          ? "A speech service has been set up but voice input is not switched on in this version."
-          : "Speaking your description is not available yet."}{" "}
-        Typing works for the whole journey.
-      </p>
+      <p>Speaking your description is not available yet. Typing works for the whole journey.</p>
     </Notice>
   );
 }

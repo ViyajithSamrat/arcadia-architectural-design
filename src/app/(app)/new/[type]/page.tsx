@@ -53,7 +53,10 @@ async function Intro({ params }: Props) {
 
       <Notice tone="info">
         <p>{journey.disclaimer}</p>
-        <p>Voice input is not configured and uploads are not configured yet. Everything works by typing.</p>
+        <p>
+          Everything works by typing. When voice input is switched on, the &ldquo;In your own words&rdquo; step also lets you speak
+          your description. Uploads are not configured yet.
+        </p>
       </Notice>
 
       <Suspense fallback={<Loading />}>

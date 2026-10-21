@@ -75,8 +75,15 @@ describe("schema structure and privileges", () => {
     expect(await col("payments", "verified_by", "INSERT")).toBe(false);
     expect(await col("design_assets", "is_released", "INSERT")).toBe(false);
     expect(await col("design_assets", "is_released", "UPDATE")).toBe(false);
+    // Transcript provenance columns are written only by trusted server code (R1-C).
+    for (const column of ["source_language", "transcript_original", "transcript_corrected"]) {
+      expect(await col("projects", column, "INSERT")).toBe(false);
+      expect(await col("projects", column, "UPDATE")).toBe(false);
+    }
     // Draft content is writable.
     expect(await col("projects", "requirements_json", "UPDATE")).toBe(true);
+    expect(await col("projects", "requirements_json", "INSERT")).toBe(true);
+    expect(await col("projects", "english_brief_text", "UPDATE")).toBe(true);
   });
 
   it("limits customers to no write access on quotes, jobs and audit history", async () => {

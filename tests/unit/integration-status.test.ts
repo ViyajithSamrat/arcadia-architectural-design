@@ -8,7 +8,7 @@ const byId = (env: Record<string, string | undefined>) =>
 describe("getIntegrationStatuses", () => {
   it("reports every integration as not configured when nothing is set", () => {
     const all = getIntegrationStatuses({});
-    expect(all.map((s) => s.id).sort()).toEqual(["gnani", "openrouter", "payment_display", "supabase"]);
+    expect(all.map((s) => s.id).sort()).toEqual(["gnani", "openrouter", "payment_display", "supabase", "voice_input"]);
     for (const status of all) {
       expect(status.state).toBe("not_configured");
       expect(status.message).toContain("Not configured");
@@ -55,5 +55,45 @@ describe("buildAppStatus", () => {
     const status = buildAppStatus({ NEXT_PUBLIC_APP_URL: "not a url" });
     expect(status.configValid).toBe(false);
     expect(status.invalidVariables).toEqual(["NEXT_PUBLIC_APP_URL"]);
+  });
+});
+
+describe("voice input status (it must match what the transcribe route will do)", () => {
+  const LIVE = {
+    GNANI_VOICE_ENABLED: "true",
+    GNANI_API_KEY: "gnani-TOPSECRET-3333",
+    GNANI_BASE_URL: "https://api.vachana.ai",
+    GNANI_STT_ENDPOINT: "/stt/v3",
+    GNANI_LANGUAGES: "ta-IN",
+    GNANI_CREDITS_PER_STT_SECOND: "2",
+    GNANI_MAX_CREDITS_PER_REQUEST: "100",
+    GNANI_CUSTOMER_CREDITS_PER_HOUR: "300",
+    GNANI_BUDGET_CREDITS: "1000",
+    VOICE_TRANSCRIPT_SECRET: "voice-TOPSECRET-signing-secret-0123456789",
+  };
+
+  it("an API key alone does not mean voice input works", () => {
+    const status = byId({ GNANI_API_KEY: "gnani-TOPSECRET-3333" });
+    expect(status.gnani.message).toMatch(/A key alone does not switch voice input on/);
+    expect(status.voice_input).toMatchObject({ state: "not_configured" });
+  });
+
+  it("reports the labelled mock as mock only", () => {
+    expect(byId({ GNANI_VOICE_ENABLED: "mock" }).voice_input).toMatchObject({ state: "mock_only", message: expect.stringMatching(/MOCK transcriber/) });
+  });
+
+  it("reports an unrecognised switch and an incomplete live setup as partial, naming settings only", () => {
+    expect(byId({ GNANI_VOICE_ENABLED: "yes" }).voice_input.state).toBe("partial");
+    const status = byId({ GNANI_VOICE_ENABLED: "true", GNANI_API_KEY: "gnani-TOPSECRET-3333" }).voice_input;
+    expect(status.state).toBe("partial");
+    expect(status.missing).toEqual(expect.arrayContaining([expect.stringContaining("GNANI_BASE_URL"), expect.stringContaining("VOICE_TRANSCRIPT_SECRET")]));
+  });
+
+  it("a complete live setup is shown as switched off in code while the live gate is off, never as working", () => {
+    const status = byId(LIVE).voice_input;
+    expect(status).toMatchObject({ state: "live_blocked", missing: [] });
+    expect(status.message).toMatch(/switched off in this version of the code/);
+    expect(JSON.stringify(getIntegrationStatuses(LIVE))).not.toContain("TOPSECRET");
+    expect(JSON.stringify(buildAppStatus(LIVE))).not.toContain("TOPSECRET");
   });
 });

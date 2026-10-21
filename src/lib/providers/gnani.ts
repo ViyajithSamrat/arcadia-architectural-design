@@ -60,7 +60,10 @@ async function send(doFetch: typeof fetch, url: string, init: RequestInit, timeo
   return response;
 }
 
-export function createGnaniSttProvider(config: GnaniConfig, deps: { fetch?: typeof fetch } = {}): SpeechToTextProvider {
+export function createGnaniSttProvider(
+  config: Pick<GnaniConfig, "apiKey" | "baseUrl" | "sttPath" | "timeoutMs" | "languages">,
+  deps: { fetch?: typeof fetch } = {},
+): SpeechToTextProvider {
   const doFetch = deps.fetch ?? fetch;
   return {
     id: "gnani",

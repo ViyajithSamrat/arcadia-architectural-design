@@ -85,7 +85,10 @@ describe("outcomes", () => {
   it("passes the signed-in user's id, never an id from the caller, to the service", async () => {
     service.saveStep.mockResolvedValue({ ok: true, nextStepId: "rooms" });
     await expect(actions.saveStepAction(ID, "space", { plotWidth: 30 })).rejects.toThrow("NEXT_REDIRECT:/projects/" + ID + "/edit?step=rooms");
-    expect(service.saveStep).toHaveBeenCalledWith(expect.anything(), "11111111-1111-4111-8111-111111111111", ID, "space", { plotWidth: 30 });
+    expect(service.saveStep).toHaveBeenCalledWith(expect.anything(), "11111111-1111-4111-8111-111111111111", ID, "space", { plotWidth: 30 }, undefined, {
+      // The trusted client factory (used for the description step only), never a client instance.
+      service: expect.any(Function),
+    });
   });
 
   it("sends the customer to the brief after the last step", async () => {

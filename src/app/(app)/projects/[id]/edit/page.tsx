@@ -10,7 +10,7 @@ import { getPageAccess } from "@/lib/journeys/access";
 import { JOURNEYS } from "@/lib/journeys/project-types";
 import { getOwnedProject } from "@/lib/journeys/service";
 import { findStep, JOURNEY_STEPS } from "@/lib/journeys/steps";
-import { getVoiceState } from "@/lib/journeys/voice";
+import { getVoiceView } from "@/lib/journeys/voice";
 
 export const metadata: Metadata = { title: "Your answers" };
 
@@ -47,7 +47,7 @@ async function EditContent({ params, searchParams }: Props) {
         projectType={project.project_type}
         stepId={step.id}
         initial={initial}
-        voice={getVoiceState()}
+        voice={getVoiceView()}
       />
       <Notice tone="info">
         <p>{journey.disclaimer}</p>

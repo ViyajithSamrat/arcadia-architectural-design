@@ -265,7 +265,7 @@ describe.skipIf(!ENABLED)("live local ai_usage budget guard", () => {
       expect(created.ok).toBe(true);
       projectId = (created as { ok: true; projectId: string }).projectId;
       for (const [stepId, data] of Object.entries(REQUIREMENTS.EMPTY_PLOT)) {
-        expect(await saveStep(users.a.client, users.a.id, projectId, stepId, data)).toMatchObject({ ok: true });
+        expect(await saveStep(users.a.client, users.a.id, projectId, stepId, data, undefined, { service: () => service })).toMatchObject({ ok: true });
       }
     });
 
