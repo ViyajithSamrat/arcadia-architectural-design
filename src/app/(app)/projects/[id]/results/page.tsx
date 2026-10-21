@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { FloorPlanSketch } from "@/components/generation/floor-plan";
 import { ConceptDisclaimer, ImageGallery } from "@/components/generation/image-gallery";
 import { AccessGate } from "@/components/journey/access-gate";
 import { Loading } from "@/components/journey/loading";
@@ -56,6 +57,7 @@ async function Results({ params }: Props) {
               {results.unavailable > 0 ? <p className="text-sm text-muted">{results.unavailable} {results.unavailable === 1 ? "image" : "images"} could not be loaded. Reload to try again.</p> : null}
             </section>
           )}
+          {results.floorPlan ? <FloorPlanSketch plan={results.floorPlan} audience="customer" /> : null}
         </>
       )}
     </>

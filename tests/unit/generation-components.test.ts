@@ -12,6 +12,8 @@ vi.mock("@/app/(app)/admin/generation/actions", () => ({
 const { ClearStaleJobForm, ReleaseForm, StartGenerationForm } = await import("@/components/generation/controls");
 const { ConceptDisclaimer, ImageGallery, MockWarning } = await import("@/components/generation/image-gallery");
 const { CONCEPT_DISCLAIMER, MOCK_WARNING, RELEASE_EXPLANATION } = await import("@/lib/generation/copy");
+const { FloorPlanSketch } = await import("@/components/generation/floor-plan");
+const { describeFloorPlan } = await import("@/lib/generation/floor-plan");
 
 const ID = "33333333-3333-4333-8333-333333333333";
 const html = (node: Parameters<typeof renderToStaticMarkup>[0]) => renderToStaticMarkup(node);
@@ -63,6 +65,46 @@ describe("ImageGallery", () => {
   it("says so in words when a link is missing, and when there is nothing to show", () => {
     expect(html(createElement(ImageGallery, { images: [image({ url: null })], caption: "x" }))).toContain("could not be loaded");
     expect(html(createElement(ImageGallery, { images: [], caption: "x" }))).toContain("No images to show");
+  });
+});
+
+describe("FloorPlanSketch", () => {
+  const ANSWERS = {
+    space: { plotWidth: 30, plotLength: 40, unit: "ft", floors: 2, location: "Chennai" },
+    rooms: { bedrooms: 2, bathrooms: 1, parkingSpaces: 0, spaces: ["living"] },
+    preferences: { style: "modern", budgetBand: "standard", vastu: "undecided", exteriorViews: 1, interiorViews: 0 },
+    description: {},
+  };
+  const plan = () => {
+    const p = describeFloorPlan("EMPTY_PLOT", ANSWERS);
+    if (!p) throw new Error("expected a plan");
+    return p;
+  };
+
+  it("shows each floor as a sized, lazy image from an SVG data URL, with the disclaimer and the numbered blocks as text", () => {
+    const out = decode(html(createElement(FloorPlanSketch, { plan: plan(), audience: "customer" })));
+    expect(out.match(/<img /g)).toHaveLength(2);
+    expect(out).toContain('src="data:image/svg+xml;charset=utf-8,');
+    expect(out).toContain('alt="Ground floor: illustrative layout sketch of the plot and the requested rooms"');
+    expect(out).toContain('width="720"');
+    expect(out).toContain('height="540"');
+    expect(out).toContain('loading="lazy"');
+    expect(out).toContain("Illustrative layout only — not CAD or a construction drawing.");
+    expect(out).toContain("not by an AI model");
+    expect(out).toMatch(/1\. Living room/);
+    expect(out).toMatch(/Bedroom 1/);
+    expect(out).not.toContain("only after the project is released");
+    expect(out).not.toMatch(/MOCK/);
+  });
+
+  it("tells the administrator when the customer will see it", () => {
+    expect(decode(html(createElement(FloorPlanSketch, { plan: plan(), audience: "admin" })))).toContain("The customer sees this sketch only after the project is released");
+  });
+
+  it("says so in words, with no image, when the sketch cannot be drawn", () => {
+    const out = html(createElement(FloorPlanSketch, { plan: { state: "unavailable" }, audience: "customer" }));
+    expect(out).toContain("The layout sketch could not be drawn");
+    expect(out).not.toContain("<img");
   });
 });
 

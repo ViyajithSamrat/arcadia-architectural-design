@@ -168,6 +168,65 @@ describe("getCustomerResults: nothing before release, only the owner after", () 
       ...real,
       storage: { from: () => ({ createSignedUrl: async () => ({ data: null, error: { message: "nope" } }) }) },
     } as unknown as SupabaseClient;
-    expect(await getCustomerResults(failing, ME, P1)).toEqual({ state: "released", assets: [], unavailable: 2 });
+    // the fixture project has no saved answers, so its layout sketch is unavailable
+    expect(await getCustomerResults(failing, ME, P1)).toEqual({ state: "released", assets: [], unavailable: 2, floorPlan: { state: "unavailable" } });
+  });
+});
+
+/** Complete empty-plot answers, as the journey saves them. */
+const ANSWERS = {
+  schemaVersion: 1,
+  space: { plotWidth: 30, plotLength: 40, unit: "ft", orientation: "E", floors: 2, location: "Chennai" },
+  rooms: { bedrooms: 3, bathrooms: 2, parkingSpaces: 1, spaces: ["living", "kitchen"] },
+  preferences: { style: "modern", budgetBand: "standard", vastu: "undecided", exteriorViews: 1, interiorViews: 1, frontGarden: false },
+  description: {},
+};
+
+describe("the empty-plot layout sketch follows the image rules", () => {
+  const db = (patch: Record<string, unknown>) =>
+    new FakeDb()
+      .seed("projects", [project({ requirements_json: ANSWERS, ...patch })])
+      .seed("generation_jobs", [job("j1", "SUCCEEDED")])
+      .seed("design_assets", [asset("a1", "j1", { is_released: patch.status === "RELEASED" })]);
+
+  it.each(["READY_FOR_REVIEW", "RELEASED"] as ProjectStatus[])("is drawn for the administrator while the project is %s", async (status) => {
+    const detail = await getGenerationDetail(db({ status }).client(), P1, NOW);
+    expect(detail!.floorPlan?.state).toBe("ready");
+  });
+
+  it.each(["PAYMENT_VERIFIED", "GENERATING", "GENERATION_FAILED"] as ProjectStatus[])("is not drawn for the administrator while the project is %s", async (status) => {
+    const detail = await getGenerationDetail(db({ status }).client(), P1, NOW);
+    expect(detail!.floorPlan).toBeNull();
+  });
+
+  it("does not exist for interior and landscape projects", async () => {
+    for (const project_type of ["INTERIOR", "LANDSCAPE"]) {
+      expect((await getGenerationDetail(db({ project_type }).client(), P1, NOW))!.floorPlan).toBeNull();
+      const result = await getCustomerResults(db({ project_type, status: "RELEASED" }).client(), ME, P1);
+      expect(result.state === "released" && result.floorPlan).toBeNull();
+    }
+  });
+
+  it("reaches the owner only once the project is RELEASED", async () => {
+    const released = await getCustomerResults(db({ status: "RELEASED" }).client(), ME, P1);
+    expect(released.state).toBe("released");
+    if (released.state !== "released") return;
+    expect(released.floorPlan?.state).toBe("ready");
+    if (released.floorPlan?.state !== "ready") return;
+    expect(released.floorPlan.floors).toHaveLength(2);
+    expect(JSON.stringify(released.floorPlan)).not.toMatch(/storage_path|signed\.test|Chennai/);
+  });
+
+  it.each(["PAYMENT_VERIFIED", "GENERATING", "GENERATION_FAILED", "READY_FOR_REVIEW", "AWAITING_PAYMENT"] as ProjectStatus[])(
+    "gives the owner nothing about the sketch while the project is %s",
+    async (status) => {
+      const result = await getCustomerResults(db({ status }).client(), ME, P1);
+      expect(result).toEqual({ state: "pending", status });
+      expect(JSON.stringify(result)).not.toMatch(/svg|floorPlan/i);
+    },
+  );
+
+  it("gives another customer nothing, even after release", async () => {
+    expect(await getCustomerResults(db({ status: "RELEASED" }).client(), OTHER, P1)).toEqual({ state: "not_found" });
   });
 });

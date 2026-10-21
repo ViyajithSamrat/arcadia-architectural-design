@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ClearStaleJobForm, ReleaseForm, StartGenerationForm } from "@/components/generation/controls";
+import { FloorPlanSketch } from "@/components/generation/floor-plan";
 import { ImageGallery, MockWarning } from "@/components/generation/image-gallery";
 import { AccessGate } from "@/components/journey/access-gate";
 import { Loading } from "@/components/journey/loading";
@@ -161,6 +162,8 @@ async function Detail({ params, searchParams }: Props) {
           ) : null}
         </section>
       ) : null}
+
+      {showImages && detail.floorPlan ? <FloorPlanSketch plan={detail.floorPlan} audience="admin" /> : null}
 
       <section aria-labelledby="action-title" className={`${card} space-y-3`}>
         <h2 id="action-title" className="text-xl font-semibold">

@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { GENERATED_ASSET_TYPES, type AssetType, type ProjectStatus, type ProjectType } from "@/lib/db/schema";
 import { getOwnedProject } from "@/lib/journeys/service";
 import { PROJECT_FILES_BUCKET } from "@/lib/storage/paths";
+import { describeFloorPlan, type FloorPlanView } from "./floor-plan";
 import { isMockJob, isStaleJob } from "./service";
 
 /**
@@ -131,7 +132,7 @@ export const PHASE_TEXT: Readonly<Record<GenerationPhase, { label: string; detai
 // Administrator reads
 // ---------------------------------------------------------------------------
 
-type ProjectRow = { id: string; customer_id: string; project_type: ProjectType; status: ProjectStatus; created_at: string; updated_at: string };
+type ProjectRow = { id: string; customer_id: string; project_type: ProjectType; status: ProjectStatus; created_at: string; updated_at: string; requirements_json?: unknown };
 type JobRow = {
   id: string;
   project_id: string;
@@ -236,6 +237,11 @@ export type GenerationDetail = {
   leftoverCount: number;
   /** True when a succeeded job was produced by the mock generator. */
   mock: boolean;
+  /**
+   * The empty-plot layout sketch, drawn on demand from the saved answers (nothing is stored).
+   * Only when previews are allowed (READY_FOR_REVIEW or RELEASED); null otherwise and for other types.
+   */
+  floorPlan: FloorPlanView | null;
 };
 
 /**
@@ -247,7 +253,7 @@ export async function getGenerationDetail(supabase: Client, projectId: string, n
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(projectId)) return null;
   const { data: projectData, error } = await supabase
     .from("projects")
-    .select("id, customer_id, project_type, status, created_at, updated_at")
+    .select("id, customer_id, project_type, status, created_at, updated_at, requirements_json")
     .eq("id", projectId)
     .maybeSingle();
   if (error || !projectData) return null;
@@ -293,6 +299,7 @@ export async function getGenerationDetail(supabase: Client, projectId: string, n
     previews,
     leftoverCount: assets.length - good.length,
     mock: jobRows.some((j) => j.status === "SUCCEEDED" && isMockJob(j)),
+    floorPlan: mayPreview ? describeFloorPlan(project.project_type, project.requirements_json) : null,
   };
 }
 
@@ -306,19 +313,21 @@ export type CustomerResults =
   | { state: "not_found" }
   /** Anything but RELEASED: only the status, never a file, a path or a link. */
   | { state: "pending"; status: ProjectStatus }
-  | { state: "released"; assets: ReleasedAsset[]; unavailable: number };
+  | { state: "released"; assets: ReleasedAsset[]; unavailable: number; floorPlan: FloorPlanView | null };
 
 /**
  * The customer's results. The owner is checked first; then, unless the project is RELEASED,
  * nothing about any file is read or returned. Only assets the database marks released are
  * listed (the row level security policy hides the rest), and each file is reached through a
  * short-lived link created with the customer's own session, which Storage allows only for
- * released files of the customer's own project.
+ * released files of the customer's own project. The empty-plot layout sketch follows the same
+ * rule: it is drawn from the owner's saved answers only once the project is RELEASED.
  */
 export async function getCustomerResults(supabase: Client, userId: string, projectId: string): Promise<CustomerResults> {
   const project = await getOwnedProject(supabase, userId, projectId);
   if (!project) return { state: "not_found" };
   if (project.status !== "RELEASED") return { state: "pending", status: project.status };
+  const floorPlan = describeFloorPlan(project.project_type, project.requirements_json);
 
   const { data, error } = await supabase
     .from("design_assets")
@@ -327,7 +336,7 @@ export async function getCustomerResults(supabase: Client, userId: string, proje
     .eq("is_released", true)
     .not("generation_job_id", "is", null)
     .order("created_at", { ascending: true });
-  if (error || !data) return { state: "released", assets: [], unavailable: 0 };
+  if (error || !data) return { state: "released", assets: [], unavailable: 0, floorPlan };
 
   const rows = (data as Pick<AssetRow, "id" | "asset_type" | "width" | "height" | "is_released" | "generation_job_id" | "storage_path">[]).filter(
     (a) => a.is_released === true && GENERATED_TYPES.includes(a.asset_type),
@@ -339,5 +348,5 @@ export async function getCustomerResults(supabase: Client, userId: string, proje
     }),
   );
   const assets = linked.filter((a): a is ReleasedAsset => a !== null);
-  return { state: "released", assets, unavailable: rows.length - assets.length };
+  return { state: "released", assets, unavailable: rows.length - assets.length, floorPlan };
 }
