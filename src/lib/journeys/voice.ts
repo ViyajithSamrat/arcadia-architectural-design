@@ -14,8 +14,9 @@ import { TRANSCRIPT_SECRET_ENV, TRANSCRIPT_SECRET_MIN_CHARS, transcriptSecretCon
 
 /**
  * R1-A: no live speech call is wired anywhere. Even a complete live configuration reports
- * "unavailable" until this is changed, which needs the owner's approval of the live smoke
- * test (R1-C) after the account's endpoint, authentication and billing are confirmed.
+ * "unavailable" until this is changed, which needs the owner's approval of a separately
+ * approved live speech-to-text smoke test after the account's endpoint, authentication and
+ * billing are confirmed.
  */
 export const LIVE_STT_WIRED: boolean = false;
 
