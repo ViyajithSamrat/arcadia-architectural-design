@@ -20,12 +20,25 @@ export class FakeDb {
   /** Handlers for `rpc(name, args)`; an unknown name returns an error. */
   rpcHandlers: Record<string, (args: Row) => { data?: unknown; error?: { code?: string; message: string } | null }> = {};
   rpcCalls: { name: string; args: Row }[] = [];
+  /** Calls to the modelled insert_generated_asset; the Nth one (1-based) fails when `failAssetInsertAt` is N. */
+  /** Keeps successive updated_at stamps distinct even inside one millisecond. */
+  stampTick = 0;
+  assetInsertCalls = 0;
+  failAssetInsertAt: number | null = null;
+  /** After that failed insert, make the next design_assets delete fail too (cleanup that cannot finish). */
+  failDeleteAfterAssetFailure = false;
   /** Storage: objects by bucket/path, with a log of uploads, removals and signed links. */
   objects = new Map<string, Uint8Array>();
   uploads: { path: string; contentType?: string }[] = [];
   removals: string[] = [];
-  signed: { path: string; seconds: number }[] = [];
+  signed: { path: string; seconds: number; download?: string | boolean }[] = [];
   failUpload = false;
+  /** Runs once, just before the next storage removal. */
+  beforeRemove: (() => Promise<void> | void) | null = null;
+  /** Make every storage removal fail, to test cleanup that cannot finish. */
+  failRemove = false;
+  /** Make every storage listing fail. */
+  failList = false;
   /** Column defaults the real database applies on insert, by table (for example a new job is QUEUED). */
   defaults: Record<string, Row> = {};
 
@@ -38,12 +51,66 @@ export class FakeDb {
     return this.tables[table] ?? [];
   }
 
+  /**
+   * A MODEL of public.insert_generated_asset for the service tests: the job must exist, belong to the
+   * project and be RUNNING; the row is then written like any other insert (so `writes` and `failNext`
+   * still apply). Payment and project status are not modelled. The real function, its locking and
+   * its refusals are tested against PostgreSQL (tests/db/insert-generated-asset.test.ts and
+   * tests/live/insert-generated-asset.live.test.ts).
+   */
+  private async insertGeneratedAsset(args: Row): Promise<{ data: unknown; error: { code?: string; message: string } | null }> {
+    this.assetInsertCalls += 1;
+    const failThis = this.failAssetInsertAt === this.assetInsertCalls;
+    if (failThis) this.failNext = { table: "design_assets", op: "insert" };
+    try {
+      return await this.insertGeneratedAssetRow(args);
+    } finally {
+      if (failThis && this.failDeleteAfterAssetFailure) this.failNext = { table: "design_assets", op: "delete" };
+    }
+  }
+
+  private async insertGeneratedAssetRow(args: Row): Promise<{ data: unknown; error: { code?: string; message: string } | null }> {
+    const job = this.rows("generation_jobs").find((j) => j.id === args.p_job_id);
+    if (!job || job.project_id !== args.p_project_id) return { data: null, error: { code: "23514", message: "the generation job belongs to a different project" } };
+    if (job.status !== "RUNNING") return { data: null, error: { code: "23514", message: "generated assets can be added only to a running generation job" } };
+    const result = await new Query(this, "design_assets")
+      .insert({
+        project_id: args.p_project_id,
+        generation_job_id: args.p_job_id,
+        asset_type: args.p_asset_type,
+        storage_path: args.p_storage_path,
+        mime_type: args.p_mime_type,
+        width: args.p_width ?? null,
+        height: args.p_height ?? null,
+      })
+      .select()
+      .single();
+    const row = result.data as Row | null;
+    return { data: row ? row.id : null, error: (result.error as { code?: string; message: string } | null) ?? null };
+  }
+
+  /**
+   * A MODEL of public.end_interrupted_generation (the checks and the move happen in one step here because
+   * this fake is single-threaded). The row locking that makes the real function atomic against a job insert
+   * is NOT modelled; it is proven against PostgreSQL (tests/live/serialize-stale-clearing.live.test.ts).
+   */
+  private async endInterruptedGeneration(args: Row): Promise<{ data: unknown; error: { code?: string; message: string } | null }> {
+    const project = this.rows("projects").find((r) => r.id === args.p_project_id);
+    if (!project) return { data: "NOT_FOUND", error: null };
+    if (project.status !== "GENERATING" || (args.p_expect_updated_at != null && project.updated_at !== args.p_expect_updated_at)) return { data: "PROJECT_CHANGED", error: null };
+    if (this.rows("generation_jobs").some((j) => j.project_id === args.p_project_id && (j.status === "QUEUED" || j.status === "RUNNING"))) return { data: "ACTIVE_JOB", error: null };
+    const moved = await new Query(this, "projects").update({ status: "GENERATION_FAILED" }).eq("id", args.p_project_id).select();
+    return moved.error ? { data: null, error: moved.error as { code?: string; message: string } } : { data: "MOVED", error: null };
+  }
+
   client(): SupabaseClient {
     return {
       from: (table: string) => new Query(this, table),
       rpc: async (name: string, args: Row) => {
         this.rpcCalls.push({ name, args });
         const handler = this.rpcHandlers[name];
+        if (!handler && name === "insert_generated_asset") return this.insertGeneratedAsset(args);
+        if (!handler && name === "end_interrupted_generation") return this.endInterruptedGeneration(args);
         if (!handler) return { data: null, error: { message: "unknown function" } };
         const out = handler(args);
         return { data: out.data ?? null, error: out.error ?? null };
@@ -57,15 +124,29 @@ export class FakeDb {
             return { data: { path }, error: null };
           },
           remove: async (paths: string[]) => {
+            if (this.beforeRemove) {
+              const hook = this.beforeRemove;
+              this.beforeRemove = null;
+              await hook(); // lets a test interleave another actor with a cleanup in progress
+            }
+            if (this.failRemove) return { data: null, error: { message: "simulated removal failure" } };
             for (const path of paths) {
               this.objects.delete(`${bucket}/${path}`);
               this.removals.push(path);
             }
             return { data: [], error: null };
           },
-          createSignedUrl: async (path: string, seconds: number) => {
-            this.signed.push({ path, seconds });
-            return { data: { signedUrl: `https://signed.test/${path}?t=${seconds}` }, error: null };
+          list: async (folder: string) => {
+            if (this.failList) return { data: null, error: { message: "simulated listing failure" } };
+            const prefix = `${bucket}/${folder}/`;
+            const data = [...this.objects.keys()].filter((k) => k.startsWith(prefix) && !k.slice(prefix.length).includes("/")).map((k) => ({ name: k.slice(prefix.length) }));
+            return { data, error: null };
+          },
+          createSignedUrl: async (path: string, seconds: number, options?: { download?: string | boolean }) => {
+            this.signed.push(options?.download === undefined ? { path, seconds } : { path, seconds, download: options.download });
+            // Like Storage, a download link is the same signed link with a download parameter (the saved file name).
+            const download = options?.download === undefined ? "" : `&download=${options.download === true ? "" : encodeURIComponent(String(options.download))}`;
+            return { data: { signedUrl: `https://signed.test/${path}?t=${seconds}${download}` }, error: null };
           },
         }),
       },
@@ -169,7 +250,9 @@ class Query implements PromiseLike<{ data: unknown; error: unknown }> {
       db.tables[this.table] = rows.filter((r) => !affected.includes(r));
     } else if (this.op === "update") {
       affected = rows.filter((r) => this.matches(r));
-      for (const r of affected) Object.assign(r, this.payload);
+      // The real database stamps updated_at on every change of a project (trigger trg_20_projects_updated_at).
+      const stamp = this.table === "projects" && !("updated_at" in this.payload) && "updated_at" in (affected[0] ?? {}) ? { updated_at: new Date(Date.now() + ++db.stampTick).toISOString() } : {};
+      for (const r of affected) Object.assign(r, this.payload, stamp);
     } else {
       affected = rows.filter((r) => this.matches(r));
       if (this.orderBy) {

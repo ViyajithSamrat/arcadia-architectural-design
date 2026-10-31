@@ -24,6 +24,7 @@ import {
 } from "./quote";
 import { findStep, JOURNEY_STEPS } from "./steps";
 import { validateRequirements, validateStep, type StepData } from "./validation";
+import { referenceAssetIds } from "@/lib/references/service";
 import { isLiveTranscriptionWired } from "./voice";
 
 /**
@@ -311,10 +312,14 @@ export async function createBrief(
   // A placeholder is not the customer's words: it never reaches any brief writer.
   if (containsMockTranscript(check.requirements.description?.text)) return fail(MOCK_BRIEF_REFUSED);
 
+  // The server counts the project's own reference photos (through the owner's session); a brief
+  // producer never decides which files a brief refers to. An empty plot takes none.
+  const references = project.project_type === "EMPTY_PLOT" ? [] : await referenceAssetIds(supabase, project.id);
+
   let produced: unknown;
   try {
     const p = typeof provider === "function" ? provider() : provider;
-    const input = { projectType: project.project_type, sourceLanguage: project.source_language ?? "en", requirements: check.requirements };
+    const input = { projectType: project.project_type, sourceLanguage: project.source_language ?? "en", requirements: check.requirements, referenceCount: references.length };
     if (p.usage) {
       // A provider that costs something or is rate limited: reserve its usage first. If the
       // reservation is refused (or cannot be made) nothing is called.
@@ -338,6 +343,7 @@ export async function createBrief(
     projectType: project.project_type,
     requirements: check.requirements,
     missingRequiredFields: [],
+    referenceAssetIds: references,
   };
 
   const update: Record<string, unknown> = { english_brief_json: brief, english_brief_text: brief.englishBrief };

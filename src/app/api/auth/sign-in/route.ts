@@ -1,13 +1,15 @@
-import { z } from "zod";
+import { NextResponse } from "next/server";
+import { authProblem, firstIssue, problemResponse, signInSchema } from "@/lib/auth/credentials";
+import { DEFAULT_AFTER_SIGN_IN, safeNextPath, withSignedInMarker } from "@/lib/auth/next-path";
 import { getSupabasePublicConfig } from "@/lib/supabase/config";
-import { isAllowedOrigin, resolveRequestOrigin } from "@/lib/supabase/origin";
+import { isAllowedOrigin } from "@/lib/supabase/origin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-const bodySchema = z.object({ email: z.email().max(254) });
-
-const GENERIC = { ok: true, message: "If that address can sign in, a link is on its way." };
-
-/** Sends a magic link. The response never reveals whether an account exists. */
+/**
+ * Email and password sign-in. Supabase sets the session cookies on this response; the browser
+ * then goes to the allow-listed return path. A wrong email and a wrong password get the same
+ * answer, so the response does not reveal whether an account exists.
+ */
 export async function POST(request: Request): Promise<Response> {
   if (!isAllowedOrigin(request)) {
     return Response.json({ error: { code: "BAD_ORIGIN", message: "Request not allowed." } }, { status: 403 });
@@ -18,20 +20,13 @@ export async function POST(request: Request): Promise<Response> {
       { status: 503 },
     );
   }
-  const body = bodySchema.safeParse(await request.json().catch(() => null));
+  const body = signInSchema.safeParse(await request.json().catch(() => null));
   if (!body.success) {
-    return Response.json({ error: { code: "INVALID_EMAIL", message: "Enter a valid email address." } }, { status: 400 });
+    return Response.json({ error: { code: "INVALID_INPUT", message: firstIssue(body.error) } }, { status: 400 });
   }
   const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.auth.signInWithOtp({
-    email: body.data.email,
-    options: { emailRedirectTo: `${resolveRequestOrigin(request)}/auth/callback` },
-  });
-  if (error && (error.status === undefined || error.status >= 500 || error.status === 429)) {
-    return Response.json(
-      { error: { code: "AUTH_UNAVAILABLE", message: "Could not send the link right now. Try again shortly." } },
-      { status: 503 },
-    );
-  }
-  return Response.json(GENERIC);
+  const { data, error } = await supabase.auth.signInWithPassword({ email: body.data.email, password: body.data.password });
+  if (error || !data.session) return problemResponse(authProblem(error));
+
+  return NextResponse.json({ ok: true, redirect: withSignedInMarker(safeNextPath(body.data.next) ?? DEFAULT_AFTER_SIGN_IN) });
 }

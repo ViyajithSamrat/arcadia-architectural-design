@@ -4,6 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireAdmin } from "@/lib/auth/guards";
 import type { ProjectType } from "@/lib/db/schema";
 import { getProviderTimeoutMs } from "@/lib/providers/config";
+import { loadReferenceInputs } from "./references";
 import { withUsage } from "@/lib/providers/budget";
 import { ImageProviderUnavailableError, validateImageOutputs, withTimeout, type ImageGenerationProvider, type ImageGenerationResult } from "@/lib/providers/images";
 import { ProviderError, type ProviderHooks } from "@/lib/providers/interfaces";
@@ -37,8 +38,11 @@ import { buildImageRequest, getMaxGenerationImages } from "./prompt";
  *
  * A request whose job was cleared as stale may still be running. It cannot finish (its job is
  * no longer RUNNING) and it never moves the project, because a newer run may own it by then;
- * it only removes its own files. Until it does, those files sit on a FAILED job, which blocks
- * release here, but the database itself does not yet refuse such inserts (Phase 6B work).
+ * it only removes its own files. Its file rows go through insert_generated_asset(), which locks
+ * the job row and refuses unless the job is RUNNING, so a request cleared as stale cannot attach
+ * a file to its FAILED job; it removes the object it uploaded. Limit: that closes the application's
+ * write path only; the design_assets trigger still allows a direct service-role insert on a FAILED
+ * job, and releaseProject refuses such files.
  */
 
 type Client = SupabaseClient;
@@ -112,6 +116,8 @@ export type StartDeps = {
   newRequestId?: () => string;
   /** Milliseconds since the epoch; for tests. */
   now?: () => number;
+  /** Used only when the live image provider is chosen from the environment; for tests. */
+  fetch?: typeof fetch;
 };
 
 /**
@@ -180,7 +186,7 @@ export async function startGeneration(
 
   let provider: ImageGenerationProvider;
   try {
-    provider = deps.provider ?? getImageProvider(env);
+    provider = deps.provider ?? getImageProvider(env, deps.fetch ? { fetch: deps.fetch } : {});
   } catch (error) {
     if (error instanceof ImageProviderUnavailableError) return fail("provider_unavailable", error.message);
     return fail("failed", GENERIC);
@@ -193,7 +199,8 @@ export async function startGeneration(
     approvedBriefText: project.english_brief_text,
     maxImages: getMaxGenerationImages(env),
     requestId,
-    timeoutMs: getProviderTimeoutMs(env),
+    // Per image: the whole request is allowed this long for each view (see the call below).
+    timeoutMs: provider.timeoutMsPerImage ?? getProviderTimeoutMs(env),
   });
   if (!built.ok) {
     return built.error === "brief_invalid"
@@ -250,9 +257,17 @@ export async function startGeneration(
   // The provider runs once. A reserved-usage provider (none yet) is metered first; a refusal means no call.
   let result: ImageGenerationResult;
   try {
-    const call = (hooks?: ProviderHooks) => withTimeout(provider.generate(built.request, hooks), built.request.timeoutMs);
-    if (provider.usage) {
-      const guarded = await withUsage(service, { customerId: project.customer_id, projectId: project.id }, provider.usage, (hooks) => call(hooks));
+    const request = built.request;
+    // Reference photos go to a provider only when it says it supports them, and only for projects
+    // that have them (an empty plot has none to send). They are checked again before use.
+    if (provider.supportsReferences && project.project_type !== "EMPTY_PLOT") {
+      const references = await loadReferenceInputs(service, project.id);
+      if (references.length > 0) request.references = references;
+    }
+    const call = (hooks?: ProviderHooks) => withTimeout(provider.generate(request, hooks), request.timeoutMs * request.views.length);
+    const plan = provider.planUsage?.(request) ?? provider.usage;
+    if (plan) {
+      const guarded = await withUsage(service, { customerId: project.customer_id, projectId: project.id }, plan, (hooks) => call(hooks));
       if (!guarded.ok) return abort(service, run, "RUNNING", "RESERVATION_REFUSED", "Usage limits do not allow this request right now.", "reservation_refused");
       result = guarded.value;
     } else {
@@ -273,19 +288,17 @@ export async function startGeneration(
     const { error } = await service.storage.from(PROJECT_FILES_BUCKET).upload(path, image.bytes, { contentType: image.mimeType, upsert: false });
     if (error) return abort(service, run, "RUNNING", "STORAGE_FAILED", GENERIC);
     run.uploaded.push(path);
-    const { error: assetError } = await service
-      .from("design_assets")
-      .insert({
-        project_id: project.id,
-        generation_job_id: jobId,
-        asset_type: byView.get(image.viewKey)!.assetType,
-        storage_path: path,
-        mime_type: image.mimeType,
-        width: image.width,
-        height: image.height,
-      })
-      .select("id")
-      .single();
+    // The checked write path: the database function locks the job row and refuses unless the job is
+    // still RUNNING, so a request cleared as stale cannot attach a file to its FAILED job.
+    const { error: assetError } = await service.rpc("insert_generated_asset", {
+      p_project_id: project.id,
+      p_job_id: jobId,
+      p_asset_type: byView.get(image.viewKey)!.assetType,
+      p_storage_path: path,
+      p_mime_type: image.mimeType,
+      p_width: image.width,
+      p_height: image.height,
+    });
     run.inserted = true;
     if (assetError) return abort(service, run, "RUNNING", "ASSET_RECORD_FAILED", GENERIC);
   }
@@ -295,7 +308,15 @@ export async function startGeneration(
     .update({
       status: "SUCCEEDED",
       duration_ms: Date.now() - run.started,
-      usage_json: { mock: result.mock, images: checked.images.length, bytes: checked.images.reduce((n, i) => n + i.bytes.length, 0) },
+      usage_json: {
+        mock: result.mock,
+        images: checked.images.length,
+        bytes: checked.images.reduce((n, i) => n + i.bytes.length, 0),
+        // What the provider itself reported; null when it reported nothing. Never an estimate.
+        costUsd: result.costUsd ?? null,
+        requestIds: result.requestIds ?? [],
+        model: result.model,
+      },
     })
     .eq("id", jobId)
     .eq("status", "RUNNING")
@@ -327,6 +348,30 @@ async function finalizeSucceeded(service: Client, project: ProjectRow, jobId: st
   return { ok: true, jobId, assetIds, replayed, mock };
 }
 
+/**
+ * Removes the files a job wrote, in an order that never loses track of one: the stored objects
+ * first, and the rows that point at them only once the objects are really gone. If an object
+ * cannot be removed (an error, or a timeout), its row stays: the file is then still listed as a
+ * leftover that blocks release and that an administrator can clear later (removeLeftoverFiles).
+ * Objects that were uploaded but never got a row are retried the same way by that recovery.
+ * Returns whether everything this job wrote is gone.
+ */
+async function removeJobFiles(service: Client, jobId: string, knownPaths: string[]): Promise<boolean> {
+  const { data, error: readError } = await service.from("design_assets").select("id, storage_path").eq("generation_job_id", jobId);
+  if (readError) return false;
+  const rows = (data ?? []) as { id: string; storage_path: string }[];
+  const paths = [...new Set([...knownPaths, ...rows.map((r) => r.storage_path)])];
+  if (paths.length > 0) {
+    const removed = await service.storage.from(PROJECT_FILES_BUCKET).remove(paths).catch(() => ({ error: new Error("storage unavailable") }));
+    if (removed.error) return false;
+  }
+  if (rows.length > 0) {
+    const deleted = await service.from("design_assets").delete().eq("generation_job_id", jobId);
+    if (deleted.error) return false;
+  }
+  return true;
+}
+
 type Run = { projectId: string; jobId: string; started: number; uploaded: string[]; inserted: boolean; provider: ImageGenerationProvider };
 
 /**
@@ -346,15 +391,7 @@ async function abort(
   summary: string,
   code: GenerationCode = "failed",
 ): Promise<GenerationResult> {
-  let cleanedUp = true;
-  if (run.inserted) {
-    const { error } = await service.from("design_assets").delete().eq("generation_job_id", run.jobId);
-    if (error) cleanedUp = false;
-  }
-  if (run.uploaded.length > 0) {
-    const { error } = await service.storage.from(PROJECT_FILES_BUCKET).remove(run.uploaded);
-    if (error) cleanedUp = false;
-  }
+  const cleanedUp = await removeJobFiles(service, run.jobId, run.uploaded);
   const failed = await service
     .from("generation_jobs")
     .update({ status: "FAILED", error_code: errorCode, error_summary: cleanedUp ? summary : `${summary} Cleanup incomplete.`, duration_ms: Date.now() - run.started })
@@ -460,18 +497,39 @@ export async function clearStaleJob(
   const admin = await requireAdmin(supabase);
   if (typeof projectId !== "string" || !ID.test(projectId)) return { ok: false, message: "That request was not valid." };
 
-  const { data: project } = await service.from("projects").select("id, status").eq("id", projectId).maybeSingle();
+  const { data: project } = await service.from("projects").select("id, status, updated_at").eq("id", projectId).maybeSingle();
   if (!project) return { ok: false, message: "We could not find that project." };
   if ((project as { status: string }).status !== "GENERATING") return { ok: false, message: "This project has no interrupted generation to clear." };
+  // The project as this action saw it. The final move matches this exact stamp (see moveProject).
+  const seenUpdatedAt = (project as { updated_at?: string | null }).updated_at ?? undefined;
 
-  const { data: jobsData } = await service.from("generation_jobs").select("id, status, created_at, started_at").eq("project_id", projectId);
-  const jobs = (jobsData ?? []) as (JobTimes & { id: string })[];
+  const now = (deps.now ?? Date.now)();
+  const { data: jobsData } = await service.from("generation_jobs").select("id, status, created_at, started_at, completed_at, error_code").eq("project_id", projectId);
+  const jobs = (jobsData ?? []) as (JobTimes & { id: string; completed_at?: string | null; error_code?: string | null })[];
   const active = jobs.filter((j) => j.status === "QUEUED" || j.status === "RUNNING");
-  if (active.length !== 1) return { ok: false, message: "There is no single interrupted job to clear." };
-  const job = active[0];
-  if (!isStaleJob(job, (deps.now ?? Date.now)())) {
-    return { ok: false, message: "That job started recently and may still be running. Wait ten minutes before clearing it." };
+
+  // A clearing that was interrupted after it ended the job (cleanup or the project move failed) leaves
+  // the project GENERATING with a FAILED, STALE_ABANDONED job and no active one. It is finished here
+  // after the same one-minute settle time that guards resuming a project without a job. The settle time
+  // is measured on the PROJECT (like startGeneration): a project that was only just claimed again has no
+  // job yet and is not an interrupted one, whatever the age of an older failed job.
+  let job: (typeof jobs)[number] | undefined;
+  let resumed = false;
+  const projectSince = seenUpdatedAt ? Date.parse(seenUpdatedAt) : NaN;
+  if (active.length === 1) {
+    job = active[0];
+    if (!isStaleJob(job, now)) {
+      return { ok: false, message: "That job started recently and may still be running. Wait ten minutes before clearing it." };
+    }
+  } else if (active.length === 0) {
+    const abandoned = jobs.filter((j) => j.status === "FAILED" && j.error_code === "STALE_ABANDONED").sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)))[0];
+    const endedAt = abandoned?.completed_at ? Date.parse(abandoned.completed_at) : NaN;
+    if (abandoned && Number.isFinite(endedAt) && now - endedAt >= RESUME_AFTER_MS && Number.isFinite(projectSince) && now - projectSince >= RESUME_AFTER_MS) {
+      job = abandoned;
+      resumed = true;
+    }
   }
+  if (!job) return { ok: false, message: "There is no single interrupted job to clear." };
 
   // Record who is clearing it before changing anything: if the audit event cannot be written,
   // nothing is cleared. The job's own status trigger then records whether the change happened.
@@ -479,32 +537,108 @@ export async function clearStaleJob(
     actor_id: admin.id,
     action: "generation.admin_cleared_stale",
     project_id: projectId,
-    metadata_json: { job_id: job.id },
+    metadata_json: { job_id: job.id, ...(resumed ? { resumed: true } : {}) },
   });
   if (audit.error) return { ok: false, message: "The clearing could not be recorded, so nothing was changed. Please try again." };
 
-  // Only this job's own files, never anything attached to another job.
-  const { data: assetsData } = await service.from("design_assets").select("id, storage_path").eq("generation_job_id", job.id);
-  const assets = (assetsData ?? []) as { id: string; storage_path: string }[];
-  let cleanedUp = true;
-  if (assets.length > 0) {
-    const removed = await service.storage.from(PROJECT_FILES_BUCKET).remove(assets.map((a) => a.storage_path));
-    if (removed.error) cleanedUp = false;
-    const deleted = await service.from("design_assets").delete().eq("generation_job_id", job.id);
-    if (deleted.error) cleanedUp = false;
+  const summary = "The job was interrupted and cleared by an administrator.";
+  if (!resumed) {
+    // STEP 1: end the job BEFORE touching its files. insert_generated_asset() locks the job row FOR
+    // SHARE and refuses unless it is RUNNING, so this update waits for an insert that is in flight, and
+    // every later insert is refused. Once it returns, no file can be attached to this job any more:
+    // the cleanup below sees every row that will ever exist for it. The summary says "pending" until
+    // the cleanup has really finished, so an interruption never reads as a clean job.
+    const failed = await service
+      .from("generation_jobs")
+      .update({ status: "FAILED", error_code: "STALE_ABANDONED", error_summary: `${summary} Cleanup pending.` })
+      .eq("id", job.id)
+      .eq("status", job.status)
+      .select("id");
+    if (failed.error || !failed.data || failed.data.length !== 1) return { ok: false, message: "The job changed while it was being cleared. Reload and check its state." };
   }
 
-  const summary = "The job was interrupted and cleared by an administrator.";
-  const failed = await service
-    .from("generation_jobs")
-    .update({ status: "FAILED", error_code: "STALE_ABANDONED", error_summary: cleanedUp ? summary : `${summary} Cleanup incomplete.` })
-    .eq("id", job.id)
-    .eq("status", job.status)
-    .select("id");
-  if (failed.error || !failed.data || failed.data.length !== 1) return { ok: false, message: "The job changed while it was being cleared. Reload and check its state." };
+  // STEP 2: only this job's own files, never anything attached to another job.
+  const cleanedUp = await removeJobFiles(service, job.id, []);
 
-  const moved = await moveProject(service, projectId, "GENERATING", "GENERATION_FAILED");
-  log("stale_cleared", { job_id: job.id, project_id: projectId, cleaned_up: cleanedUp });
-  if (!moved.ok) return { ok: false, message: "The job was cleared but the project could not be updated. Reload and check its state." };
-  return { ok: true };
+  // STEP 3: record the outcome. If this write fails the summary stays "Cleanup pending" (the safe reading).
+  await service.from("generation_jobs").update({ error_summary: cleanedUp ? summary : `${summary} Cleanup incomplete.` }).eq("id", job.id).eq("status", "FAILED");
+
+  // STEP 4: the project leaves GENERATING even when files are left behind: they stay listed as
+  // leftovers (they block release and an administrator can clear them), exactly as before.
+  // The move is ONE database call, end_interrupted_generation(), which locks the project row FOR UPDATE and,
+  // under that lock, checks that the project is still what this action read (status AND updated_at, so a
+  // project that was moved and claimed again is left alone) and that no job is active, before moving it.
+  // A job insert takes the same row lock (generation_jobs_guard reads the project FOR KEY SHARE), so a new
+  // job is either committed before the check (the project is left alone) or refused after the move; the
+  // clearing can no longer fail a fresh run's project, whichever of the two arrives first.
+  const moved = await service.rpc("end_interrupted_generation", { p_project_id: projectId, p_expect_updated_at: seenUpdatedAt ?? null });
+  const outcome = moved.error ? "ERROR" : String(moved.data);
+  log("stale_cleared", { job_id: job.id, project_id: projectId, cleaned_up: cleanedUp, resumed, outcome });
+  if (outcome === "MOVED") return { ok: true };
+  if (outcome === "ACTIVE_JOB") return { ok: false, message: "A new generation run started for this project, so it was left as it is. Reload and check its state." };
+  if (outcome === "PROJECT_CHANGED" || outcome === "NOT_FOUND") return { ok: false, message: "The project changed while it was being cleared, so it was left as it is. Reload and check its state." };
+  return { ok: false, message: "The job was cleared but the project could not be updated. Reload and check its state." };
+}
+
+// ---------------------------------------------------------------------------
+// Recovery: files left behind by a failed or interrupted attempt
+// ---------------------------------------------------------------------------
+
+export type LeftoverResult = { ok: true; removedRows: number; removedOrphans: number } | { ok: false; message: string };
+
+const LEFTOVER_ALLOWED_STATUSES = ["PAYMENT_VERIFIED", "GENERATION_FAILED", "READY_FOR_REVIEW"];
+
+/**
+ * Removes generated files that no succeeded job owns, so a project blocked by an earlier failed
+ * attempt can be generated or released again. Administrator only; the audit event is written
+ * first and nothing changes if it cannot be. It removes:
+ *   1. rows (and their objects) attached to a job that did NOT succeed; and
+ *   2. objects under <project>/generated/ that no row refers to (an upload whose row was never
+ *      written, or whose cleanup failed).
+ * It never touches a succeeded job's files, never runs while a job is queued or running (an
+ * object in flight would look like an orphan), and never on a released project.
+ */
+export async function removeLeftoverFiles(supabase: Client, service: Client, projectId: string): Promise<LeftoverResult> {
+  const admin = await requireAdmin(supabase);
+  if (typeof projectId !== "string" || !ID.test(projectId)) return { ok: false, message: "That request was not valid." };
+  const { data: project } = await service.from("projects").select("id, status").eq("id", projectId).maybeSingle();
+  if (!project) return { ok: false, message: "We could not find that project." };
+  if (!LEFTOVER_ALLOWED_STATUSES.includes((project as { status: string }).status)) return { ok: false, message: "Files can be cleared only before release and while no generation is running." };
+
+  const { data: jobsData, error: jobsError } = await service.from("generation_jobs").select("id, status").eq("project_id", projectId);
+  if (jobsError || !Array.isArray(jobsData)) return { ok: false, message: "The project's jobs could not be read. Nothing was changed." };
+  const jobs = jobsData as { id: string; status: string }[];
+  if (jobs.some((j) => j.status === "QUEUED" || j.status === "RUNNING")) return { ok: false, message: "A generation job is still running for this project." };
+  const keep = new Set(jobs.filter((j) => j.status === "SUCCEEDED").map((j) => j.id));
+
+  const { data: assetsData, error: assetsError } = await service.from("design_assets").select("id, storage_path, generation_job_id").eq("project_id", projectId).not("generation_job_id", "is", null);
+  if (assetsError || !Array.isArray(assetsData)) return { ok: false, message: "The project's files could not be read. Nothing was changed." };
+  const assets = assetsData as { id: string; storage_path: string; generation_job_id: string }[];
+  const leftoverRows = assets.filter((a) => !keep.has(a.generation_job_id));
+
+  const folder = `${projectId}/generated`;
+  const listed = await service.storage.from(PROJECT_FILES_BUCKET).list(folder, { limit: 1000 }).catch(() => ({ data: null, error: new Error("storage unavailable") }));
+  if (listed.error || !listed.data) return { ok: false, message: "The stored files could not be listed. Nothing was changed." };
+  const referenced = new Set(assets.map((a) => a.storage_path));
+  const orphans = listed.data.filter((o) => o.name && !referenced.has(`${folder}/${o.name}`)).map((o) => `${folder}/${o.name}`);
+
+  if (leftoverRows.length === 0 && orphans.length === 0) return { ok: true, removedRows: 0, removedOrphans: 0 };
+
+  const audit = await service.from("audit_events").insert({
+    actor_id: admin.id,
+    action: "generation.admin_cleared_leftovers",
+    project_id: projectId,
+    metadata_json: { rows: leftoverRows.length, orphans: orphans.length },
+  });
+  if (audit.error) return { ok: false, message: "The clearing could not be recorded, so nothing was changed. Please try again." };
+
+  const paths = [...leftoverRows.map((r) => r.storage_path), ...orphans];
+  const removed = await service.storage.from(PROJECT_FILES_BUCKET).remove(paths).catch(() => ({ error: new Error("storage unavailable") }));
+  if (removed.error) return { ok: false, message: "The stored files could not be removed. Nothing else was changed; try again." };
+  if (leftoverRows.length > 0) {
+    const deleted = await service.from("design_assets").delete().in("id", leftoverRows.map((r) => r.id)).select("id");
+    if (deleted.error) return { ok: false, message: "The files were removed but their records could not be. Try again." };
+  }
+  log("leftovers_cleared", { project_id: projectId, rows: leftoverRows.length, orphans: orphans.length });
+  return { ok: true, removedRows: leftoverRows.length, removedOrphans: orphans.length };
 }

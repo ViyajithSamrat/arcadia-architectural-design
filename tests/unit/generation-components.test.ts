@@ -62,6 +62,19 @@ describe("ImageGallery", () => {
     expect(out).not.toMatch(/storage_path|\/generated\//);
   });
 
+  it("offers a Download link only where a save link exists, and the admin preview (which has none) shows none", () => {
+    const withSave = html(createElement(ImageGallery, { images: [image({ downloadUrl: "https://signed.test/x?t=60&download=exterior-concept-1.png" })], caption: "Your released concept images" }));
+    expect(withSave).toContain('href="https://signed.test/x?t=60&amp;download=exterior-concept-1.png"');
+    expect(withSave).toContain('aria-label="Download exterior concept"');
+    expect(withSave).toMatch(/>Download<\/a>/);
+    expect(withSave).toContain("min-h-11"); // a 44px touch target on a phone
+    for (const none of [image(), image({ downloadUrl: null })]) {
+      expect(html(createElement(ImageGallery, { images: [none], caption: "Generated images for review" }))).not.toContain("Download");
+    }
+    // no picture, no download offer for it
+    expect(html(createElement(ImageGallery, { images: [image({ url: null, downloadUrl: "https://signed.test/x" })], caption: "x" }))).not.toContain("Download");
+  });
+
   it("says so in words when a link is missing, and when there is nothing to show", () => {
     expect(html(createElement(ImageGallery, { images: [image({ url: null })], caption: "x" }))).toContain("could not be loaded");
     expect(html(createElement(ImageGallery, { images: [], caption: "x" }))).toContain("No images to show");

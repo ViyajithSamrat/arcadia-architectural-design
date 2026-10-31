@@ -97,12 +97,13 @@ describe("getVoiceMode: an independent switch that fails closed", () => {
     }
   });
 
-  it("a complete live configuration is recognised, but stays unavailable on screen because no live call is wired in R1-A", () => {
-    expect(LIVE_STT_WIRED).toBe(false);
+  it("a complete live configuration is live on screen, with no demo-only selection and no mock", () => {
+    expect(LIVE_STT_WIRED).toBe(true);
     const mode = getVoiceMode(LIVE);
     expect(mode.kind).toBe("live");
     expect(mode.kind === "live" && mode.languages.some((l) => l.demoOnly)).toBe(false); // no demo selection when live
-    expect(getVoiceView(LIVE)).toEqual({ state: "unavailable" });
+    expect(getVoiceView(LIVE)).toMatchObject({ state: "live", maxSeconds: expect.any(Number) });
+    expect(JSON.stringify(getVoiceView(LIVE))).not.toContain(SECRET);
   });
 
   it("live without the transcript signing secret (or with a short one) is unavailable, naming the setting but never a value", () => {
@@ -120,14 +121,23 @@ describe("getVoiceMode: an independent switch that fails closed", () => {
     expect(getVoiceView({ GNANI_VOICE_ENABLED: "mock", PROVIDER_TIMEOUT_MS: "50000" })).toMatchObject({ uploadTimeoutMs: 50_000 + UPLOAD_TIMEOUT_MARGIN_MS });
   });
 
-  it("never treats a transcript as live in R1-A, so no transcript can set a project's language", () => {
-    expect(isLiveTranscriptionWired(LIVE)).toBe(false);
-    expect(isLiveTranscriptionWired({ ...LIVE, PROVIDER_MODE: "live" })).toBe(false);
+  it("treats a transcript as live only in a complete live configuration, so a mock or typed text can never set a project's language", () => {
+    expect(isLiveTranscriptionWired(LIVE)).toBe(true);
+    expect(isLiveTranscriptionWired({ ...LIVE, PROVIDER_MODE: "live" })).toBe(true);
+    expect(isLiveTranscriptionWired({ ...LIVE, VOICE_TRANSCRIPT_SECRET: "short" })).toBe(false);
+    expect(isLiveTranscriptionWired({ ...LIVE, GNANI_API_KEY: "" })).toBe(false);
     expect(isLiveTranscriptionWired({ GNANI_VOICE_ENABLED: "mock" })).toBe(false);
     expect(isLiveTranscriptionWired({})).toBe(false);
   });
 
-  it.each(["yes", "1", "on", "false", "live", "mock please"])("treats %j as invalid and unavailable", (value) => {
+  it.each(["false", "FALSE", " False "])("treats an explicit %j as off, like an empty value, even with a complete live configuration", (value) => {
+    expect(getVoiceMode({ GNANI_VOICE_ENABLED: value })).toEqual({ kind: "off" });
+    expect(getVoiceMode({ ...LIVE, GNANI_VOICE_ENABLED: value })).toEqual({ kind: "off" });
+    expect(getVoiceView({ ...LIVE, GNANI_VOICE_ENABLED: value })).toEqual({ state: "off" });
+    expect(isLiveTranscriptionWired({ ...LIVE, GNANI_VOICE_ENABLED: value })).toBe(false);
+  });
+
+  it.each(["yes", "1", "on", "no", "falsy", "false please", "live", "mock please"])("treats %j as invalid and unavailable", (value) => {
     expect(getVoiceMode({ GNANI_VOICE_ENABLED: value })).toEqual({ kind: "invalid" });
     expect(getVoiceView({ GNANI_VOICE_ENABLED: value })).toEqual({ state: "unavailable" });
   });

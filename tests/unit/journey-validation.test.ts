@@ -170,3 +170,36 @@ describe("whole-project validation", () => {
     }
   });
 });
+
+describe("empty plot: built-up area must be believable (never guessed)", () => {
+  const space = findStep("EMPTY_PLOT", "space")!;
+  const base = { plotWidth: 233, plotLength: 323, unit: "ft", orientation: "NE", floors: 2, location: "Madurai" };
+
+  it("refuses 2 sq ft on a 233 × 323 ft plot and says how to fix it", () => {
+    const result = validateStep(space, { ...base, builtUpArea: 2 });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.errors.builtUpArea).toMatch(/too small for the total floor area.*or leave it empty/);
+  });
+
+  it("refuses more than the plot area times the floors", () => {
+    const result = validateStep(space, { ...base, builtUpArea: 233 * 323 * 2 + 1 });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.errors.builtUpArea).toMatch(/more than the plot area times the number of floors/);
+  });
+
+  it("accepts a believable area in feet or metres, and an empty one", () => {
+    expect(validateStep(space, { ...base, builtUpArea: 2400 }).ok).toBe(true);
+    expect(validateStep(space, { ...base, unit: "m", plotWidth: 12, plotLength: 18, builtUpArea: 9 }).ok).toBe(true);
+    expect(validateStep(space, { ...base, unit: "m", plotWidth: 12, plotLength: 18, builtUpArea: 8 }).ok).toBe(false);
+    const empty = validateStep(space, base);
+    expect(empty.ok).toBe(true);
+    if (empty.ok) expect(empty.data.builtUpArea).toBeUndefined();
+  });
+
+  it("a stored implausible area blocks the brief instead of reaching it", () => {
+    const stored = { ...REQUIREMENTS.EMPTY_PLOT, space: { ...REQUIREMENTS.EMPTY_PLOT.space, builtUpArea: 2 } };
+    const check = validateRequirements("EMPTY_PLOT", stored);
+    expect(check.complete).toBe(false);
+    if (!check.complete) expect(check.missingRequiredFields.join(" ")).toMatch(/Built-up area/);
+  });
+});

@@ -12,6 +12,7 @@ import { formatMoney, toMinor } from "@/lib/journeys/money";
 import { JOURNEYS } from "@/lib/journeys/project-types";
 import { createProofPreviewUrl, getPaymentForAdmin, PROOF_URL_SECONDS } from "@/lib/payments/service";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
+import { isMockGatewayReference } from "@/lib/payments/mock-gateway";
 
 export const metadata: Metadata = { title: "Review payment", robots: { index: false, follow: false } };
 
@@ -82,6 +83,9 @@ async function Detail({ params, searchParams }: Props) {
           <div>
             <dt className="text-sm text-muted">Reference (UTR)</dt>
             <dd className="font-mono">{payment.utrReference}</dd>
+            {isMockGatewayReference(payment.utrReference) ? (
+              <dd className="mt-1 text-sm font-medium text-warning-fg">Simulated demo gateway: no money moved. Verify only for a demonstration.</dd>
+            ) : null}
           </div>
           <div>
             <dt className="text-sm text-muted">Transfer date</dt>

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { ClearStaleJobForm, ReleaseForm, StartGenerationForm } from "@/components/generation/controls";
+import { ClearStaleJobForm, ReleaseForm, RemoveLeftoverFilesForm, StartGenerationForm } from "@/components/generation/controls";
 import { FloorPlanSketch } from "@/components/generation/floor-plan";
 import { ImageGallery, MockWarning } from "@/components/generation/image-gallery";
 import { AccessGate } from "@/components/journey/access-gate";
@@ -13,10 +13,11 @@ import { getAdminAccess } from "@/lib/admin/access";
 import { getGenerationDetail, PHASE_TEXT, PREVIEW_URL_SECONDS, type GenerationDetail, type JobView } from "@/lib/generation/read";
 import { JOURNEYS } from "@/lib/journeys/project-types";
 import { STATUS_INFO } from "@/lib/journeys/status";
+import { isLiveImageGeneration } from "@/lib/generation/provider";
 
 export const metadata: Metadata = { title: "Generate and release", robots: { index: false, follow: false } };
 
-type Props = { params: Promise<{ projectId: string }>; searchParams: Promise<{ started?: string; released?: string; cleared?: string }> };
+type Props = { params: Promise<{ projectId: string }>; searchParams: Promise<{ started?: string; released?: string; cleared?: string; leftovers?: string }> };
 
 const dateTime = new Intl.DateTimeFormat("en", { dateStyle: "medium", timeStyle: "short" });
 
@@ -44,16 +45,19 @@ function Actions({ detail }: { detail: GenerationDetail }) {
   const id = detail.projectId;
   switch (detail.phase) {
     case "can_start":
-      return <StartGenerationForm projectId={id} mode={detail.status === "GENERATION_FAILED" ? "retry" : "start"} />;
+      return <StartGenerationForm projectId={id} mode={detail.status === "GENERATION_FAILED" ? "retry" : "start"} live={isLiveImageGeneration()} />;
     case "can_resume":
       return <StartGenerationForm projectId={id} mode="resume" />;
     case "can_finalize":
       return <StartGenerationForm projectId={id} mode="finish" />;
     case "blocked_leftovers":
       return (
+        <div className="space-y-3">
         <Notice tone="warning" title="A new run is blocked">
-          <p>Generated files from an earlier attempt are still attached to this project. Releasing or generating again could publish them, so both are refused until they are removed. This screen cannot remove them; ask a developer to clear them.</p>
+          <p>Generated files from an earlier attempt are still attached to this project. Releasing or generating again could publish them, so both are refused until they are removed.</p>
         </Notice>
+        <RemoveLeftoverFilesForm projectId={id} />
+        </div>
       );
     case "starting":
     case "running":
@@ -144,6 +148,12 @@ async function Detail({ params, searchParams }: Props) {
         </Notice>
       ) : null}
 
+      {flags.leftovers === "1" && detail.leftoverCount === 0 ? (
+        <Notice tone="success" role="status" title="Leftover files removed">
+          <p>Files from failed or unfinished attempts were removed. Nothing was released.</p>
+        </Notice>
+      ) : null}
+
       {detail.mock && showImages ? <MockWarning /> : null}
 
       {showImages ? (
@@ -158,6 +168,7 @@ async function Detail({ params, searchParams }: Props) {
           {detail.leftoverCount > 0 ? (
             <Notice tone="danger" title={`${detail.leftoverCount} file${detail.leftoverCount === 1 ? "" : "s"} from a failed attempt ${detail.leftoverCount === 1 ? "is" : "are"} still attached`}>
               <p>They are not shown here and will not be released while they remain.</p>
+              {detail.status !== "RELEASED" ? <RemoveLeftoverFilesForm projectId={detail.projectId} /> : null}
             </Notice>
           ) : null}
         </section>

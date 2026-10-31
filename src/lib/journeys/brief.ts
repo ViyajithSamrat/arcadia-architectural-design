@@ -47,6 +47,8 @@ export type BriefInput = {
   projectType: ProjectType;
   sourceLanguage: string;
   requirements: Record<string, StepData>;
+  /** How many reference photos the project holds. The server counts them; a producer never decides. */
+  referenceCount?: number;
 };
 
 /** A brief producer. Its result is unvalidated; callers must pass it through parseBrief. */
@@ -160,7 +162,6 @@ function buildEmptyPlot(r: Record<string, StepData>): Built {
   if (space.builtUpArea === undefined) missing.push("Built-up area");
   if (space.climate === undefined) missing.push("Climate notes");
   if (prefs.budgetBand === "undecided") missing.push("Budget band");
-  missing.push("Reference photos or floor plan (uploads are not configured yet)");
   const sentences = [
     `A new ${plural(Number(space.floors), "floor")} home on an empty ${space.plotWidth} × ${space.plotLength} ${unit} plot in ${space.location}.`,
     `It needs ${plural(Number(rooms.bedrooms), "bedroom")}, ${plural(Number(rooms.bathrooms), "bathroom")} and ${plural(Number(rooms.parkingSpaces), "parking space")}${extras.length ? `, plus ${list(extras)}` : ""}.`,
@@ -194,7 +195,7 @@ function buildEmptyPlot(r: Record<string, StepData>): Built {
   };
 }
 
-function buildInterior(r: Record<string, StepData>): Built {
+function buildInterior(r: Record<string, StepData>, photos: number): Built {
   const space = r.space ?? {};
   const prefs = r.preferences ?? {};
   const keep = selected("INTERIOR", r, "preserve", "keep");
@@ -208,7 +209,7 @@ function buildInterior(r: Record<string, StepData>): Built {
   if (prefs.palette === undefined) missing.push("Colours and materials");
   if (prefs.budgetBand === "undecided") missing.push("Budget band");
   if (keep.length === 0 && !keepNotes) missing.push("Anything that must be kept in place");
-  missing.push("Reference photos or floor plan (uploads are not configured yet)");
+  if (photos === 0) missing.push("Reference photos or a floor plan of the room (none uploaded)");
   const sentences = [
     `An interior refresh of ${plural(rooms.length, "room")}: ${list(rooms)}.`,
     hasSize ? `The approximate room size is ${space.roomWidth} × ${space.roomLength} ${unit}.` : "Room dimensions have not been given.",
@@ -240,7 +241,7 @@ function buildInterior(r: Record<string, StepData>): Built {
   };
 }
 
-function buildLandscape(r: Record<string, StepData>): Built {
+function buildLandscape(r: Record<string, StepData>, photos: number): Built {
   const area = r.area ?? {};
   const cond = r.conditions ?? {};
   const feat = r.features ?? {};
@@ -262,7 +263,7 @@ function buildLandscape(r: Record<string, StepData>): Built {
   if (cond.water === "unsure") missing.push("Water availability");
   if (feat.retain === undefined) missing.push("Existing trees or features to keep");
   if (feat.budgetBand === "undecided") missing.push("Budget band");
-  missing.push("Reference photos (uploads are not configured yet)");
+  if (photos === 0) missing.push("Reference photos of the outdoor area (none uploaded)");
   const sentences = [
     `A landscape design for a ${areaType.toLowerCase()} of about ${area.approxArea} ${unit} in ${cond.location}.`,
     `Sunlight: ${sunlight?.toLowerCase()}. Water: ${water?.toLowerCase()}. Upkeep wanted: ${maintenance?.toLowerCase()}.`,
@@ -293,7 +294,8 @@ function buildLandscape(r: Record<string, StepData>): Built {
  */
 export function buildBriefFacts(input: BriefInput): BriefFacts {
   const r = input.requirements;
-  return input.projectType === "EMPTY_PLOT" ? buildEmptyPlot(r) : input.projectType === "INTERIOR" ? buildInterior(r) : buildLandscape(r);
+  const photos = input.referenceCount ?? 0;
+  return input.projectType === "EMPTY_PLOT" ? buildEmptyPlot(r) : input.projectType === "INTERIOR" ? buildInterior(r, photos) : buildLandscape(r, photos);
 }
 
 /**

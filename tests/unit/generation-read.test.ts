@@ -154,10 +154,51 @@ describe("getCustomerResults: nothing before release, only the owner after", () 
     expect(result.assets.map((a) => a.id)).toEqual(["r1", "r2"]);
     expect(result.assets.map((a) => a.label)).toEqual(["Exterior concept", "Interior concept"]);
     expect(result.unavailable).toBe(0);
-    expect(db.signed.map((s) => s.seconds)).toEqual([300, 300]);
+    // each released file gets two short-lived links: one to show it and one that saves it
+    expect(db.signed.map((s) => s.seconds)).toEqual([300, 300, 300, 300]);
+    expect(db.signed.filter((s) => s.download !== undefined)).toHaveLength(2);
     expect(JSON.stringify(result)).not.toContain("storage_path");
-    // the object path appears only inside the signed URL, never as a field of its own
-    expect(Object.keys(result.assets[0]).sort()).toEqual(["height", "id", "label", "url", "width"]);
+    // the object path appears only inside the signed URLs, never as a field of its own
+    expect(Object.keys(result.assets[0]).sort()).toEqual(["downloadUrl", "height", "id", "label", "url", "width"]);
+    expect(result.assets.every((a) => a.url.startsWith("https://signed.test/") && a.downloadUrl?.startsWith("https://signed.test/"))).toBe(true);
+  });
+
+  it("gives each released image a separate link that saves it, under a plain file name", async () => {
+    const result = await getCustomerResults(released().client(), ME, P1);
+    if (result.state !== "released") throw new Error("expected released");
+    expect(result.assets.map((a) => a.downloadUrl)).toEqual([
+      `https://signed.test/${P1}/generated/r1.png?t=300&download=exterior-concept-1.png`,
+      `https://signed.test/${P1}/generated/r2.png?t=300&download=interior-concept-2.png`,
+    ]);
+    // the link that shows the image is not a download link
+    expect(result.assets.some((a) => a.url.includes("download"))).toBe(false);
+  });
+
+  it("builds the saved file name from fixed words and a checked extension, never from stored text", async () => {
+    const db = new FakeDb()
+      .seed("projects", [project({ status: "RELEASED" })])
+      .seed("design_assets", [
+        asset("a", "j1", { is_released: true, storage_path: `${P1}/generated/Weird Name;rm -rf.JPG` }),
+        asset("b", "j1", { is_released: true, storage_path: `${P1}/generated/payload.exe` }),
+      ]);
+    const result = await getCustomerResults(db.client(), ME, P1);
+    if (result.state !== "released") throw new Error("expected released");
+    const names = db.signed.filter((s) => s.download !== undefined).map((s) => s.download);
+    expect(names).toEqual(["exterior-concept-1.jpg", "exterior-concept-2.png"]);
+    expect(names.every((n) => /^[a-z0-9-]+\.(png|jpg|webp)$/.test(String(n)))).toBe(true);
+  });
+
+  it("still shows an image whose save link could not be made; only the Download link is missing", async () => {
+    const db = released();
+    const real = db.client();
+    const saveFails = {
+      ...real,
+      storage: { from: () => ({ createSignedUrl: async (path: string, _s: number, o?: { download?: string }) => (o?.download ? { data: null, error: { message: "nope" } } : { data: { signedUrl: `https://signed.test/${path}` }, error: null }) }) },
+    } as unknown as SupabaseClient;
+    const result = await getCustomerResults(saveFails, ME, P1);
+    if (result.state !== "released") throw new Error("expected released");
+    expect(result.unavailable).toBe(0);
+    expect(result.assets.map((a) => a.downloadUrl)).toEqual([null, null]);
     expect(result.assets.every((a) => a.url.startsWith("https://signed.test/"))).toBe(true);
   });
 

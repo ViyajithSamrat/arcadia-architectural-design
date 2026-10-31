@@ -25,11 +25,18 @@ export const MOCK_DESCRIPTION_REFUSED = "Replace the MOCK transcript placeholder
 export const MOCK_BRIEF_REFUSED = "Your description still contains the MOCK transcript placeholder. Edit your description before the brief is created.";
 
 /**
- * Shown with the brief's read-back summary (PR-009, 03_APP_FLOW.md 3.3 step 10). No text-to-speech
- * is connected in this version, so the summary is always given as text.
+ * Shown with the brief's read-back summary (PR-009, 03_APP_FLOW.md 3.3 step 10) whenever spoken
+ * read-back is not configured: the summary is then given as text only.
  */
 export const READBACK_TEXT_FALLBACK =
-  "Listening to this summary is not available in this version, so it is shown here as text. Nothing about your project depends on hearing it.";
+  "Spoken read-back is not switched on in this setup, so the summary is shown here as text. Nothing about your project depends on hearing it.";
 
 export const DEMO_LANGUAGE_NOTE =
   "Language choices marked as a demo selection only label the test. Support for Tamil and Tamil–English mixed speech (Tanglish) by the real speech service has not been confirmed.";
+
+/** Shown beside the Listen control. Nothing here claims what Gnani does with the text: that is not confirmed. */
+export const READBACK_CONSENT =
+  "I agree to send this summary text to this app's server, which passes it to Gnani, a third-party speech service, to turn it into audio. This app does not store the audio. How long Gnani keeps the text has not been confirmed. Listening is in English.";
+
+export const READBACK_AUDIO_FAILED = "The audio could not be loaded. The summary above is the same text.";
+export const READBACK_SHORTENED_NOTE = "Only the first part of the summary is read aloud. The full summary is on screen.";

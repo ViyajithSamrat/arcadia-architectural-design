@@ -32,6 +32,9 @@ if (ENABLED && !/^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/.test(URL_)) {
   throw new Error("Refusing to run live tests: NEXT_PUBLIC_SUPABASE_URL is not a local address.");
 }
 
+/** Whether the local pricing table is empty right now (decides which pricing tests can run). */
+const PRICING_EMPTY = ENABLED && execFileSync("docker", ["exec", "-i", DB_CONTAINER, "psql", "-U", "postgres", "-d", "postgres", "-At", "-c", "select count(*) = 0 from public.pricing_rules"], { encoding: "utf8" }).trim() === "t";
+
 /** Runs SQL as the database owner inside the local Postgres container. */
 function sql(query: string, input?: string): string {
   return execFileSync(
@@ -66,9 +69,9 @@ describe.skipIf(!ENABLED)("live local Supabase", () => {
     expect(URL_ && ANON && SERVICE).toBeTruthy();
     service = createClient(URL_, SERVICE, { auth: { persistSession: false, autoRefreshToken: false } });
     anon = createClient(URL_, ANON, { auth: { persistSession: false, autoRefreshToken: false } });
-    // Re-runnable: earlier runs leave demo pricing behind, and "Pricing not configured" needs none.
-    // Only configuration rows are cleared; users, projects and audit history are left alone.
-    sql("delete from public.pricing_rules; delete from public.site_settings where key = 'pricing_mode'");
+    // NON-DESTRUCTIVE: existing pricing rules and settings are never deleted or replaced. The
+    // "pricing not configured" case runs only when the table happens to be empty (otherwise it is
+    // skipped and stays covered by the in-memory tests); demo rates are loaded only into an empty table.
   });
 
   // ------------------------------------------------------------ 2. schema
@@ -93,7 +96,9 @@ describe.skipIf(!ENABLED)("live local Supabase", () => {
 
     it("seeded the 24 allowed status transitions and no prices", () => {
       expect(sql("select count(*) from public.project_status_transitions")).toBe("24");
-      expect(sql("select count(*) from public.pricing_rules")).toBe("0");
+      // No migration inserts prices (checked on the files, so existing local rules are not disturbed).
+      const migrations = readdirSync(path.join(process.cwd(), "supabase/migrations")).filter((f) => f.endsWith(".sql"));
+      for (const file of migrations) expect(readFileSync(path.join(process.cwd(), "supabase/migrations", file), "utf8")).not.toMatch(/inserts+intos+public.pricing_rules/i);
     });
 
     it("exposes only public (and graphql_public) through the API; app_private is not reachable", async () => {
@@ -224,7 +229,7 @@ describe.skipIf(!ENABLED)("live local Supabase", () => {
       expect(res.data ?? []).toEqual([]);
     });
 
-    it("with no pricing configured the quote is refused and nothing is created", async () => {
+    it.skipIf(!PRICING_EMPTY)("with no pricing configured the quote is refused and nothing is created", async () => {
       const project = (await getOwnedProject(users.a.client, users.a.id, projectA))!;
       expect(await previewQuote(service, project)).toMatchObject({ configured: false, reason: "no_rules" });
       expect(await createQuote(users.a.client, service, users.a.id, projectA)).toMatchObject({ ok: false, message: expect.stringMatching(/Pricing not configured/) });
@@ -242,16 +247,18 @@ describe.skipIf(!ENABLED)("live local Supabase", () => {
     });
 
     it("demo pricing loads, and the server then builds a demo-labelled quote (BRIEF_APPROVED -> QUOTED)", async () => {
-      sql("", readFileSync(path.join(process.cwd(), "supabase/demo/pricing_rules.demo.sql"), "utf8"));
-      expect(sql("select count(*) from public.pricing_rules")).toBe("17");
+      if (sql("select count(*) from public.pricing_rules") === "0") sql("", readFileSync(path.join(process.cwd(), "supabase/demo/pricing_rules.demo.sql"), "utf8"));
+      const ruleCount = Number(sql("select count(*) from public.pricing_rules"));
+      expect(ruleCount).toBeGreaterThan(0);
       // Customers still see none of it; an administrator sees all of it.
       expect((await users.a.client.from("pricing_rules").select("id")).data).toEqual([]);
-      expect((await users.admin.client.from("pricing_rules").select("id")).data).toHaveLength(17);
+      expect((await users.admin.client.from("pricing_rules").select("id")).data).toHaveLength(ruleCount);
+      const demoMode = sql("select coalesce(value_json->>'mode', '') from public.site_settings where key = 'pricing_mode'") === "demo";
       expect(await createQuote(users.a.client, service, users.a.id, projectA)).toEqual({ ok: true });
       const quote = await getLatestQuote(users.a.client, projectA);
       expect(quote).not.toBeNull();
       quoteId = quote!.id;
-      expect(quote!.pricingRuleVersion.startsWith("DEMO:")).toBe(true);
+      expect(quote!.pricingRuleVersion.startsWith("DEMO:")).toBe(demoMode);
       expect(quote!.currency).toBe("INR");
       expect(quote!.totalAmount).toBeCloseTo(quote!.subtotal + quote!.taxAmount - quote!.discountAmount, 2);
       expect((await getOwnedProject(users.a.client, users.a.id, projectA))?.status).toBe("QUOTED");

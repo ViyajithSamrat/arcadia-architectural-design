@@ -23,7 +23,8 @@ import { signTranscriptToken, transcriptSigningKey, type TranscriptKey } from ".
  *   - live: a credit estimate from the measured duration, a reservation in the usage ledger,
  *     then exactly one provider call (no retry). A live failure is reported as a failure and
  *     never replaced by the mock.
- * In R1-A no caller supplies `live`, so the live branch cannot run (see LIVE_STT_WIRED).
+ * The live branch runs only when the route supplies `live`, which it does only in a complete live
+ * configuration (see LIVE_STT_WIRED in src/lib/journeys/voice.ts).
  *
  * Every transcript returned carries a provenance token signed over what was returned (see
  * provenance.ts); the description save trusts transcript metadata only with a valid token.
@@ -34,6 +35,7 @@ type Client = SupabaseClient;
 
 export type VoiceErrorCode =
   | "VOICE_OFF"
+  | "NO_SPEECH"
   | "VOICE_UNAVAILABLE"
   | "NOT_FOUND"
   | "NOT_EDITABLE"
@@ -65,7 +67,7 @@ export type LiveSpeechDeps = { provider: SpeechToTextProvider; service: Client }
 export type TranscribeDeps = {
   mode?: VoiceMode;
   mockProvider?: SpeechToTextProvider;
-  /** Live provider and trusted client for the ledger. Not supplied anywhere in R1-A. */
+  /** Live provider and trusted client for the ledger. Supplied by the route in live mode only. */
   live?: LiveSpeechDeps;
   newRequestId?: () => string;
   /** The provenance signing key; by default VOICE_TRANSCRIPT_SECRET, or a process key for the mock. */
@@ -136,7 +138,7 @@ export async function transcribeForProject(supabase: Client, userId: string, inp
     return done(out.transcript, true);
   }
 
-  // Live. Not reachable in R1-A: the route never supplies `live`.
+  // Live. Reached only when the route supplied the provider and the ledger client.
   if (!deps.live || option.sourceLanguage === null) return fail(503, "VOICE_UNAVAILABLE", VOICE_UNAVAILABLE_MESSAGE);
   const planned = planGnaniCall("stt", seconds, mode.config);
   if (!planned.ok) {
@@ -154,6 +156,9 @@ export async function transcribeForProject(supabase: Client, userId: string, inp
       const status = guarded.reason === "unavailable" ? 503 : 429;
       return fail(status, guarded.reason === "busy" ? "BUSY" : guarded.reason === "unavailable" ? "VOICE_UNAVAILABLE" : "LIMIT", refusalMessage(guarded.reason));
     }
+    // A silent or unintelligible recording comes back empty. That is not a result: saying "done"
+    // would hand the customer a signed empty transcript.
+    if (guarded.value.transcript.trim().length === 0) return fail(422, "NO_SPEECH", "We could not hear any words in that recording. Try again closer to the microphone, or type your description.");
     return done(guarded.value.transcript, false);
   } catch {
     // The provider's own error stays out of the response; the adapter logged its code only.

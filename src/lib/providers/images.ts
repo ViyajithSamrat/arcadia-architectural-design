@@ -5,9 +5,9 @@ import type { UsagePlan } from "./budget";
 /**
  * Image-generation boundary (02_TRD.md section 2.5, 06_IMAGE_GENERATION_RELEASE.md).
  *
- * Only a labelled MOCK implements this today (mock-image.ts). There is deliberately no live
- * adapter: live image generation needs a verified provider/model, credentials, a price and
- * an owner-approved spending cap, none of which exist yet.
+ * Two implementations exist: the labelled MOCK (mock-image.ts) and the live OpenRouter Image
+ * API adapter (openrouter-image.ts). Which one runs is decided only by getImageProvider; a live
+ * configuration that is incomplete reports "unavailable" and never falls back to the mock.
  *
  * Everything a provider returns is UNTRUSTED. `validateImageOutputs` is the only way output
  * becomes something the application stores: it checks count, size, real file type (magic
@@ -35,10 +35,18 @@ export type ImageGenerationRequest = {
   instructions: string;
   views: ImageView[];
   customerData: Record<string, unknown>;
+  /**
+   * The project's own reference photos, already checked (real type, size). Present only when the
+   * provider says it supports them; a provider that does not must ignore them, never send them.
+   */
+  references?: ReferenceInput[];
   /** Correlation id for logs and (later) provider idempotency. Not secret. */
   requestId: string;
   timeoutMs: number;
 };
+
+/** One of the customer's reference photos, validated by the server before it is offered to a provider. */
+export type ReferenceInput = { mimeType: "image/png" | "image/jpeg" | "image/webp"; bytes: Uint8Array };
 
 export type ImageOutput = { viewKey: string; bytes: Uint8Array; mimeType: string };
 
@@ -48,6 +56,10 @@ export type ImageGenerationResult = {
   model: string;
   /** True for the placeholder generator. Persisted so a mock is never mistaken for a real result. */
   mock: boolean;
+  /** Total cost in US dollars as the provider reported it; null when it did not. Never estimated. */
+  costUsd?: number | null;
+  /** The provider's own request ids, for support and reconciliation. */
+  requestIds?: string[];
 };
 
 export interface ImageGenerationProvider {
@@ -56,6 +68,12 @@ export interface ImageGenerationProvider {
   readonly mock: boolean;
   /** Set only by providers that cost something: the budget guard reserves this first. The mock has none. */
   readonly usage?: UsagePlan;
+  /** Like usage, but sized to one request (the images it asks for). Takes precedence over usage. */
+  planUsage?(request: ImageGenerationRequest): UsagePlan;
+  /** Time allowed for one image; the service allows this many times the number of views. */
+  readonly timeoutMsPerImage?: number;
+  /** True when the model has been checked to accept reference images. */
+  readonly supportsReferences?: boolean;
   generate(request: ImageGenerationRequest, hooks?: ProviderHooks): Promise<ImageGenerationResult>;
 }
 

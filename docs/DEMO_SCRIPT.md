@@ -1,146 +1,136 @@
-# Five-minute demo script (local prototype, mock providers)
+# Demo script: mock mode (local prototype, 2026-10-28)
 
-Source: `architectural-ai-design-spec/09_DEMO_SCRIPT.md`. This script keeps its seven steps and order and adds timings, routes and the state of each step as of 2026-10-21. Where a step cannot be shown truthfully today, it has a **labelled fallback**. The original acceptance wording is not softened.
+A six-minute live walk through the whole journey: **customer submission → admin verification → mock
+generation → preview → release.** It runs in **mock mode**: no AI or speech provider is called, nothing is
+spent, and nothing depends on an API key, a quota or the internet. Everything a provider would normally
+produce is labelled: briefs say "Demo/mock output", generated images say "MOCK — NOT A DESIGN", payments say
+"simulated". Never present any of it as AI output or as a real transfer.
 
-**Ground rules for the presenter**
-- **Say "mock" out loud** whenever mock output is on screen. Voice transcripts, the brief writer and concept images are all mocks; no live AI provider is used.
-- **Never present a payment as real.** Use clearly labelled demo payment details and a test reference.
-- **This is not a hosted product.** The demo runs on `http://localhost:3000` against a local Supabase stack.
-- **Nothing is construction-ready.** Images and the layout sketch are concepts, not CAD, construction drawings or approved plans.
+## 1. Start the app (Windows)
 
-**What each step's status label means**
-- **Verified (earlier, local):** worked in a local browser in an earlier session, on code not changed since.
-- **Mock-only:** works, but shows labelled mock output.
-- **Browser-verified (2026-10-21):** exercised in a headless Edge browser against the local development server (`next dev`), using the real UI and the local Supabase stack. All three journeys were run end to end. This was **not** repeated against the production build (`next start`), on a phone or at mobile width.
-- **Needs browser check:** implemented and tested offline, but never exercised in a browser. Rehearse it first.
+Docker Desktop must be running. From the project folder:
 
-## Before the demo (not part of the five minutes)
+```powershell
+npx supabase start          # the local database, sign-in and private storage (keeps its data)
+npm run build               # only after code changes; the mode is read when the server starts, so switching
+                            # between mock and live never needs a rebuild
+```
 
-Each of these needs the owner's approval in this project (it starts services or writes local data). See the README runbook for the commands.
+Then start the server in mock mode. **PowerShell** (verified 2026-10-28):
 
-1. **Services.** Start the local Supabase stack and the app (`npm run build && npx next start -p 3000`). Set `GNANI_VOICE_ENABLED=mock` and leave `PROVIDER_MODE` unset.
-2. **Prices.** Load `supabase/demo/pricing_rules.demo.sql`. It sets `pricing_mode` to demo, so every quote says "Demo rates". Do **not** demo with rates entered on `/admin/pricing` unless demo mode is on, or the quote would look like real pricing.
-3. **Payment details.** Set demo payment display values (`PAYMENT_MODE=manual`, a UPI ID or instructions containing the word "demo", `PAYMENT_CURRENCY=INR`).
-4. **Accounts.** Create two accounts in two browser profiles: a customer, and an administrator added to `public.admin_users`. Magic links arrive at `http://127.0.0.1:54324`.
-5. **Prepared projects**, because generation and release do not fit into five minutes live:
-   - **A.** An empty-plot project already **released**: mock images plus the layout sketch.
-   - **B.** An interior or landscape project already **released**.
-   - **C.** An empty-plot project at **"Quote ready"**, for the payment step.
-   - **D.** A project at **"Payment evidence submitted"**, for the admin step.
-   - **E.** An empty-plot **draft** with the space, rooms and preferences steps answered, for the voice and brief step. The description can only be changed while a project is a draft or its brief is under review.
-6. **Rehearse every "needs browser check" step once.** If one fails, use its fallback or drop it, and say so.
+```powershell
+$env:PROVIDER_MODE = "mock"; $env:TRANSLATION_MODE = "off"; $env:GNANI_VOICE_ENABLED = "mock"; npx next start -p 3000
+```
 
-## Local demo records (this machine's local database only)
+Other shells (the values were checked; the server itself was started from PowerShell):
 
-Created on 2026-10-21 through the real UI, with demo data (the answers carry the label "DEMO E2E"), as the account `demo-e2e-mvi2xal6@example.test`. Each ran create, brief, quote, payment evidence, administrator verification, mock generation and release, and is now **released**, so they serve as finished-results examples:
+```
+cmd.exe:   set PROVIDER_MODE=mock&& set TRANSLATION_MODE=off&& set GNANI_VOICE_ENABLED=mock&& npx next start -p 3000
+Git Bash:  PROVIDER_MODE=mock TRANSLATION_MODE=off GNANI_VOICE_ENABLED=mock npx next start -p 3000
+```
 
-| Journey | Project ID |
-|---|---|
-| New build on an empty plot | `d8ba4423-726c-4f1d-81ab-cd105b409a97` |
-| Interior refresh | `f8551043-29e4-46ea-ad27-d01f7aaa863f` |
-| Landscaping | `c1e2cff2-be25-432b-829d-ed3abf642486` |
+Open `http://localhost:3000` and use `localhost` throughout (not `127.0.0.1`), so sign-in cookies match.
 
-They are local records and do not exist anywhere else. To demonstrate the live steps (quote, payment, verification, generation, release) you still need fresh projects at the earlier states listed above.
+**Why three variables.** `.env.local` is left alone and holds live values (`PROVIDER_MODE=live`,
+`TRANSLATION_MODE=live`, `GNANI_VOICE_ENABLED=true`). Variables set in the shell win over it (checked with
+Next.js's own env loader). `PROVIDER_MODE=mock` by itself would leave transcript translation (OpenRouter) and
+live Gnani voice switched on, so the demo command sets all three:
 
-## Timed script
+| Variable | Value | Effect |
+|---|---|---|
+| `PROVIDER_MODE` | `mock` | The brief is written by the built-in template (labelled), and images come from the placeholder generator (labelled). OpenRouter is not used. |
+| `TRANSLATION_MODE` | `off` | No transcript translation. |
+| `GNANI_VOICE_ENABLED` | `mock` | Voice shows its consent and recording screen with a fixed, labelled placeholder transcript. Live speech-to-text and spoken read-back are off (the summary is shown as text). |
 
-| Time | Step (from 09) | Screen | Status |
+Use non-empty values. PowerShell deletes a variable you set to `""`, and then the `.env.local` value would win again.
+
+- The variables stay set in that PowerShell window. To return to the `.env.local` values, close the window or run
+  `Remove-Item Env:PROVIDER_MODE, Env:TRANSLATION_MODE, Env:GNANI_VOICE_ENABLED`.
+- Stop the server with Ctrl+C. If port 3000 is busy, find the owner with `Get-NetTCPConnection -LocalPort 3000 -State Listen`,
+  read its command line, and stop it only if it is this project's `next start`.
+- The OpenRouter key's expiry (29 Oct) does not matter in mock mode.
+
+## 2. Confirm mock mode before presenting (30 seconds)
+
+1. `http://localhost:3000/api/health`: `voice_input` is `mock_only` and `readback_audio` is `not_configured`. (Checked.)
+2. Signed in as admin, `/admin/generation` shows the blue note **"Mock generation is on: test images only"**.
+   (Seen in a browser on 2026-10-28, and covered by tests in all three modes.)
+3. A newly created brief shows **"Demo/mock output"**, never "Drafted with AI". (Checked.)
+4. The generate button reads **"Start mock generation"**. If it ever reads "Generate concept images (live, uses
+   credits)", do not click it: stop the server and restart it with the command above.
+
+## 3. What you need
+
+- **Customer:** register in the browser on `/sign-in?mode=sign-up` (email and password; locally no confirmation email).
+- **Administrator:** the dedicated demo admin account, in a second window (a private window or another profile).
+  It is an ordinary account that the project owner added to `public.admin_users` by SQL; registering never grants admin rights.
+- **Prices and payment details:** `supabase/demo/pricing_rules.demo.sql` loaded (quotes say "Demo rates"); the demo UPI
+  values and `PAYMENT_MOCK_GATEWAY=true` in `.env.local` (these are what show the "Pay … (simulated)" button).
+
+## 4. The script (live, about six minutes)
+
+Every row works in mock mode. The **interior** journey is the one rehearsed end to end on 2026-10-28 and is the shortest,
+so it is the safest live choice. The **new build on an empty plot** gives the richest result (two concept images and the
+illustrative layout sketch): its administrator side and sketch were verified on 2026-10-28 on the prepared project, and its
+customer side in mock mode on 2026-10-21 (earlier build). Row 3 is specific to the empty-plot journey.
+
+| # | What to show | Route or action | Expected result | Account | If it fails |
+|---|---|---|---|---|---|
+| 1 | Three project types, no sign-in needed | `/` | Hero and three panels | none | Open `/new/empty-plot` |
+| 2 | Self-service account | `/sign-in?mode=sign-up` → Create account | "You are signed in", the email in the header, no Admin tag | customer | Sign in with a demo account |
+| 3 | Requirements with server-side validation (empty-plot journey) | `/new/empty-plot` → Start this project; enter built-up area `2` | "2 square feet is too small for the total floor area of a home…"; use `2400` and continue | customer | Enter believable values |
+| 4 | Text description (voice is a labelled test mode) | Last step "In your own words" | The voice area says "Test mode: voice input uses a MOCK transcriber…"; type the description instead | customer | — |
+| 5 | English brief | Save and review → Create my brief | Notice **"Demo/mock output"** (built-in template, not AI); your numbers kept; missing details listed; "Spoken read-back is not switched on in this setup" with the summary as text | customer | Reload and create again |
+| 6 | Explicit approval | Tick "I have read this brief…" → Approve | Approve stays disabled until ticked; then the quote page | customer | — |
+| 7 | Server-side itemized quote | Prepare my quote → Accept this quote | Lines, tax and total in ₹, labelled "Demo rates"; frozen once accepted. "Print or save as PDF" makes a one-page quote summary the customer can keep or send | customer | — |
+| 8 | **Customer submission:** payment | Payment page → "Pay ₹… (simulated)" → "Simulate successful payment" | "Payment evidence submitted", pending review, **not** paid; reference `MOCKPAY-…` | customer | Use the manual form: a reference of 6 to 40 letters, digits or hyphens (for example `DEMO-REF-0001`), today's date, UPI |
+| 9 | Nothing visible yet | `/projects/[id]/results` | "Your concept images appear here only after they have been reviewed and released to you." | customer | — |
+| 10 | **Admin verification** | `/admin/payments` → open the `MOCKPAY-…` payment → Amount received = the quoted total → tick "I checked the receiving account…" → Verify payment | The page says "Simulated demo gateway: no money moved. Verify only for a demonstration."; a wrong amount is refused; then "Payment verified" and an audit entry | **admin** | Show Reject (a reason is required) |
+| 11 | **Mock generation** | Open `/admin/generation/<project id>` (copy the id from the customer window's address bar) → Start mock generation. The queue at `/admin/generation` also works, newest first, but it holds about 14 older test projects that look alike | "Images created. They are private and have not been released." | admin | Reload the page; use a prepared project (section 6) |
+| 12 | **Preview** | Same page | Gallery of placeholder images, each marked "MOCK — NOT A DESIGN", with the warning and "Only administrators can see these until they are released" (new build: the layout sketch too) | admin | — |
+| 13 | **Release** | Same page → tick both confirmations → "Release … to the customer" | "Released. The customer can now see these images." | admin | — |
+| 14 | Customer sees the result | `/projects/[id]/results` | The images (still labelled MOCK) with a **Download** link under each, the "conceptual illustrations only" notice, the layout sketch | customer | Reload for fresh image links |
+| 15 | Isolation | A second customer opens that project's URL; any customer opens `/admin/payments` | "Page not found"; "You do not have access to this area" | other customer | — |
+| 16 | Security proof | `npx vitest run tests/db` | The database rules: no generation before verified payment, no cross-customer access, release only by an admin (215 tests at the last run) | — | Show the test file names |
+
+## 5. What has been verified, and how
+
+| What | When | How | Result |
 |---|---|---|---|
-| 0:00–0:25 | 1. Landing | `/` then `/new/empty-plot` | Verified (earlier, local) |
-| 0:25–1:20 | 2. Voice and brief | `/projects/[E]/edit` (description step), then `/projects/[E]/brief` | Voice: **mock-only**; brief: **mock-only**; read-back summary: **browser-verified (2026-10-21)**; voice recording itself: not browser-verified with a real microphone |
-| 1:20–2:10 | 3. Layout sketch and concept images | `/projects/[A]/results` | Images: **mock-only**; sketch: **browser-verified (2026-10-21)** |
-| 2:10–2:45 | 4. Interior or landscape | `/new/interior`, then `/projects/[B]/results` | Uploads: **not available (fallback)**; images: **mock-only** |
-| 2:45–3:40 | 5. Pricing and payment | `/projects/[C]/quote`, then `/payment` | Verified (earlier, local); demo rates and demo payment details |
-| 3:40–4:35 | 6. Admin verification and release | `/admin/payments`, `/admin/generation/[A or D]` | Payment review: verified (earlier, local). Verify, start mock generation and release: **browser-verified (2026-10-21)**, mock images |
-| 4:35–5:00 | 7. Security and limits | `/admin/generation/[C]` and a terminal | Screen: **browser-verified (2026-10-21)**; tests: offline, verified |
+| Mock startup command | 2026-10-28 | The three assignments run from PowerShell, cmd and Git Bash into a Node probe; Next.js's env loader run with and without them | Right values reach the server, and the shell wins over `.env.local` |
+| Customer half in mock mode | 2026-10-28 | Browser, new project on the documented command, with a proxy that recorded and refused any outbound connection | New project → mock brief ("Demo/mock output", stored `mock`) → approval → quote ("Demo rates") → simulated payment pending. **0 outbound attempts**; OpenRouter usage counter and usage ledger unchanged |
+| Administrator half in mock mode, on the documented command | 2026-10-28 | Browser (the project owner signed the admin in), on a new project, behind the proxy that records and refuses any outbound connection | The blue "Mock generation is on" note shown; a wrong amount refused, then verified; mock generation (job `mock/SUCCEEDED`, one private image); preview through signed links; release with both confirmations; the owner sees the image labelled MOCK; a stranger gets "Page not found". **0 outbound attempts** in the whole admin half; usage counter and ledger unchanged; no existing record changed |
+| Administrator half, three older fixtures | 2026-10-28 (earlier session) | Browser, server started in mock mode | Verification (a wrong amount refused first), rejection with a reason, mock generation, private preview, release, owner's view, stranger and signed-out denial, 16 direct requests refused |
+| Banner wording, all three modes | 2026-10-28 | Unit tests, production build, prerendered output inspected | Asserted for mock, live and live-unavailable; nothing baked in at build time |
+| All three journeys end to end in mock mode | 2026-10-21 | Browser, earlier build | Passed |
 
-## Step by step
+The proxy used for the egress check is test scaffolding outside the repository.
 
-### 1. Landing — 0:00 to 0:25 (25 s)
+## 6. Prepared projects (fallback)
 
-- **Do:** Open `/`. Point out the three services. Click the new-build card, which opens `/new/empty-plot`.
-- **You see:** Three distinct project types and the concept-only disclaimer.
-- **Say:** "Three journeys: a new build on an empty plot, an interior refresh and a garden. Everything you'll see is a concept, not a construction drawing."
-- **Status:** Verified (earlier, local).
+If something breaks, these are ready (all in the local database, owned by throwaway accounts whose logins are not stored in the repository, so the admin screens are the way to show them):
 
-### 2. Voice and brief — 0:25 to 1:20 (55 s)
+| Journey | Project | State |
+|---|---|---|
+| New build on an empty plot | `04e96bc2-8011-48fe-9f5f-3100839e2da5` | Payment verified, mock images generated and released |
+| Landscaping | `f8de56c8-18f2-4454-b92e-ba8255c80c88` | Payment rejected with a reason |
+| Interior | `f6a6da95-cc7d-4059-9f6f-a7eb5c6d715b` | Payment pending review: usable for steps 10 to 13 |
+| Interior (the 2026-10-28 rehearsal) | `eff877a9-b99f-4502-8d09-b946017e40e3` | Simulated payment verified, one mock image generated and released |
 
-- **Do:** On project E's description step (`/projects/[E]/edit`), tick the consent box, pick a language, then either click **Start recording** and **Stop and send**, or **Choose a WAV file**.
-- **You see:** A transcript box containing `[MOCK TRANSCRIPT — no speech service was used] …` and a "MOCK" notice.
-- **Say:** "Voice capture works end to end in the app, but the speech service is a labelled mock: it doesn't listen to the audio. Live Gnani transcription is switched off until the account details are confirmed. The app also refuses to save this placeholder as the description, so I'll type mine."
-- **Do:** Type a short description and save. On `/projects/[E]/brief`, click **Create my brief**. Correct a room count via "Change my answers" if time allows (the spec's "correct a room count"). Changing an answer clears the brief, so click **Create my brief** again. Show **What you told us**, the **Read-back summary** and the editable brief.
-- **You see:**
-  - a "Demo/mock output" notice on the brief;
-  - the read-back summary as text, with the note that listening isn't available in this version.
-- **Say:** "The brief is built from the customer's own answers; nothing is invented, and missing details are listed. Spoken read-back isn't connected yet, so the summary is shown as text."
-- **Status:** Voice and brief are mock-only. The read-back summary was browser-verified on 2026-10-21. Voice capture was checked only in a headless browser with a fake microphone, never with a real microphone.
-- **Fallback:** If the microphone is unavailable, skip recording and say "text-only works for every journey" (PR-003).
+## 7. If something goes wrong
 
-### 3. Layout sketch and concept images — 1:20 to 2:10 (50 s)
+- **A page sits on "Loading…":** a browser window that is minimized or completely covered stops rendering new pages. Bring it to the front.
+- **The generate button says "(live, uses credits)", or the blue note says live:** you are not in mock mode. Stop, and restart with the command in section 1.
+- **The server will not start:** the project needs `.next` (run `npm run build`) and the local database (`npx supabase status`).
+- **Sign-in link or reset email:** local emails arrive in Mailpit at `http://127.0.0.1:54324`.
 
-- **Do:** Open `/projects/[A]/results`, the released empty-plot project.
-- **You see:**
-  - the concept disclaimer;
-  - images stamped **"MOCK — NOT A DESIGN"**;
-  - the **Illustrative layout sketch** for each floor, with numbered blocks, the plot dimensions as entered and "Illustrative layout only — not CAD or a construction drawing".
-- **Say:**
-  - "The layout sketch is drawn by our own code from the customer's answers, not by an AI model, so it's deterministic. It shows the plot in the customer's proportions and one block per requested room; block sizes are a drawing rule, not room sizes."
-  - "The pictures come from a test generator. No AI image model is connected yet. They're static images, not a 3D model."
-- **Status:** Images are mock-only. The sketch was browser-verified on 2026-10-21 (two floors, labelled "Illustrative layout only — not CAD or a construction drawing"). Labels inside the blocks are small at normal width; narrow blocks show only a number, and the numbered list beside the sketch carries the names.
-- **Fallback:** If the sketch does not render, say so and show the offline test evidence (`tests/unit/floor-plan.test.ts`) instead.
+## 8. Say this, and nothing stronger
 
-### 4. Interior or landscape — 2:10 to 2:45 (35 s)
+- Payment evidence is a claim for a person to check. `MOCKPAY-…` references are demo data: nothing is paid.
+- Generation is impossible before an administrator verifies the payment (the database refuses it). Images stay private until an administrator releases them, project by project.
+- In this mode no AI model made the brief or the images; they are labelled placeholders. Concepts are never construction drawings, CAD, BIM or approved plans.
 
-- **Do:** Open `/new/interior` and show the form, including the notice **"Uploads not configured yet"**. Then open `/projects/[B]/results`.
-- **Say:** "The original plan has the customer upload a room or garden photo here. Uploads aren't built yet: the allowed file types, sizes and how long photos are kept are open decisions. The concept you see uses the same release rules, and it's a mock."
-- **Status:** **Not available.** The spec's "upload safe sample image" cannot be shown, and this is a labelled fallback. Images are mock-only.
+## 9. Not shown in this demo
 
-### 5. Pricing and payment — 2:45 to 3:40 (55 s)
-
-- **Do:** On `/projects/[C]/quote`, show the itemized quote with the **"Demo rates"** label and click **Accept this quote**. On `/projects/[C]/payment`, show the demo payment instructions, enter a test reference, date and amount, and click **Submit payment details for review**.
-- **You see:**
-  - itemized lines, tax and total, labelled "Demo rates";
-  - after submitting, the status "Payment evidence submitted": pending, never verified automatically.
-- **Say:** "Prices are calculated on the server and frozen when accepted. These are demonstration rates. The customer only submits evidence; nothing is treated as paid until an administrator checks the receiving account."
-- **Optional (10 s, admin profile):** Show `/admin/pricing`: "Administrators publish new versions of rates for new quotes; accepted quotes don't change. Switching from demo to real rates is a separate owner decision." The pricing screen **needs a browser check**.
-- **Status:** Verified (earlier, local), with demo values.
-
-### 6. Admin verification and release — 3:40 to 4:35 (55 s)
-
-- **Do (admin profile):** On `/admin/payments`, open project D's payment. Show the 60-second proof link, type the full quoted amount, tick the confirmation and click **Verify payment**.
-- **You see:** The payment is verified and the decision is recorded in the audit trail.
-- **Do:** On `/admin/generation/[D]`, click **Start mock generation**.
-  - **You see:** Placeholder images and the layout sketch, private, with the MOCK warning.
-  - **Then:** Tick the review and mock acknowledgements and click the release button, which reads **Release N image(s) to the customer** ("Release to the customer" is the heading above it).
-- **If time is short:** Show project A's admin page (already released) instead of generating live.
-- **Do (customer profile):** Open `/projects/[D]/results`.
-- **Say:** "Generation can only start after verified payment. That's enforced in the database, not just hidden in the interface. Nothing reaches the customer until an administrator releases it."
-- **Status:**
-  - payment verification: verified (earlier, local);
-  - generation start and release: browser-verified on 2026-10-21 for all three journeys (mock images), after earlier local live-suite evidence.
-- **Fallback:** If any action misbehaves, stop and show project A instead. Never force or fake a state.
-
-### 7. Security and limits — 4:35 to 5:00 (25 s)
-
-- **Do:** Open `/admin/generation/[C]`, a project not yet verified.
-- **You see:** "Not ready. Generation can start only after an administrator has verified the payment." There is no start button.
-- **Do (optional, terminal):** Run the offline proof. It runs in-process with no services and no network:
-
-  ```bash
-  npx vitest run tests/unit/generation-service.test.ts tests/db/workflow-guards.test.ts
-  ```
-
-  Point to the tests "refuses when the database says the payment is not verified (client status is irrelevant)" and "cannot create a generation job without a verified payment, whatever the project status".
-- **Say:** "Even a direct request can't generate for an unpaid project. And to be clear: these are concepts, not CAD or construction drawings."
-- **Status:** The screen was browser-verified on 2026-10-21. The tests are verified offline (current code, 2026-10-21). The spec's "denied unpaid-generation **API** test" is shown through these tests, not a live HTTP call: generation is a Server Action, not a public REST route.
-
-## What this demo does not show
-
-- Live Gnani speech-to-text or text-to-speech.
-- A live OpenRouter brief, or real AI images.
-- Reference uploads.
-- Real payments or real prices.
-- A hosted URL.
-- Mobile-width behaviour (not yet checked).
-
-Say so if asked. These are listed under "Known limitations" in the README.
+Live AI briefs and images (a separate, deliberate test), Google sign-in (built, not configured), real email delivery,
+Gnani speech-to-text and spoken read-back (the voice step is the labelled test mode), real payments, hosted deployment.

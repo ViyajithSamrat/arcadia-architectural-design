@@ -2,17 +2,18 @@
    charcoal ink, one restrained deep-green accent. */
 
 :root {
-  --pl-bg: #edebe6;
-  --pl-surface: #e2dfd8;
-  --pl-ink: #1d1e1b;
-  --pl-muted: #56584f;
-  --pl-accent: #24513b;
-  --pl-accent-deep: #1a3d2c;
-  --pl-paper: #f6f3ec;
-  --pl-line: #c9c2b4;
+  /* The GNANI palette (globals.css): limestone ground, charcoal ink, forest accent. */
+  --pl-bg: #eae7de;
+  --pl-surface: #e0dccf;
+  --pl-ink: #252723;
+  --pl-muted: #5a5a52;
+  --pl-accent: #182923;
+  --pl-accent-deep: #0f1c18;
+  --pl-paper: #f6f4ef;
+  --pl-line: #d3ccbd;
 
-  --pl-display: "Bodoni 72", "Bodoni MT", Didot, "Didot LT STD", "Hoefler Text", Georgia, "Times New Roman", serif;
-  --pl-text: Jost, Futura, "Century Gothic", "Avenir Next", Avenir, "Segoe UI", system-ui, sans-serif;
+  --pl-display: var(--font-cormorant), "Hoefler Text", Georgia, "Times New Roman", serif;
+  --pl-text: var(--font-manrope), "Segoe UI", system-ui, sans-serif;
 
   --pl-small: clamp(0.875rem, 0.85rem + 0.1vw, 0.9375rem);
   --pl-body: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
@@ -221,6 +222,52 @@ body {
 
 .pl-header .pl-btn {
   justify-self: end;
+}
+
+/* Sign in / sign out beside the call to action; stays visible when the nav is hidden on phones. */
+.pl-header__end {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: clamp(12px, 2vw, 24px);
+}
+
+.pl-header__auth {
+  font: inherit;
+  font-size: var(--pl-small);
+  font-weight: 500;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 10px 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: transparent;
+  text-underline-offset: 0.5em;
+}
+
+.pl-header__auth:hover,
+.pl-header__auth:focus-visible {
+  text-decoration-color: currentColor;
+  text-underline-offset: 0.3em;
+}
+
+/* The signed-in email; shortened with an ellipsis (full address in the tooltip) when space is tight. */
+.pl-header__account {
+  font-size: var(--pl-small);
+  max-width: 28ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pl-header__tag {
+  font-size: var(--pl-small);
+  font-weight: 600;
+  padding: 2px 8px;
+  border: 1px solid currentColor;
+  border-radius: 4px;
 }
 
 /* Hero: the pinned story. */
@@ -984,6 +1031,10 @@ body {
 
   .pl-header nav {
     display: none;
+  }
+
+  .pl-header__account {
+    max-width: 12ch;
   }
 
   .pl-hero__model {

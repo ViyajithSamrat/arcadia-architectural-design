@@ -5,7 +5,7 @@ import { TRANSCRIPT_SECRET_ENV, TRANSCRIPT_SECRET_MIN_CHARS, transcriptSecretCon
 /**
  * Voice input mode, decided only by GNANI_VOICE_ENABLED and independent of PROVIDER_MODE (which
  * keeps deciding the brief writer):
- *   unset or empty  off: typing only
+ *   unset, empty or "false"  off: typing only
  *   "mock"          the labelled MOCK transcriber (no network, no credits)
  *   "true"          live Gnani speech-to-text, only when every STT setting and the
  *                   transcript signing secret are present; otherwise unavailable, never the mock
@@ -13,12 +13,18 @@ import { TRANSCRIPT_SECRET_ENV, TRANSCRIPT_SECRET_MIN_CHARS, transcriptSecretCon
  */
 
 /**
- * R1-A: no live speech call is wired anywhere. Even a complete live configuration reports
- * "unavailable" until this is changed, which needs the owner's approval of a separately
- * approved live speech-to-text smoke test after the account's endpoint, authentication and
- * billing are confirmed.
+ * The live speech-to-text path is wired (switched on 2026-10-21 on the owner's instruction to
+ * complete the real Gnani integration). Wired does NOT mean verified: no call has yet been made
+ * to Gnani from this code base, and the path stays fail-closed, because it runs only when
+ *   - GNANI_VOICE_ENABLED=true and every speech setting is present (key, an allowed https host,
+ *     the endpoint path, documented languages and every spending limit),
+ *   - VOICE_TRANSCRIPT_SECRET is set (at least 32 characters), and
+ *   - the budget guard reserves the credits before each call.
+ * Anything missing reports "unavailable" naming the setting; it never uses the mock. A live
+ * failure is a failure, never a mock transcript. Mock mode is a separate, explicit setting
+ * (GNANI_VOICE_ENABLED=mock) whose output is always labelled.
  */
-export const LIVE_STT_WIRED: boolean = false;
+export const LIVE_STT_WIRED: boolean = true;
 
 /** A demo-only selection for Tamil-English code-mixed speech. It has NO provider language code. */
 export const TANGLISH_DEMO = "tanglish-demo";
@@ -66,7 +72,7 @@ export type VoiceMode =
 
 export function getVoiceMode(env: Record<string, string | undefined> = process.env): VoiceMode {
   const raw = isSet(env, "GNANI_VOICE_ENABLED") ? String(env.GNANI_VOICE_ENABLED).trim().toLowerCase() : "";
-  if (raw === "") return { kind: "off" };
+  if (raw === "" || raw === "false") return { kind: "off" };
   if (raw === "mock") {
     const configured = configuredGnaniLanguages(env);
     const codes = configured.length > 0 ? configured : [...MOCK_DEFAULT_LANGUAGES];

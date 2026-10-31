@@ -8,7 +8,7 @@ const byId = (env: Record<string, string | undefined>) =>
 describe("getIntegrationStatuses", () => {
   it("reports every integration as not configured when nothing is set", () => {
     const all = getIntegrationStatuses({});
-    expect(all.map((s) => s.id).sort()).toEqual(["gnani", "openrouter", "payment_display", "supabase", "voice_input"]);
+    expect(all.map((s) => s.id).sort()).toEqual(["gnani", "openrouter", "payment_display", "readback_audio", "supabase", "voice_input"]);
     for (const status of all) {
       expect(status.state).toBe("not_configured");
       expect(status.message).toContain("Not configured");
@@ -82,6 +82,11 @@ describe("voice input status (it must match what the transcribe route will do)",
     expect(byId({ GNANI_VOICE_ENABLED: "mock" }).voice_input).toMatchObject({ state: "mock_only", message: expect.stringMatching(/MOCK transcriber/) });
   });
 
+  it("reports an explicit false as off, not as an unrecognised value, and read-back stays unconfigured", () => {
+    expect(byId({ GNANI_VOICE_ENABLED: "false" }).voice_input).toMatchObject({ state: "not_configured", message: expect.stringMatching(/Voice input is off/) });
+    expect(byId({ GNANI_VOICE_ENABLED: "false" }).readback_audio.state).toBe("not_configured");
+  });
+
   it("reports an unrecognised switch and an incomplete live setup as partial, naming settings only", () => {
     expect(byId({ GNANI_VOICE_ENABLED: "yes" }).voice_input.state).toBe("partial");
     const status = byId({ GNANI_VOICE_ENABLED: "true", GNANI_API_KEY: "gnani-TOPSECRET-3333" }).voice_input;
@@ -89,10 +94,11 @@ describe("voice input status (it must match what the transcribe route will do)",
     expect(status.missing).toEqual(expect.arrayContaining([expect.stringContaining("GNANI_BASE_URL"), expect.stringContaining("VOICE_TRANSCRIPT_SECRET")]));
   });
 
-  it("a complete live setup is shown as switched off in code while the live gate is off, never as working", () => {
+  it("a complete live setup is shown as configured but unverified, never as working", () => {
     const status = byId(LIVE).voice_input;
-    expect(status).toMatchObject({ state: "live_blocked", missing: [] });
-    expect(status.message).toMatch(/switched off in this version of the code/);
+    expect(status).toMatchObject({ state: "configured_unverified", missing: [] });
+    expect(status.message).toMatch(/does not confirm the service works/);
+    expect(status.message).toMatch(/not been verified against Gnani/);
     expect(JSON.stringify(getIntegrationStatuses(LIVE))).not.toContain("TOPSECRET");
     expect(JSON.stringify(buildAppStatus(LIVE))).not.toContain("TOPSECRET");
   });

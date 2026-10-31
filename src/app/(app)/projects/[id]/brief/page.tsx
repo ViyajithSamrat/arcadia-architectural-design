@@ -8,9 +8,11 @@ import { CreateBriefButton } from "@/components/journey/journey-actions";
 import { ReadbackSummary } from "@/components/journey/readback-summary";
 import { Loading } from "@/components/journey/loading";
 import { Notice } from "@/components/journey/notice";
+import { ProjectHeader } from "@/components/journey/project-header";
 import { buttonPrimary, buttonSecondary } from "@/components/journey/styles";
 import { EDITABLE_PROJECT_STATUSES } from "@/lib/db/schema";
 import { getPageAccess } from "@/lib/journeys/access";
+import { getGnaniTtsReadiness } from "@/lib/providers/config";
 import { describeAnswers } from "@/lib/journeys/brief";
 import { JOURNEYS } from "@/lib/journeys/project-types";
 import { getOwnedProject, readStoredBrief } from "@/lib/journeys/service";
@@ -46,12 +48,7 @@ async function BriefContent({ params, searchParams }: Props) {
 
   const journey = JOURNEYS[project.project_type];
   const check = validateRequirements(project.project_type, project.requirements_json);
-  const heading = (
-    <header className="space-y-1">
-      <h1 className="font-display text-3xl font-medium tracking-tight">Your brief</h1>
-      <p className="text-muted">{journey.title}</p>
-    </header>
-  );
+  const heading = <ProjectHeader projectId={project.id} kind={journey.title} title="Your brief" />;
 
   // Before a brief exists, or after the answers changed and cleared it.
   const brief = readStoredBrief(project);
@@ -110,7 +107,15 @@ async function BriefContent({ params, searchParams }: Props) {
             provider.
           </p>
         </Notice>
-      ) : null}
+      ) : (
+        <Notice tone="info" title="Drafted with AI from your answers">
+          <p>
+            The wording was drafted by an AI model ({brief.meta.model ?? brief.meta.provider}) from your answers. The
+            measurements and counts under &ldquo;What you told us&rdquo; are your own answers. Read the brief and correct
+            anything before you approve it.
+          </p>
+        </Notice>
+      )}
       {saved === "1" ? (
         <Notice tone="success" role="status" title="Your edits are saved">
           <p>Approve the brief when you are happy with it.</p>
@@ -143,7 +148,7 @@ async function BriefContent({ params, searchParams }: Props) {
         />
       </section>
 
-      <ReadbackSummary text={brief.customerReadbackText} />
+      <ReadbackSummary text={brief.customerReadbackText} audioProjectId={getGnaniTtsReadiness().ready ? project.id : null} />
 
       <section aria-labelledby="text-title" className="space-y-3">
         <h2 id="text-title" className="text-xl font-semibold">

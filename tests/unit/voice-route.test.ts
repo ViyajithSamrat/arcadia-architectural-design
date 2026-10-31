@@ -17,7 +17,7 @@ const serverClient = vi.fn(async (): Promise<SupabaseClient> => {
   return client as unknown as SupabaseClient;
 });
 const serviceClient = vi.fn(() => {
-  throw new Error("the service client must not be created in R1-A");
+  throw new Error("no trusted client is available in this test");
 });
 vi.mock("@/lib/supabase/server", () => ({ createSupabaseServerClient: () => serverClient() }));
 vi.mock("@/lib/supabase/service", () => ({ createSupabaseServiceClient: () => serviceClient() }));
@@ -86,14 +86,14 @@ describe("POST /api/projects/[id]/transcribe: refusals before the body is read",
     expect((await POST(await multipart(good()), ctx())).status).toBe(404);
     setEnv({ GNANI_VOICE_ENABLED: "banana" });
     expect((await POST(await multipart(good()), ctx())).status).toBe(503);
-    // a complete live configuration is still unavailable in R1-A, and nothing reaches the network
+    // a live configuration whose trusted ledger client cannot be created is unavailable, and nothing reaches the network
     const fetchSpy = vi.spyOn(globalThis, "fetch");
     setEnv({
       GNANI_VOICE_ENABLED: "true", GNANI_API_KEY: SECRET, GNANI_BASE_URL: "https://api.vachana.ai", GNANI_STT_ENDPOINT: "/stt/v3", GNANI_LANGUAGES: "ta-IN",
       GNANI_CREDITS_PER_STT_SECOND: "2", GNANI_MAX_CREDITS_PER_REQUEST: "100", GNANI_CUSTOMER_CREDITS_PER_HOUR: "300", GNANI_BUDGET_CREDITS: "1000",
       VOICE_TRANSCRIPT_SECRET: "route-test-transcript-SECRET-0123456789",
     });
-    // Complete in every respect, so only the live gate (LIVE_STT_WIRED) can be what refuses it.
+    // Complete in every respect, so only the missing ledger client (the service key) can refuse it.
     expect(getVoiceMode().kind).toBe("live");
     const res = await POST(await multipart(good()), ctx());
     expect(res.status).toBe(503);
@@ -102,9 +102,9 @@ describe("POST /api/projects/[id]/transcribe: refusals before the body is read",
     expect(refusal).not.toContain(SECRET);
     expect(refusal).not.toContain("route-test-transcript-SECRET");
     expect(refusal).toContain("VOICE_UNAVAILABLE");
+    expect(refusal).not.toContain(MOCK_TRANSCRIPT_PREFIX); // never answered by the mock
     expect(fetchSpy).not.toHaveBeenCalled();
-    expect(serverClient).not.toHaveBeenCalled();
-    expect(serviceClient).not.toHaveBeenCalled();
+    expect(serviceClient).toHaveBeenCalledTimes(1);
   });
 
   it("requires a declared size and refuses one over the limit before signing in or reading the body", async () => {

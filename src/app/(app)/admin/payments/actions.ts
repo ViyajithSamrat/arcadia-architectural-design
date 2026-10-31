@@ -31,7 +31,8 @@ async function asAdmin(work: (supabase: Awaited<ReturnType<typeof createSupabase
 }
 
 function done(paymentId: string): never {
-  revalidatePath("/admin/payments", "layout");
+  // The whole admin area: the overview's pending count as well as the payment pages.
+  revalidatePath("/admin", "layout");
   redirect(`/admin/payments/${paymentId}?decided=1`);
 }
 

@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { GnaniConfig, OpenRouterConfig } from "./config";
+import type { GnaniConfig, OpenRouterConfig, OpenRouterImageConfig } from "./config";
 import type { ProviderHooks, ProviderUsage } from "./interfaces";
 import { logProviderCall } from "./log";
 
@@ -16,9 +16,10 @@ type Client = SupabaseClient;
 
 export type UsagePlan = {
   provider: "openrouter" | "gnani";
-  operation: "brief" | "stt" | "tts";
+  operation: "brief" | "image" | "stt" | "tts";
   model: string | null;
-  unit: "request" | "credit";
+  /** "image" counts generated images and is accounted apart from "request" (briefs). */
+  unit: "request" | "image" | "credit";
   /** What this call is expected to use. For Gnani this is a conservative ESTIMATE: Gnani reports no usage. */
   units: number;
   limits: {
@@ -169,11 +170,33 @@ export function planOpenRouterBrief(config: OpenRouterConfig): UsagePlan {
   };
 }
 
-export type GnaniPlan = { ok: true; plan: UsagePlan } | { ok: false; reason: "unmeasurable" | "per_request" };
+/**
+ * Image generation is metered in images, in a unit of its own, so it never uses up the
+ * per-hour brief limit. The reservation is for the images THIS request will ask for; the
+ * per-customer window is an hour and the app-wide window a day. A refusal means no call.
+ */
+export function planOpenRouterImages(config: OpenRouterImageConfig, images: number): UsagePlan {
+  return {
+    provider: "openrouter",
+    operation: "image",
+    model: config.model,
+    unit: "image",
+    units: images,
+    limits: {
+      customerLimit: config.imagesPerHour,
+      customerWindowMinutes: 60,
+      globalLimit: config.imagesPerDay,
+      globalWindowMinutes: 24 * 60,
+      maxInFlight: 1,
+    },
+  };
+}
+
+export type GnaniPlan ={ ok: true; plan: UsagePlan } | { ok: false; reason: "unmeasurable" | "per_request" };
 
 /** The limits a Gnani plan needs. STT-only settings are enough for STT; TTS without its rate is unmeasurable. */
-export type GnaniPlanConfig = Pick<GnaniConfig, "creditsPerSttSecond" | "maxCreditsPerRequest" | "customerCreditsPerHour" | "budgetCredits"> &
-  Partial<Pick<GnaniConfig, "creditsPerTtsChar" | "ttsModel">>;
+export type GnaniPlanConfig = Pick<GnaniConfig, "maxCreditsPerRequest" | "customerCreditsPerHour" | "budgetCredits"> &
+  Partial<Pick<GnaniConfig, "creditsPerSttSecond" | "creditsPerTtsChar" | "ttsModel">>;
 
 const ceil2 = (n: number) => Math.ceil(n * 100) / 100;
 
@@ -186,7 +209,8 @@ const ceil2 = (n: number) => Math.ceil(n * 100) / 100;
  * @param amount seconds of audio for STT, characters for TTS
  */
 export function planGnaniCall(operation: "stt" | "tts", amount: number, config: GnaniPlanConfig): GnaniPlan {
-  const rate = operation === "stt" ? config.creditsPerSttSecond : (config.creditsPerTtsChar ?? Number.NaN);
+  // A missing rate is NaN, which is refused as unmeasurable below (fail closed).
+  const rate = (operation === "stt" ? config.creditsPerSttSecond : config.creditsPerTtsChar) ?? Number.NaN;
   const units = ceil2(Math.ceil(amount) * rate);
   if (!Number.isFinite(units) || units <= 0) return { ok: false, reason: "unmeasurable" };
   if (units > config.maxCreditsPerRequest) return { ok: false, reason: "per_request" };

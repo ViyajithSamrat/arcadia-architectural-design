@@ -33,15 +33,16 @@ How the "Evidence" column was established:
 | Area | What it does | Evidence |
 |---|---|---|
 | Landing page and three journeys | `/`, `/new/empty-plot`, `/new/interior`, `/new/landscape`; validated multi-step forms; text-only path | Offline; local stack and browser (earlier) |
-| Sign-in | Magic link (`/sign-in`, `/auth/callback`); emails arrive in the local inbox | Local stack (earlier) |
-| Brief | Built from the answers by a labelled **mock** writer; the customer edits and approves it; missing details listed, never invented; read-back summary shown as text (`/projects/[id]/brief`) | Offline; local stack (earlier); browser-verified 2026-10-21, including the read-back summary |
+| Sign-in | Email and password with self-service registration and Forgot password; Continue with Google (`/sign-in`, `/auth/callback`, `/reset-password`). Google needs provider credentials (see `supabase/README.md`, "Sign-in methods") | Offline tests; Google not configured or verified |
+| Brief | With `PROVIDER_MODE=live` the wording is drafted by OpenRouter (`google/gemini-3.1-flash-lite`) and labelled "Drafted with AI from your answers"; the server composes the stored brief, keeps every number from the answers and lists missing details; otherwise a labelled **mock** writer. The customer edits and must tick a confirmation before approving | **Live verified 2026-10-28** (smoke test plus three briefs through the app and its ledger, production build, real browser) |
 | Quote | Calculated on the server from `pricing_rules`, itemized, frozen on acceptance; "Pricing not configured" without rules; "Demo rates" label in demo mode (`/projects/[id]/quote`) | Offline; local stack (earlier); browser-verified 2026-10-21 ("Demo rates" label, itemized lines, accepted) |
 | Payment evidence | Manual instructions from server configuration; the customer submits a reference and optional receipt image; status is pending, never verified automatically (`/projects/[id]/payment`) | Offline; local stack and browser (earlier); browser-verified 2026-10-21 without a receipt file |
 | Admin payment review | `/admin/payments`: 60-second proof links, verify with the full amount or reject with a reason, audited | Offline; local stack and browser (earlier); browser-verified 2026-10-21 (verify only; reject and the proof link were not exercised) |
-| Generation and release | `/admin/generation`: an administrator starts generation only after verified payment, reviews and releases. Images come from a **mock** generator marked "MOCK — NOT A DESIGN". Customers see nothing before release (`/projects/[id]/results`) | Offline; browser-verified 2026-10-21 for all three journeys (start mock generation, release with both confirmations, owner's view); local stack (earlier, 103/103 before later fixes) |
+| Generation and release | `/admin/generation`: an administrator starts generation only after verified payment, reviews and releases. Images come from OpenRouter (`bytedance-seed/seedream-4.5`, needs `OPENROUTER_IMAGE_RESOLUTION=2K`) when `PROVIDER_MODE=live`, otherwise from a **mock** generator marked "MOCK — NOT A DESIGN". One live image passed the smoke test on 2026-10-28; live generation through the admin screen has not been run. The generation queue states which mode the server is in (mock, live, or live requested but not available). Customers see nothing before release (`/projects/[id]/results`) | Offline; browser-verified 2026-10-21 for all three journeys (start mock generation, release with both confirmations, owner's view); local stack (earlier, 103/103 before later fixes) |
 | Empty-plot layout sketch | Deterministic SVG drawn from the saved answers on the admin review and customer results pages, under the same release rules as the images. Labelled "Illustrative layout only — not CAD or a construction drawing" | Offline and build; browser-verified 2026-10-21 (two floors for the empty-plot demo project, none for interior and landscape) |
 | Pricing settings | `/admin/pricing`: an administrator publishes a new version of a rate, minimum charge, included quantity, currency or tax rate, in force immediately; history kept; audited | Offline and build; browser-verified 2026-10-21 as a read-only view (17 demo rules, nothing published); **publishing was not exercised against real Supabase** |
-| Voice input | Off by default. With `GNANI_VOICE_ENABLED=mock`: consent, browser recording or WAV upload, then a fixed **mock** placeholder transcript that cannot be saved as the description | Offline; headless browser with a fake microphone (earlier) |
+| Reference photos | Optional, interior and landscape: private upload (JPEG/PNG/WebP, 5 MB, 6 per project), thumbnails by short-lived signed links, removal while editable | Upload, removal and fake-image refusal browser-verified at 390 px on the production build (2026-10-28); live local storage suite 11/11. Earlier note: not browser-tested, not run on hosted Supabase |
+| Voice input | Off by default. With `GNANI_VOICE_ENABLED=mock`: consent, browser recording or WAV upload, then a fixed **mock** placeholder transcript that cannot be saved as the description | Offline; headless browser with a fake microphone (earlier) Live Gnani: configured, but the API key is **inactive** (`API_KEY_INACTIVE`, 2026-10-28), so live voice shows as unavailable |
 | `/status` and `GET /api/health` | Which optional services have settings present: names and states only, never values; "configured" never means "verified" | Offline |
 
 ## Known limitations
@@ -49,30 +50,32 @@ How the "Evidence" column was established:
 These come from the code and the original requirements (`architectural-ai-design-spec/01_PRD.md`, PR-001 to PR-035).
 
 **Voice**
-- **Mock only.** Speech-to-text never calls Gnani. The mock ignores the audio and returns a fixed placeholder labelled `[MOCK TRANSCRIPT — no speech service was used]`. The server refuses to save it as a description or to build a brief from it.
-- **Live speech-to-text is switched off in code.** `LIVE_STT_WIRED = false` (`src/lib/journeys/voice.ts`), so even complete live settings show voice as unavailable.
-- **Live speech-to-text is blocked** on facts about the Gnani account: host and authentication, credit rates, supported languages and limits. See `docs/PROVIDERS.md`.
+- **Live speech-to-text is written but has never been run against Gnani.** `LIVE_STT_WIRED = true` (`src/lib/journeys/voice.ts`) only means the adapter exists. It stays unavailable (never a mock) until `GNANI_VOICE_ENABLED=true` and every Gnani setting are present: key, an allow-listed host, the endpoint path, model, languages, credit rates, budget and `VOICE_TRANSCRIPT_SECRET`. No real call has been made; tests use a fake network.
+- **Mock mode** (`GNANI_VOICE_ENABLED=mock`) never calls Gnani. It ignores the audio and returns a fixed placeholder labelled `[MOCK TRANSCRIPT — no speech service was used]`. The server refuses to save it as a description or to build a brief from it.
+- **Blocked on facts about the Gnani account:** the confirmed endpoint path, credit rates, supported languages and limits. See `docs/PROVIDERS.md`.
 - **Mock transcripts never set the project language**, which stays `en`. "Tanglish" is a demo-only label.
 
 **Read-back (PR-009)**
-- The read-back summary is shown as **text** on the brief page, with a note that listening is not available.
-- Spoken read-back (Gnani text-to-speech) is not built. It needs the same account facts and the owner's approval.
+- The read-back summary is always shown as **text** on the brief page.
+- Spoken read-back (Gnani text-to-speech, English `en-IN` only) is written and offered only when the Gnani settings are complete. The customer must tick a consent box first, because the summary text goes to Gnani. It speaks only the server-stored summary, is rate limited, and the audio is never stored. **Never run against the real service.**
 
 **Brief writer**
 - The brief comes from a labelled mock template.
 - The OpenRouter adapter exists and is tested only with fake responses. Turning it on (`PROVIDER_MODE=live`) needs a model choice and a privacy notice for sending customer answers to a third party: an owner decision, not made.
 
 **Concept images**
-- Only the mock generator exists: a deterministic placeholder PNG with no AI model, no network and no cost.
-- Live image generation (Phase 6B) is blocked. It needs a provider, model, price and spending cap, a migration for usage metering and the storage limit, and the privacy decision.
+- The default is the mock generator: a deterministic placeholder PNG with no AI model, no network and no cost.
+- A live OpenRouter image adapter now exists (`src/lib/providers/openrouter-image.ts`, used only with `PROVIDER_MODE=live` and `OPENROUTER_API_KEY` plus `OPENROUTER_IMAGE_MODEL` set; otherwise generation says it is unavailable, never the mock). It is tested with a fake network only: **no real image has ever been generated.** The generated files are validated and stored privately; administrator release is unchanged.
+- Still needed before a live run: the owner's model choice, price and spending cap, the privacy decision, and migration `20261022000100_ai_usage_images.sql` (applied to the local database on 2026-10-22; not to any hosted one) so the usage ledger accepts image metering.
 - Two items are open before then:
   - a database rule so that a request that was cleared as stale cannot add files;
   - the release guard proposed in `supabase/proposed/` (not applied).
 
 **Reference uploads (PR-010)**
-- **Not built.** Forms show "Uploads not configured yet".
-- Blocked on an owner decision: which file types and sizes to allow, and how long uploads are kept.
-- The interior and landscape journeys therefore work without photos.
+- Built for the interior and landscape journeys: JPEG, PNG or WebP (type checked from the file's own bytes), up to 5 MB each, up to 6 per project. Files go to private Supabase Storage under random names, through the customer's own session only (never the service role); thumbnails use 5-minute signed links. Uploading and removing are allowed only while the project is editable.
+- Tested offline (unit tests and in-process PostgreSQL row-level-security tests), against the real local Supabase Storage (11 tests, 2026-10-28) and in a headless browser at 390 px (upload with thumbnail, removal, a fake image refused). Not run against hosted Supabase.
+- Photos are not sent to any outside service unless `PROVIDER_MODE=live` and `OPENROUTER_IMAGE_REFERENCES=true`; the upload screen says which applies.
+- Retention and deletion periods are still undecided.
 
 **Layout sketch**
 - An illustrative diagram drawn by code. It shows:
@@ -105,22 +108,24 @@ These come from the code and the original requirements (`architectural-ai-design
 **Verification gaps**
 - **Browser coverage is partial.** The 2026-10-21 run covered the three journeys on the development server. Not covered: the production build in a browser, mobile width, a real microphone, receipt-image upload, the payment-reject path, publishing a price, and a forced generation failure.
 - **No mobile-width (360 px) or accessibility check recorded.**
-- **The local live Supabase suites** last passed before the Phase 6A closure fixes and the transcript-column migration. They delete local pricing data and disable a guard trigger during setup, so they must not be run without an isolated plan.
+- **The local live Supabase suites.** On 2026-10-22 these passed on the current tree against the local stack: `references-storage` (11), `payments-live` + `generation-live` (44) and `ai-usage-live` (16). The first two no longer delete pricing data; `ai-usage-live` removes only its own ledger rows (briefly disabling the ledger's guard trigger); `supabase-live` is now also non-destructive (43 passed, 1 skipped on 2026-10-22). A further live file, `late-asset-writes`, applies a proposed database rule temporarily to test real concurrency and restores the original afterwards.
+- **Real providers have never been called.** `npm run smoke:providers` (with `LIVE_PROVIDER_SMOKE=1`) runs one bounded call per provider and skips any provider without credentials; it skipped all four on 2026-10-22. For OpenRouter it first requires a key with its own credit limit of at most US$5, a model with the right output and a usable price, and re-reads real spend from the key (`tests/provider-smoke/openrouter-guard.ts`).
+- **Privacy and retention:** `docs/PRIVACY_RETENTION_CHECKLIST.md` is a draft of what is stored where and what the owner must decide. No privacy notice or retention period is approved.
 - **No rollback rehearsed on real PostgreSQL.**
 
 **Deployment**
-- None. No hosting configuration, no hosted Supabase project, no Git remote, no monitoring.
+- None. No hosting configuration, no hosted Supabase project, no monitoring. The code is on a private GitHub repository (`origin`), which is not a deployment.
 
 **Process limits**
 - The voice rate limit is per server process. The mock transcript signing key is per process unless `VOICE_TRANSCRIPT_SECRET` is set.
 
 ## Environment checklist
 
-No branching strategy or environment mapping is documented: there is one local branch, `main`, and no remote.
+No branching strategy or environment mapping is documented: there is one branch, `main`, pushed to the private GitHub repository `origin`.
 
 | Environment | What exists | What is missing or unverified | Safe to use now? |
 |---|---|---|---|
-| **Local development** | Code and dependencies; a git-ignored `.env.local` (exists; holds local Supabase settings according to earlier records; never commit or print it); a local Supabase stack in Docker, with all 8 migrations applied locally according to earlier records. Its current running state is not checked here. | Re-checking the local stack, demo data and an administrator account before a demo. Live provider settings are intentionally absent. | Yes for offline work (`npm test`, typecheck, lint, build). Starting Docker or Supabase, applying migrations or loading demo data needs the owner's approval in this project. |
+| **Local development** | Code and dependencies; a git-ignored `.env.local` (exists; holds local Supabase settings according to earlier records; never commit or print it); a local Supabase stack in Docker, with all 9 migrations applied locally (the ninth on 2026-10-22). Its current running state is not checked here. | Re-checking the local stack, demo data and an administrator account before a demo. Live provider settings are intentionally absent. | Yes for offline work (`npm test`, typecheck, lint, build). Starting Docker or Supabase, applying migrations or loading demo data needs the owner's approval in this project. |
 | **QA / testing** | No separate QA environment. The offline suite (`npm test`: unit tests plus in-process PostgreSQL, network blocked) is the safe test layer. The live suites (`tests/live/`, `LIVE_SUPABASE=1 npx vitest run --config vitest.live.config.mts`) run against the local stack only. | An isolated plan for the live suites, whose setup deletes local `pricing_rules` and disables a guard trigger. Browser tests are not in the repository. | Offline suite: yes. Live suites: no, not without an approved isolated plan. |
 | **Staging** | Nothing. | Everything: hosting, a Supabase project, migrations, secrets, a URL. | No. It does not exist. |
 | **Production** | Nothing. | Everything above, plus monitoring, backups, a privacy notice, retention rules, real prices and payment details, and live-provider verification. | No. It does not exist. |
@@ -158,7 +163,7 @@ npx supabase start -x studio,realtime,imgproxy,edge-runtime,logflare,vector,supa
 npx supabase status -o env      # copy the local URL and keys into .env.local
 ```
 
-- **Applying migrations.** On a fresh stack, start-up applies every file in `supabase/migrations/` (8 today; `supabase/README.md` still says 5, written in Phase 2). An existing local database was brought forward with `npx supabase migration up --local`. Never run `supabase db reset` or anything against a hosted project without approval.
+- **Applying migrations.** On a fresh stack, start-up applies every file in `supabase/migrations/` (9, all applied to the local database; none to any hosted project; `supabase/README.md` is partly out of date). An existing local database was brought forward with `npx supabase migration up --local`. Never run `supabase db reset` or anything against a hosted project without approval.
 - **`.env.local` format.** Keep it to plain `KEY=value` lines: no comments and no byte-order mark, because the Supabase CLI reads it too.
 - **Variables the app needs for the local stack:** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_APP_URL` (for example `http://localhost:3000`).
 - **The service role key is required.** Saving the description step, creating a brief, calculating a quote and generation all use it. Without it those actions fail safely. The administrator pricing screen and the payment and release decisions use the administrator's own session instead.
@@ -174,9 +179,16 @@ npm run build && npx next start -p 3000    # how earlier browser checks ran; res
 # or: npm run dev
 ```
 
-- **Sign-in.** Use one host name throughout a sign-in, either `localhost` or `127.0.0.1`. Magic-link emails appear at `http://127.0.0.1:54324`.
+- **Sign-in.** Create an account on `/sign-in` with an email and password (locally no confirmation email is needed). Use one host name throughout a Google sign-in or an emailed link, either `localhost` or `127.0.0.1`. Password-reset emails appear at `http://127.0.0.1:54324`.
 - **Configuration check.** `/status` and `/api/health` show which settings are present.
-- **Mock voice.** Set `GNANI_VOICE_ENABLED=mock`. Leave `PROVIDER_MODE` unset (mock).
+- **Mock demo start (nothing is called, nothing is spent).** This checkout's `.env.local` holds live values, and variables set in the shell win over it, so a mock-only run sets three: `PROVIDER_MODE=mock` (labelled template briefs and placeholder images), `TRANSLATION_MODE=off` (no OpenRouter translation) and `GNANI_VOICE_ENABLED=mock` (labelled test voice; live speech and read-back off). In PowerShell, after `npm run build`:
+
+  ```powershell
+  $env:PROVIDER_MODE = "mock"; $env:TRANSLATION_MODE = "off"; $env:GNANI_VOICE_ENABLED = "mock"; npx next start -p 3000
+  ```
+
+  Use non-empty values (PowerShell deletes a variable set to `""`). cmd.exe and Git Bash forms, how to confirm the mode, and the demo itself are in [`docs/DEMO_SCRIPT.md`](docs/DEMO_SCRIPT.md).
+- **Mock voice only.** Set `GNANI_VOICE_ENABLED=mock`. If `.env.local` has `PROVIDER_MODE=live`, voice is still mock but the brief and images are not; use the mock demo start above.
 
 ### 5. Safety rules
 

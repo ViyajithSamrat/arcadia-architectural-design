@@ -6,7 +6,6 @@ import { AccessGate } from "@/components/journey/access-gate";
 import { Loading } from "@/components/journey/loading";
 import { Notice } from "@/components/journey/notice";
 import { Progress } from "@/components/journey/progress";
-import { buttonPrimary } from "@/components/journey/styles";
 import { getPageAccess } from "@/lib/journeys/access";
 import { describeAnswers } from "@/lib/journeys/brief";
 import { JOURNEYS } from "@/lib/journeys/project-types";
@@ -31,36 +30,52 @@ async function ProjectHub({ params }: Props) {
 
   return (
     <>
-      <header className="space-y-2">
-        <h1 className="font-display text-3xl font-medium tracking-tight">{JOURNEYS[project.project_type].title}</h1>
-        <p>
-          <span className="font-medium">Status:</span> {info.label}
+      <p>
+        <Link href="/projects" className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-muted hover:text-foreground">
+          <span aria-hidden="true">←</span> My projects
+        </Link>
+      </p>
+      <header className="space-y-4 border-b border-border-strong pb-8">
+        <p className="eyebrow">
+          Project <span className="tabular">#{project.id.slice(0, 6).toUpperCase()}</span>
+        </p>
+        <h1 className="font-display">{JOURNEYS[project.project_type].title}</h1>
+        <p className="inline-flex items-center gap-2 rounded-[3px] border border-border-strong bg-paper px-3 py-1.5 text-sm">
+          <span className="font-semibold">Status:</span> {info.label}
         </p>
       </header>
       <Progress status={project.status} />
-      <Notice tone="info" title="What to do next">
-        <p>{info.next}</p>
-      </Notice>
-      {info.actionPath !== null && info.actionLabel ? (
-        <p>
-          <Link href={`/projects/${project.id}${info.actionPath}`} className={buttonPrimary}>
-            {info.actionLabel}
+      <section aria-labelledby="next-title" className="grid gap-6 rounded-[4px] bg-forest p-7 text-white sm:grid-cols-[1fr_auto] sm:items-center sm:p-9">
+        <div className="space-y-2">
+          <h2 id="next-title" className="text-xs font-semibold uppercase tracking-[0.2em] text-white/60">
+            What to do next
+          </h2>
+          <p className="font-display text-2xl leading-snug sm:text-3xl">{info.next}</p>
+        </div>
+        {info.actionPath !== null && info.actionLabel ? (
+          <Link
+            href={`/projects/${project.id}${info.actionPath}`}
+            className="inline-flex min-h-12 items-center justify-center gap-3 rounded-[3px] bg-white px-6 text-[0.9375rem] font-semibold text-forest transition-colors duration-300 hover:bg-limestone active:translate-y-px"
+          >
+            {info.actionLabel} <span aria-hidden="true" className="gn-arrow">→</span>
           </Link>
-        </p>
-      ) : null}
+        ) : null}
+      </section>
 
-      <section aria-labelledby="answers-title" className="space-y-3">
-        <h2 id="answers-title" className="text-xl font-semibold">
+      <section aria-labelledby="answers-title" className="space-y-4">
+        <h2 id="answers-title" className="font-display text-3xl font-medium">
           Your answers
         </h2>
         {facts.length === 0 ? (
-          <p className="text-muted">{check.complete ? "No answers recorded yet." : "Your answers are not complete yet."}</p>
+          <Notice tone="info">
+            <p>{check.complete ? "No answers recorded yet." : "Your answers are not complete yet."}</p>
+          </Notice>
         ) : (
-          <dl className="grid gap-x-6 gap-y-2 rounded-lg border border-border bg-surface p-4 sm:grid-cols-2">
+          <dl className="grid gap-x-10 sm:grid-cols-2">
             {facts.map((f) => (
-              <div key={`${f.stepTitle}-${f.label}`}>
-                <dt className="text-sm text-muted">{f.label}</dt>
-                <dd>{f.value}</dd>
+              <div key={`${f.stepTitle}-${f.label}`} className="border-t border-border py-4">
+                <dt className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">{f.label}</dt>
+                <dd className="mt-1">{f.value}</dd>
               </div>
             ))}
           </dl>

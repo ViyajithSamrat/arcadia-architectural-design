@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "smoke:providers": "vitest run --config vitest.smoke.config.mts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

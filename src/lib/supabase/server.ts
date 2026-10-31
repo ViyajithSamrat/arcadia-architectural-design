@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { AuthError } from "@/lib/auth/errors";
 import { getSupabasePublicConfig } from "./config";
+import { createTimeoutFetch } from "./timeout";
 
 /**
  * A Supabase client that acts AS THE SIGNED-IN USER (anon key + the user's session
@@ -19,6 +20,7 @@ export async function createSupabaseServerClient() {
   }
   const cookieStore = await cookies();
   return createServerClient(config.url, config.anonKey, {
+    global: { fetch: createTimeoutFetch() },
     cookies: {
       getAll: () => cookieStore.getAll(),
       setAll: (cookiesToSet) => {

@@ -9,6 +9,7 @@ import { getAdminAccess } from "@/lib/admin/access";
 import { formatMoney, toMinor } from "@/lib/journeys/money";
 import { JOURNEYS } from "@/lib/journeys/project-types";
 import { listPaymentQueue, type QueueItem } from "@/lib/payments/service";
+import { isMockGatewayReference } from "@/lib/payments/mock-gateway";
 
 export const metadata: Metadata = { title: "Payments to review", robots: { index: false, follow: false } };
 
@@ -25,6 +26,7 @@ function Row({ item }: { item: QueueItem }) {
         <Link href={`/admin/payments/${item.id}`} className="underline underline-offset-4">
           {type} · reference {item.utrReference}
         </Link>
+        {isMockGatewayReference(item.utrReference) ? <span className="ml-2 rounded-md bg-warning-bg px-2 py-0.5 text-xs font-semibold text-warning-fg">Simulated gateway</span> : null}
       </p>
       <p className="text-sm text-muted">
         Claimed {claimed} against a quote of {total} ({matches ? "amounts match" : "amounts differ"}) · {item.method === "UPI" ? "UPI" : "Net banking"} ·{" "}

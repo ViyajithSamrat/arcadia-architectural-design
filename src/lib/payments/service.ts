@@ -34,6 +34,8 @@ export type ServiceResult<T = object> =
 const fail = (message: string, fieldErrors?: Record<string, string>) => ({ ok: false as const, message, ...(fieldErrors ? { fieldErrors } : {}) });
 
 const GENERIC = "Something went wrong. Please try again.";
+/** Reserved for the simulated gateway; equals MOCK_GATEWAY_REFERENCE_PREFIX (kept here to avoid an import cycle). */
+const MOCK_REFERENCE_PREFIX = "MOCKPAY-";
 const NOT_FOUND = "We could not find that project.";
 const PAYMENT_NOT_FOUND = "We could not find that payment.";
 
@@ -113,7 +115,12 @@ export async function submitPayment(
   userId: string,
   projectId: string,
   input: EvidenceInput,
-  options: { now?: Date; env?: Record<string, string | undefined> } = {},
+  options: {
+    now?: Date;
+    env?: Record<string, string | undefined>;
+    /** Set only by the simulated gateway (mock-gateway.ts), which alone may use its MOCKPAY- references. */
+    mockGateway?: boolean;
+  } = {},
 ): Promise<ServiceResult<{ paymentId: string }>> {
   const project = await getOwnedProject(supabase, userId, projectId);
   if (!project) return fail(NOT_FOUND);
@@ -129,6 +136,10 @@ export async function submitPayment(
 
   const fields = parseEvidenceFields(input, { now: options.now ?? new Date(), acceptedAt: quote.acceptedAt });
   if (!fields.ok) return fail("Please check the highlighted fields.", fields.fieldErrors);
+  // The simulated gateway's references are reserved, so a typed claim cannot pass as one (or the reverse).
+  if (fields.value.utrReference.toUpperCase().startsWith(MOCK_REFERENCE_PREFIX) !== (options.mockGateway === true)) {
+    return fail("Please check the highlighted fields.", { utrReference: "Enter the reference from your bank or UPI app." });
+  }
 
   // An empty file part is what a browser sends when no file was chosen.
   const file = input.file && !(input.file.size === 0 && !input.file.name) ? input.file : null;
@@ -226,6 +237,17 @@ export async function listPaymentQueue(supabase: Client): Promise<{ pending: Que
   return { pending: rows(pending), decided };
 }
 
+/**
+ * How many customer payments wait for a decision: one count read, no rows. Null when it cannot be
+ * read. Call it only for an administrator: for anyone else row level security limits the count
+ * to their own payments.
+ * @param supabase the administrator's own session client
+ */
+export async function countPendingPayments(supabase: Client): Promise<number | null> {
+  const { count, error } = await supabase.from("payments").select("id", { count: "exact", head: true }).eq("status", "PENDING_REVIEW");
+  return error || typeof count !== "number" ? null : count;
+}
+
 export type AdminPaymentDetail = QueueItem & {
   proofPath: string | null;
   /** From admin-only columns, read with the trusted client. Null while pending. */
@@ -282,6 +304,21 @@ function decisionFailure(error: DbError): ServiceResult<never> {
   }
 }
 
+/** Thousands grouping as it is typed: 7,611 or 12,500 (international) and 1,02,660 (Indian). */
+const GROUPED_AMOUNT = /^(\d{1,3}(?:,\d{3})+|\d{1,2}(?:,\d{2})+,\d{3}|\d+)(\.\d{1,2})?$/;
+
+/**
+ * The amount an administrator confirms, accepted the way the review page shows money ("₹7,611.00")
+ * or the way it is usually typed ("7,611", "7611.00", "INR 7,611", "Rs. 7611", "1,02,660.00").
+ * Commas must be real thousands separators: a decimal comma, a sign, an exponent or stray text is
+ * refused. The result then follows the same rules as every amount (parseAmountToMinor) and must
+ * still equal the accepted quote's total. Customer evidence keeps its own stricter parser.
+ */
+export function parseConfirmedAmount(value: string): number | null {
+  const match = GROUPED_AMOUNT.exec(value.trim().replace(/^(?:₹|INR|Rs\.?)\s*/i, ""));
+  return match ? parseAmountToMinor(match[1].replace(/,/g, "") + (match[2] ?? "")) : null;
+}
+
 /**
  * Verifies a payment. The administrator must state the amount actually received; it has
  * to equal the accepted quote's total, which the database also enforces.
@@ -294,8 +331,8 @@ export async function verifyPayment(
 ): Promise<ServiceResult> {
   if (!/^[0-9a-f-]{36}$/i.test(paymentId)) return fail(PAYMENT_NOT_FOUND);
   if (input.acknowledged !== true) return fail("Confirm that you checked the receiving account before verifying.");
-  const minor = typeof input.confirmedAmount === "string" ? parseAmountToMinor(input.confirmedAmount) : null;
-  if (minor === null) return fail("Enter the amount received, for example 12500.00.", { confirmedAmount: "Enter the amount received." });
+  const minor = typeof input.confirmedAmount === "string" ? parseConfirmedAmount(input.confirmedAmount) : null;
+  if (minor === null) return fail("Enter the amount received, for example 12500.00 or ₹12,500.00.", { confirmedAmount: "Enter the amount received." });
   const note = limitedText(input.note, NOTE_MAX);
   if (note === null) return fail(`The note must be ${NOTE_MAX} characters or fewer.`, { note: "Too long." });
 

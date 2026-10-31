@@ -42,6 +42,14 @@ export const envSchema = z.object({
   OPENROUTER_APP_TITLE: optionalText,
   // Images per generation request (Phase 6, mock only for now); parsed and clamped in code.
   MAX_GENERATION_IMAGES: optionalText,
+  // Live image generation (OpenRouter Image API): format, size, timeouts and image limits; parsed and clamped in code.
+  OPENROUTER_IMAGE_RESOLUTION: optionalText,
+  OPENROUTER_IMAGE_ASPECT_RATIO: optionalText,
+  OPENROUTER_IMAGE_FORMAT: optionalText,
+  OPENROUTER_IMAGE_TIMEOUT_MS: optionalText,
+  OPENROUTER_IMAGES_PER_HOUR: optionalText,
+  OPENROUTER_IMAGES_PER_DAY: optionalText,
+  OPENROUTER_IMAGE_REFERENCES: optionalText,
 
   // Gnani speech-to-text / text-to-speech (server-only; details unverified)
   GNANI_API_KEY: optionalText,
@@ -62,11 +70,15 @@ export const envSchema = z.object({
   GNANI_CUSTOMER_CREDITS_PER_HOUR: optionalText,
   GNANI_BUDGET_CREDITS: optionalText,
   // Signs voice transcripts so a save can tell them from typed text (server-only, R1-B).
+  // Transcript translation: empty/"off" = typed English only; "live" = OpenRouter text model (needs its key and model).
+  TRANSLATION_MODE: optionalText,
   VOICE_TRANSCRIPT_SECRET: z.preprocess(blankToUndefined, z.string().trim().min(32, "Use at least 32 characters.").optional()),
 
   // AI request limits (Phase 5)
   PROVIDER_TIMEOUT_MS: optionalText,
   AI_BRIEFS_PER_HOUR: optionalText,
+  // OpenRouter reasoning effort for the brief and translation: "none", "minimal" or "low"; empty = model default.
+  OPENROUTER_TEXT_REASONING_EFFORT: optionalText,
   OPENROUTER_DAILY_REQUEST_CAP: optionalText,
 
   // Manual payment display values (no gateway secrets)
@@ -75,6 +87,8 @@ export const envSchema = z.object({
   PAYMENT_ACCOUNT_NAME: optionalText,
   PAYMENT_INSTRUCTIONS: optionalText,
   PAYMENT_CURRENCY: optionalText,
+  // "true" shows the SIMULATED demo payment gateway (no money moves; an administrator still verifies).
+  PAYMENT_MOCK_GATEWAY: optionalText,
 
   // Optional operational services (no error-monitoring service is adopted, so
   // there is deliberately no SENTRY_DSN; add it only if monitoring is approved)

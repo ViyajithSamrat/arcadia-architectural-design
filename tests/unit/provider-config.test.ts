@@ -58,7 +58,15 @@ describe("OpenRouter configuration", () => {
       dailyRequestCap: 40,
       timeoutMs: 30_000,
       referer: null,
+      reasoningEffort: null,
     });
+  });
+
+  it("reads OPENROUTER_TEXT_REASONING_EFFORT from a short list and fails closed on anything else", () => {
+    expect(getOpenRouterConfig({ ...OPENROUTER, OPENROUTER_TEXT_REASONING_EFFORT: " None " })?.reasoningEffort).toBe("none");
+    expect(getOpenRouterConfig({ ...OPENROUTER, OPENROUTER_TEXT_REASONING_EFFORT: "minimal" })?.reasoningEffort).toBe("minimal");
+    expect(getOpenRouterConfig({ ...OPENROUTER, OPENROUTER_TEXT_REASONING_EFFORT: "" })?.reasoningEffort).toBeNull();
+    for (const bad of ["high", "xhigh", "off", "0"]) expect(getOpenRouterConfig({ ...OPENROUTER, OPENROUTER_TEXT_REASONING_EFFORT: bad })).toBeNull();
   });
 
   it("accepts only the OpenRouter host over https, with no credentials or port", () => {

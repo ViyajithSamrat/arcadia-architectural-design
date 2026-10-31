@@ -10,7 +10,7 @@ import type { LiveSpeechDeps } from "./service";
  * Builds what a live transcription needs: the Gnani adapter and the trusted client for the usage
  * ledger. Any failure (for example the server-side Supabase settings are missing) gives null, so
  * the route answers "unavailable" instead of failing with an unhandled error. Building them makes
- * no network call. The route only calls this when live speech-to-text is wired (LIVE_STT_WIRED).
+ * no network call. The route only calls this in a complete live configuration.
  */
 export function createLiveSpeechDeps(
   config: GnaniSttConfig,

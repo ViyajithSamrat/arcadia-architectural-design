@@ -15,7 +15,8 @@ import { transcribeForProject, type LiveSpeechDeps, VOICE_OFF_MESSAGE, VOICE_UNA
  *
  * A Route Handler, like /api/payments, so the size limit applies to this route alone and is
  * checked before the body is read. Nothing here is logged: no audio, transcript or header.
- * In R1-A only the labelled mock can answer; live mode reports unavailable (LIVE_STT_WIRED).
+ * The labelled mock answers in mock mode. In live mode the request is refused with 503 unless every
+ * live setting is present; it is never answered by the mock (see src/lib/journeys/voice.ts).
  *
  * After sign-in, each user may send a limited number of recordings, one at a time
  * (rate-limit.ts), before the body is read. The success response carries a provenance token the

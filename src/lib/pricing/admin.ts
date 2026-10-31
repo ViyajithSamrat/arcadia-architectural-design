@@ -53,7 +53,7 @@ const PublishSchema = z.strictObject({
     .trim()
     .min(1, "Enter a unit.")
     .max(24, "Keep the unit under 24 characters.")
-    .regex(/^[A-Za-z][A-Za-z ]*$/, "Use letters and spaces only."),
+    .regex(/^[A-Za-z][A-Za-z0-9 ./-]*$/, "Use letters, numbers, spaces, dots, hyphens or slashes, starting with a letter."),
   minimumCharge: amount,
   includedQuantity: amount,
   currency: z.string({ error: "Enter a currency code." }).regex(/^[A-Z]{3}$/, "Use a three-letter currency code in capitals."),

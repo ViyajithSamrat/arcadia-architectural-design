@@ -6,14 +6,19 @@ import { AccessGate } from "@/components/journey/access-gate";
 import { AcceptQuoteButton, CreateQuoteButton } from "@/components/journey/journey-actions";
 import { Loading } from "@/components/journey/loading";
 import { Notice } from "@/components/journey/notice";
+import { ProjectHeader } from "@/components/journey/project-header";
+import { PrintButton } from "@/components/journey/print-button";
 import { QuoteTable } from "@/components/journey/quote-table";
 import { buttonPrimary } from "@/components/journey/styles";
 import { AuthError } from "@/lib/auth/errors";
 import { getPageAccess } from "@/lib/journeys/access";
+import { JOURNEYS } from "@/lib/journeys/project-types";
 import { getLatestQuote, getOwnedProject, previewQuote, type QuotePreparation } from "@/lib/journeys/service";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
 
 export const metadata: Metadata = { title: "Your quote" };
+
+const dateFormat = new Intl.DateTimeFormat("en", { dateStyle: "medium" });
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -40,11 +45,7 @@ async function QuoteContent({ params }: Props) {
   const project = await getOwnedProject(access.supabase, access.user.id, id);
   if (!project) notFound();
 
-  const heading = (
-    <header className="space-y-1">
-      <h1 className="font-display text-3xl font-medium tracking-tight">Your quote</h1>
-    </header>
-  );
+  const heading = <ProjectHeader projectId={project.id} kind={JOURNEYS[project.project_type].title} title="Your quote" />;
 
   const early = ["DRAFT", "TRANSCRIPT_READY", "BRIEF_REVIEW"].includes(project.status);
   if (early) {
@@ -99,18 +100,30 @@ async function QuoteContent({ params }: Props) {
     );
   }
 
+  // Printed or saved as a PDF, the quote identifies itself (the site menu is left out of print).
+  const printLine = (
+    <p className="hidden text-sm text-muted print:block">
+      GNANI Architectural AI · {JOURNEYS[project.project_type].title} ·{" "}
+      {quote.acceptedAt ? `Accepted on ${dateFormat.format(new Date(quote.acceptedAt))}` : "Not yet accepted"}
+    </p>
+  );
+
   if (project.status === "QUOTED") {
     return (
       <>
         {heading}
+        {printLine}
         <QuoteTable quote={quote} />
-        <Notice tone="info" title="Before you accept">
-          <p>
-            Accepting confirms these items and amounts. After you accept, the payment instructions appear on the next page;
-            nothing is due until then.
-          </p>
-        </Notice>
-        <AcceptQuoteButton projectId={project.id} quoteId={quote.id} />
+        <PrintButton />
+        <div className="space-y-6 print:hidden">
+          <Notice tone="info" title="Before you accept">
+            <p>
+              Accepting confirms these items and amounts. After you accept, the payment instructions appear on the next page;
+              nothing is due until then.
+            </p>
+          </Notice>
+          <AcceptQuoteButton projectId={project.id} quoteId={quote.id} />
+        </div>
       </>
     );
   }
@@ -121,21 +134,25 @@ async function QuoteContent({ params }: Props) {
       <Notice tone="success" title="Quote accepted">
         <p>You accepted this quote. It is saved exactly as shown below.</p>
       </Notice>
+      {printLine}
       <QuoteTable quote={quote} />
-      {project.status === "AWAITING_PAYMENT" ? (
-        <Notice tone="warning" title="Next: payment">
-          <p>
-            Follow the payment instructions, then submit your transfer details for review. Nothing is paid or verified
-            until a person has checked it.
-          </p>
-        </Notice>
-      ) : null}
-      <Link
-        href={project.status === "AWAITING_PAYMENT" ? `/projects/${project.id}/payment` : `/projects/${project.id}`}
-        className={buttonPrimary}
-      >
-        {project.status === "AWAITING_PAYMENT" ? "Go to payment" : "Back to project"}
-      </Link>
+      <PrintButton />
+      <div className="space-y-6 print:hidden">
+        {project.status === "AWAITING_PAYMENT" ? (
+          <Notice tone="warning" title="Next: payment">
+            <p>
+              Follow the payment instructions, then submit your transfer details for review. Nothing is paid or verified
+              until a person has checked it.
+            </p>
+          </Notice>
+        ) : null}
+        <Link
+          href={project.status === "AWAITING_PAYMENT" ? `/projects/${project.id}/payment` : `/projects/${project.id}`}
+          className={buttonPrimary}
+        >
+          {project.status === "AWAITING_PAYMENT" ? "Go to payment" : "Back to project"}
+        </Link>
+      </div>
     </>
   );
 }

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SignInLink } from "@/components/layout/auth-controls";
 import type { PageAccess } from "@/lib/journeys/access";
 import { Notice } from "./notice";
 import { buttonPrimary } from "./styles";
@@ -24,13 +25,11 @@ export function AccessGate({ access }: { access: Exclude<PageAccess, { state: "o
     <div className="space-y-4">
       <Notice tone="info" title="Sign in to continue">
         <p>
-          Your project is saved privately to your account, so you need to sign in first. After you sign in you will land
-          on the home page: choose a project from the menu or open My projects.
+          Your project is saved privately to your account, so you need to sign in first. Sign in with Google or your email
+          and password, or create a free account; you come back to this page afterwards.
         </p>
       </Notice>
-      <Link href="/sign-in" className={buttonPrimary}>
-        Sign in
-      </Link>
+      <SignInLink className={buttonPrimary} />
     </div>
   );
 }

@@ -5,12 +5,16 @@ import { Suspense } from "react";
 import { AccessGate } from "@/components/journey/access-gate";
 import { Loading } from "@/components/journey/loading";
 import { Notice } from "@/components/journey/notice";
+import { ProjectHeader } from "@/components/journey/project-header";
+import { JOURNEYS } from "@/lib/journeys/project-types";
 import { buttonPrimary, buttonSecondary, card } from "@/components/journey/styles";
+import { MockCheckout } from "@/components/payments/mock-checkout";
 import { PaymentForm } from "@/components/payments/payment-form";
 import { getPageAccess } from "@/lib/journeys/access";
 import { formatMoney, minorToDecimal, toMinor } from "@/lib/journeys/money";
 import { getLatestQuote, getOwnedProject } from "@/lib/journeys/service";
 import { getPaymentDisplay, PAYMENT_NOT_CONFIGURED, type PaymentDisplay } from "@/lib/payments/config";
+import { isMockGatewayEnabled, isMockGatewayReference } from "@/lib/payments/mock-gateway";
 import { listOwnPayments, type CustomerPayment } from "@/lib/payments/service";
 
 export const metadata: Metadata = { title: "Payment" };
@@ -66,7 +70,8 @@ function History({ payments }: { payments: CustomerPayment[] }) {
               {STATUS_WORDS[p.status]} · {formatMoney(Math.round(p.amountClaimed * 100), p.currency)} · {p.method === "UPI" ? "UPI" : "Net banking"}
             </p>
             <p className="text-muted">
-              Reference {p.utrReference} · transfer date {day(p.transferDate)} · submitted {day(p.createdAt)} ·{" "}
+              Reference {p.utrReference}
+              {isMockGatewayReference(p.utrReference) ? " (simulated demo gateway, no money moved)" : ""} · transfer date {day(p.transferDate)} · submitted {day(p.createdAt)} ·{" "}
               {p.hasProof ? "receipt image attached" : "no receipt image"}
             </p>
             {p.status === "REJECTED" && p.rejectionReason ? (
@@ -88,11 +93,7 @@ async function PaymentContent({ params }: Props) {
   const project = await getOwnedProject(access.supabase, access.user.id, id);
   if (!project) notFound();
 
-  const heading = (
-    <header className="space-y-1">
-      <h1 className="font-display text-3xl font-medium tracking-tight">Payment</h1>
-    </header>
-  );
+  const heading = <ProjectHeader projectId={project.id} kind={JOURNEYS[project.project_type].title} title="Payment" />;
   const back = (
     <p>
       <Link href={`/projects/${project.id}`} className={buttonSecondary}>
@@ -195,10 +196,11 @@ async function PaymentContent({ params }: Props) {
       ) : null}
       {display.state === "ready" ? (
         <>
+          {isMockGatewayEnabled() ? <MockCheckout projectId={project.id} amountLabel={total} /> : null}
           <Instructions display={display} />
           <section aria-labelledby="submit-title" className="space-y-4">
             <h2 id="submit-title" className="text-xl font-semibold">
-              Submit your payment details
+              {isMockGatewayEnabled() ? "Or submit details of a bank or UPI transfer" : "Submit your payment details"}
             </h2>
             <PaymentForm projectId={project.id} defaultAmount={minorToDecimal(toMinor(quote.totalAmount))} currency={quote.currency} />
           </section>

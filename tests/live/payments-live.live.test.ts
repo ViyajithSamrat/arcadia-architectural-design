@@ -87,8 +87,8 @@ describe.skipIf(!ENABLED)("live local Supabase: payment evidence and review", ()
     await makeUser("admin");
     sql(`insert into public.admin_users (user_id) values ('${users.admin.id}')`);
     // Demo rates, labelled as such, so a quote can be produced (local database only).
-    sql("delete from public.pricing_rules; delete from public.site_settings where key = 'pricing_mode'");
-    sql("", readFileSync(path.join(process.cwd(), "supabase/demo/pricing_rules.demo.sql"), "utf8"));
+    // Non-destructive: load the labelled demo rates only into an empty table, never replace existing ones.
+    if (sql("select count(*) from public.pricing_rules") === "0") sql("", readFileSync(path.join(process.cwd(), "supabase/demo/pricing_rules.demo.sql"), "utf8"));
 
     // Walk customer A to AWAITING_PAYMENT through the real service layer.
     const a = users.a;

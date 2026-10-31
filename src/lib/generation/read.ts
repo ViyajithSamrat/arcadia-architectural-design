@@ -307,7 +307,15 @@ export async function getGenerationDetail(supabase: Client, projectId: string, n
 // Customer reads
 // ---------------------------------------------------------------------------
 
-export type ReleasedAsset = { id: string; label: string; width: number | null; height: number | null; url: string };
+/** `url` shows the image; `downloadUrl` is the same file as a saved download (null when that link could not be made). */
+export type ReleasedAsset = { id: string; label: string; width: number | null; height: number | null; url: string; downloadUrl: string | null };
+
+/** A plain file name for a saved copy, such as "exterior-concept-1.png": letters, digits and hyphens only. */
+function downloadName(label: string, position: number, storagePath: string): string {
+  const slug = label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "concept";
+  const extension = /\.(png|jpe?g|webp)$/i.exec(storagePath)?.[1]?.toLowerCase() ?? "png";
+  return `${slug}-${position + 1}.${extension}`;
+}
 
 export type CustomerResults =
   | { state: "not_found" }
@@ -323,6 +331,38 @@ export type CustomerResults =
  * released files of the customer's own project. The empty-plot layout sketch follows the same
  * rule: it is drawn from the owner's saved answers only once the project is RELEASED.
  */
+/** Which released images are mock. "unknown" when it could not be established; the screen then uses wording that covers both. */
+export type ReleasedProvenance = { state: "known"; mockAssetIds: string[] } | { state: "unknown" };
+
+/**
+ * Read only, for the customer's results page. Customers cannot read generation jobs (admin-only
+ * policy), so the mock marker is looked up with the trusted client, but only for the jobs of images
+ * the customer's OWN session can already see: ownership, RELEASED and the asset list all come from
+ * `supabase` under row level security. It returns a yes/no per visible image and nothing else, and
+ * uses the same isMockJob rule as release. It changes nothing and grants no access.
+ */
+export async function getReleasedImageProvenance(supabase: Client, service: Client | null, userId: string, projectId: string): Promise<ReleasedProvenance> {
+  if (!service) return { state: "unknown" };
+  const project = await getOwnedProject(supabase, userId, projectId);
+  if (!project || project.status !== "RELEASED") return { state: "unknown" };
+  const { data: assetData, error: assetError } = await supabase
+    .from("design_assets")
+    .select("id, generation_job_id")
+    .eq("project_id", project.id)
+    .eq("is_released", true)
+    .not("generation_job_id", "is", null);
+  if (assetError || !assetData) return { state: "unknown" };
+  const assets = assetData as { id: string; generation_job_id: string }[];
+  if (assets.length === 0) return { state: "known", mockAssetIds: [] };
+  const jobIds = [...new Set(assets.map((a) => a.generation_job_id))];
+  const { data: jobData, error: jobError } = await service.from("generation_jobs").select("id, provider, usage_json").eq("project_id", project.id).in("id", jobIds);
+  if (jobError || !jobData) return { state: "unknown" };
+  const jobs = new Map((jobData as { id: string; provider: string | null; usage_json: unknown }[]).map((j) => [j.id, j]));
+  // Every visible image must have its job, or nothing is claimed either way.
+  if (jobIds.some((id) => !jobs.has(id))) return { state: "unknown" };
+  return { state: "known", mockAssetIds: assets.filter((a) => isMockJob(jobs.get(a.generation_job_id)!)).map((a) => a.id) };
+}
+
 export async function getCustomerResults(supabase: Client, userId: string, projectId: string): Promise<CustomerResults> {
   const project = await getOwnedProject(supabase, userId, projectId);
   if (!project) return { state: "not_found" };
@@ -342,9 +382,17 @@ export async function getCustomerResults(supabase: Client, userId: string, proje
     (a) => a.is_released === true && GENERATED_TYPES.includes(a.asset_type),
   );
   const linked = await Promise.all(
-    rows.map(async (a) => {
-      const signed = await supabase.storage.from(PROJECT_FILES_BUCKET).createSignedUrl(a.storage_path, RESULT_URL_SECONDS);
-      return signed.error || !signed.data ? null : ({ id: a.id, label: ASSET_LABELS[a.asset_type] ?? "Concept", width: a.width, height: a.height, url: signed.data.signedUrl } satisfies ReleasedAsset);
+    rows.map(async (a, position) => {
+      const label = ASSET_LABELS[a.asset_type] ?? "Concept";
+      const bucket = supabase.storage.from(PROJECT_FILES_BUCKET);
+      // Two links to the same released file, both made with the customer's own session (so Storage applies
+      // the same ownership and release rules): one to show it, one that tells the browser to save it.
+      const [view, save] = await Promise.all([
+        bucket.createSignedUrl(a.storage_path, RESULT_URL_SECONDS),
+        bucket.createSignedUrl(a.storage_path, RESULT_URL_SECONDS, { download: downloadName(label, position, a.storage_path) }),
+      ]);
+      if (view.error || !view.data) return null;
+      return { id: a.id, label, width: a.width, height: a.height, url: view.data.signedUrl, downloadUrl: save.error || !save.data ? null : save.data.signedUrl } satisfies ReleasedAsset;
     }),
   );
   const assets = linked.filter((a): a is ReleasedAsset => a !== null);

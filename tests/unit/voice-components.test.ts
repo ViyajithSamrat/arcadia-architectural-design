@@ -98,13 +98,13 @@ describe("the description step", () => {
   });
 });
 
-describe("ReadbackSummary (PR-009: text fallback while no text-to-speech is connected)", () => {
+describe("ReadbackSummary (PR-009: text fallback while spoken read-back is not switched on)", () => {
   it("keeps the summary visible as text and explains why it cannot be heard", () => {
     const out = html(createElement(ReadbackSummary, { text: "  A new two-floor home on a 30 × 40 ft plot.  " }));
     expect(out).toContain("Read-back summary");
     expect(out).toContain("A new two-floor home on a 30 × 40 ft plot.");
     expect(out).toContain(copy.READBACK_TEXT_FALLBACK);
-    expect(copy.READBACK_TEXT_FALLBACK).toMatch(/not available in this version, so it is shown here as text/);
+    expect(copy.READBACK_TEXT_FALLBACK).toMatch(/not switched on in this setup, so the summary is shown here as text/);
   });
 
   it("offers nothing that looks like working audio", () => {

@@ -122,7 +122,7 @@ export function createOpenRouterBriefProvider(config: OpenRouterConfig, deps: { 
 
     const headers: Record<string, string> = { Authorization: `Bearer ${config.apiKey}`, "Content-Type": "application/json" };
     if (config.referer) headers["HTTP-Referer"] = config.referer;
-    if (config.title) headers["X-Title"] = config.title;
+    if (config.title) headers["X-OpenRouter-Title"] = config.title;
 
     const body = JSON.stringify({
       model: config.model,
@@ -134,6 +134,7 @@ export function createOpenRouterBriefProvider(config: OpenRouterConfig, deps: { 
       provider: { require_parameters: true },
       max_tokens: MAX_OUTPUT_TOKENS,
       temperature: 0.2,
+      ...(config.reasoningEffort ? { reasoning: { effort: config.reasoningEffort } } : {}),
       stream: false,
     });
 
@@ -217,7 +218,7 @@ export function createOpenRouterBriefProvider(config: OpenRouterConfig, deps: { 
         return brief;
       } catch (error) {
         const reason = error instanceof ProviderError ? error.code : error instanceof BriefOutputRejectedError ? error.reason : "unexpected";
-        logProviderCall({ provider: "openrouter", operation: "brief", model: config.model, status: "error", reason, durationMs: Date.now() - started });
+        logProviderCall({ provider: "openrouter", operation: "brief", model: config.model, status: "error", reason, ...(error instanceof ProviderError && error.status ? { httpStatus: error.status } : {}), durationMs: Date.now() - started });
         if (error instanceof ProviderError && UNAVAILABLE_CODES.has(error.code)) {
           throw new BriefProviderUnavailableError("The brief service is busy or unavailable right now. Please try again later.");
         }

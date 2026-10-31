@@ -71,6 +71,18 @@ describe("the request", () => {
     expect(body.stream).toBe(false);
     expect(body.max_tokens).toBeLessThanOrEqual(2000);
     expect(calls[0].init.signal).toBeInstanceOf(AbortSignal);
+    // no reasoning setting unless one is configured
+    expect(body).not.toHaveProperty("reasoning");
+  });
+
+  it("asks for reasoning effort 'none' when configured, keeping the strict JSON schema", async () => {
+    const { fn, calls } = fakeFetch(() => completion(GOOD_DRAFT));
+    const configured = getOpenRouterConfig({ ...ENV, OPENROUTER_TEXT_REASONING_EFFORT: "none" })!;
+    await createOpenRouterBriefProvider(configured, { fetch: fn }).generate(INPUT);
+    const body = bodyOf(calls[0]);
+    expect(body.reasoning).toEqual({ effort: "none" });
+    expect(body.response_format).toMatchObject({ type: "json_schema", json_schema: { strict: true } });
+    expect(body.provider).toEqual({ require_parameters: true });
   });
 
   it("sends the customer's data only as delimited data in the user message, never in the instructions", async () => {
@@ -91,7 +103,7 @@ describe("the request", () => {
     const { fn, calls } = fakeFetch(() => completion(GOOD_DRAFT));
     const withHeaders = getOpenRouterConfig({ ...ENV, OPENROUTER_HTTP_REFERER: "https://app.example.test", OPENROUTER_APP_TITLE: "Demo" })!;
     await createOpenRouterBriefProvider(withHeaders, { fetch: fn }).generate(INPUT);
-    expect(calls[0].init.headers).toMatchObject({ "HTTP-Referer": "https://app.example.test", "X-Title": "Demo" });
+    expect(calls[0].init.headers).toMatchObject({ "HTTP-Referer": "https://app.example.test", "X-OpenRouter-Title": "Demo" });
     const { fn: fn2, calls: calls2 } = fakeFetch(() => completion(GOOD_DRAFT));
     await createOpenRouterBriefProvider(config(), { fetch: fn2 }).generate(INPUT);
     expect(Object.keys(calls2[0].init.headers as object).sort()).toEqual(["Authorization", "Content-Type"]);

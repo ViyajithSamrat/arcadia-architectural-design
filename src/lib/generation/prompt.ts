@@ -1,5 +1,6 @@
 import type { ProjectType } from "@/lib/db/schema";
 import { parseBrief, type Brief } from "@/lib/journeys/brief";
+import { JOURNEY_STEPS, optionLabel } from "@/lib/journeys/steps";
 import type { ImageGenerationRequest, ImageView } from "@/lib/providers/images";
 
 /**
@@ -16,10 +17,13 @@ import type { ImageGenerationRequest, ImageView } from "@/lib/providers/images";
  *  - Only an allow-list of fields is copied from the brief. Price, budget, payment state,
  *    project status, roles, release instructions and reference ids never reach the request,
  *    whatever the stored brief contains.
+ *  - Each journey adds its own fixed instruction (JOURNEY_INSTRUCTIONS) and its own allow-listed
+ *    facts (`journeyFacts`): what must be kept in a room, sunlight and water for a garden, floors
+ *    and site for a new build. Budget answers are never among them.
  *  - Nothing here is logged.
  */
 
-export const IMAGE_PROMPT_VERSION = "image-prompt-1";
+export const IMAGE_PROMPT_VERSION = "image-prompt-2";
 /**
  * Images per generation request. Configurable only downwards from this ceiling; the views a
  * project type needs (currently 1 or 2) limit it further.
@@ -38,6 +42,19 @@ export const IMAGE_INSTRUCTIONS = [
   "The image is an early idea, not a construction drawing, engineering plan, CAD or BIM model, and it is not code-compliant or approved for building.",
   "Do not render prices, payment details, personal data, readable text or logos.",
 ].join(" ");
+
+/** Trusted, fixed guidance per journey, appended to IMAGE_INSTRUCTIONS. Never contains customer text. */
+export const JOURNEY_INSTRUCTIONS: Record<ProjectType, string> = {
+  EMPTY_PLOT:
+    "Journey: a NEW BUILD on an empty plot. Show the whole planned building standing on its plot, with the stated number of floors, the plot's proportions, the requested rooms and spaces, and the preferred style and local climate. Do not show neighbouring buildings in detail.",
+  INTERIOR:
+    "Journey: an INTERIOR REFRESH of an existing room. Show the named room redesigned in the preferred style, colours and materials, with the stated storage needs. Everything listed under mustKeep stays in place, recognisably unchanged. Do not move walls, windows or doors.",
+  LANDSCAPE:
+    "Journey: a LANDSCAPE design for an outdoor area. Show planting, paths and seating suited to the stated sunlight, water availability, maintenance level and climate. Keep any existing trees or features listed under keepExisting. When children or pets will use the space, avoid hazards such as open water edges and thorny or toxic-looking plants.",
+};
+
+/** The full instruction text for one journey: the shared rules, then the journey's own. */
+export const imageInstructionsFor = (type: ProjectType): string => `${IMAGE_INSTRUCTIONS} ${JOURNEY_INSTRUCTIONS[type]}`;
 
 const VIEWS: Record<ProjectType, ImageView[]> = {
   EMPTY_PLOT: [
@@ -68,6 +85,69 @@ export function sanitizeCustomerText(value: unknown, max: number): string {
 
 const list = (values: readonly unknown[], max = LIST_MAX) =>
   values.map((v) => sanitizeCustomerText(v, ITEM_MAX)).filter((v) => v.length > 0).slice(0, max);
+
+type Answers = Brief["requirements"];
+
+/** One answer by step and field, worded with the form's own option labels and made safe as data. */
+function answer(type: ProjectType, r: Answers, stepId: string, name: string): string | number | boolean | string[] | null {
+  const field = JOURNEY_STEPS[type].find((s) => s.id === stepId)?.fields.find((f) => f.name === name);
+  const value = r[stepId]?.[name];
+  if (!field || value === undefined || value === null || value === "") return null;
+  if (field.kind === "checkbox") return value === true;
+  if (field.kind === "number") return typeof value === "number" && Number.isFinite(value) ? value : null;
+  if (field.kind === "checkboxes") return Array.isArray(value) ? list(value.map((v) => optionLabel(field, v)), 12) : null;
+  const text = sanitizeCustomerText(field.kind === "select" ? optionLabel(field, value) : value, 300);
+  return text.length > 0 ? text : null;
+}
+
+/**
+ * The facts each journey's images depend on, from an allow-list of questions. Unknown or
+ * unanswered questions are left out; budget, price and views-count answers are never copied.
+ */
+function journeyFacts(type: ProjectType, r: Answers): Record<string, string | number | boolean | string[]> {
+  const pick: Record<ProjectType, [string, string, string][]> = {
+    EMPTY_PLOT: [
+      ["floors", "space", "floors"],
+      ["location", "space", "location"],
+      ["facing", "space", "orientation"],
+      ["climate", "space", "climate"],
+      ["bedrooms", "rooms", "bedrooms"],
+      ["bathrooms", "rooms", "bathrooms"],
+      ["parkingSpaces", "rooms", "parkingSpaces"],
+      ["extraSpaces", "rooms", "spaces"],
+      ["vastu", "preferences", "vastu"],
+      ["frontGarden", "preferences", "frontGarden"],
+    ],
+    INTERIOR: [
+      ["rooms", "space", "rooms"],
+      ["coloursAndMaterials", "preferences", "palette"],
+      ["storageNeeds", "preferences", "storageNeeds"],
+      ["mustKeep", "preserve", "keep"],
+      ["mustKeepDetails", "preserve", "keepNotes"],
+    ],
+    LANDSCAPE: [
+      ["areaType", "area", "areaType"],
+      ["location", "conditions", "location"],
+      ["climate", "conditions", "climate"],
+      ["sunlight", "conditions", "sunlight"],
+      ["water", "conditions", "water"],
+      ["maintenance", "conditions", "maintenance"],
+      ["children", "conditions", "children"],
+      ["pets", "conditions", "pets"],
+      ["paths", "features", "paths"],
+      ["seating", "features", "seating"],
+      ["privacyScreening", "features", "privacy"],
+      ["vegetableGarden", "features", "vegetableGarden"],
+      ["keepExisting", "features", "retain"],
+    ],
+  };
+  const facts: Record<string, string | number | boolean | string[]> = {};
+  for (const [key, stepId, name] of pick[type]) {
+    const value = answer(type, r, stepId, name);
+    if (value !== null && !(Array.isArray(value) && value.length === 0)) facts[key] = value;
+  }
+  return facts;
+}
 
 export type ImageRequestError = "brief_invalid" | "no_images_allowed";
 
@@ -108,6 +188,7 @@ export function buildImageRequest(
     roomsOrZones: list(brief.roomOrZoneList),
     stylePreferences: list(brief.stylePreferences),
     summary: sanitizeCustomerText(summarySource, SUMMARY_MAX),
+    journeyFacts: journeyFacts(input.projectType, brief.requirements),
   };
 
   return {
@@ -115,7 +196,7 @@ export function buildImageRequest(
     views,
     request: {
       promptVersion: IMAGE_PROMPT_VERSION,
-      instructions: IMAGE_INSTRUCTIONS,
+      instructions: imageInstructionsFor(input.projectType),
       views,
       customerData,
       requestId: input.requestId,

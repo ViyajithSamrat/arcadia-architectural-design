@@ -39,4 +39,12 @@ describe("RuleForm", () => {
     const out = renderToStaticMarkup(createElement(RuleForm, { projectType: "LANDSCAPE", ruleKey: "base_fee", isTax: false, defaults: DEFAULTS }));
     expect(out).not.toMatch(/discount|UPI|bank|instruction/i);
   });
+
+  // No DOM library is installed, so the reset itself is checked in a browser run (see the
+  // completion report); this guards the code path against being removed.
+  it("clears the one-time confirmation after a successful publish (the action answers undefined on success)", async () => {
+    const { readFileSync } = await import("node:fs");
+    const source = readFileSync("src/components/pricing/rule-form.tsx", "utf8");
+    expect(source).toContain("if (result === undefined) form.reset()");
+  });
 });

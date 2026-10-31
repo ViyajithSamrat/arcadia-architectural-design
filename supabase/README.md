@@ -5,7 +5,7 @@ Everything here is **prepared and tested locally; nothing has been applied to a 
 ## Layout
 
 ```
-migrations/   5 forward migrations, applied in filename order
+migrations/   forward migrations, applied in filename order (see the list below; the newest, `20261022000400_serialize_stale_clearing.sql` (the stale clearing's project move and a new job's creation both take the project-row lock: `end_interrupted_generation()` locks FOR UPDATE and moves only an idle, unchanged GENERATING project; `generation_jobs_guard()` reads the project FOR KEY SHARE; service_role only), then `20261022000300_insert_generated_asset.sql` (checked write path for generated assets: locks the job row and requires RUNNING, GENERATING and a verified payment; service_role only; the `design_assets` trigger is unchanged), and `20261022000100_ai_usage_images.sql` are applied to the LOCAL database only)
 rollbacks/    one *.down.sql per migration (destructive: drops data; run newest first)
 ```
 
@@ -69,7 +69,34 @@ A local stack (`npx supabase start`) needs Docker. To roll back, run the matchin
 After applying, an administrator must be added by trusted SQL, for example:
 `insert into public.admin_users (user_id) values ('<auth user uuid>');` (run in the SQL editor as the project owner).
 
-Also in the Supabase dashboard: enable Email sign-in (magic link) and add `<app url>/auth/callback` to the allowed redirect URLs.
+Also in the Supabase dashboard: set up the sign-in methods and redirect URLs in "Sign-in methods" below.
+
+## Sign-in methods
+
+The app uses Supabase Auth only: email and password (with self-service registration and a reset email) and Google OAuth. Every redirect-based step (Google, the confirmation link, the reset link) returns to `<app url>/auth/callback`, which exchanges the code; a reset link then continues to `/reset-password`. They must finish in the browser that started them.
+
+**Redirect URLs** (Supabase dashboard: Authentication → URL Configuration): Site URL `<app url>`; Redirect URLs `<app url>/auth/callback`. Locally these are already in `config.toml` (`site_url`, `additional_redirect_urls`) for `localhost` and `127.0.0.1` on port 3000.
+
+**Email confirmation.** Locally it is off (`[auth.email] enable_confirmations = false`), so a new account is signed in at once. On a hosted project Supabase turns "Confirm email" on by default (Authentication → Sign In / Providers → Email); keep it on for real customers. The app then shows "check your email" after Create account, and the link signs the customer in through `/auth/callback`. With confirmation on, Supabase answers an already-registered email like a new one, so the app cannot say "account exists" in that case. Use custom SMTP (Authentication → Emails → SMTP Settings), because the built-in mailer sends only a few emails an hour.
+
+**Google** (not configured yet; until it is, the button is shown disabled with an explanation):
+
+1. Google Cloud Console → APIs & Services → OAuth consent screen: configure it (while in "Testing", add the test users).
+2. APIs & Services → Credentials → Create credentials → OAuth client ID → Web application.
+   - Authorized JavaScript origins: `<app url>`.
+   - Authorized redirect URIs: the Supabase Auth callback, not the app's: `https://<project-ref>.supabase.co/auth/v1/callback` for a hosted project, `http://127.0.0.1:54321/auth/v1/callback` for the local stack.
+3. Hosted project: Supabase dashboard → Authentication → Sign In / Providers → Google: enable, paste the Client ID and Client Secret, save.
+4. Local stack: add to `supabase/config.toml`, put the two values in the environment Supabase CLI reads (never commit them), then `npx supabase stop` and `npx supabase start` (data is kept unless `--no-backup` is given):
+
+   ```toml
+   [auth.external.google]
+   enabled = true
+   client_id = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID)"
+   secret = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET)"
+   skip_nonce_check = false
+   ```
+
+The app reads whether Google is on from the Auth server's public `/auth/v1/settings`; it never needs the Google secret itself.
 
 ## Security test results (local, PGlite)
 
@@ -78,7 +105,8 @@ Also in the Supabase dashboard: enable Email sign-in (magic link) and add `<app 
 ## Unverified (needs a real project)
 
 - Behaviour on real Supabase Auth, Storage and PostgREST. The tests use a small stand-in for the `auth` and `storage` schemas (`tests/db/support/supabase-shim.sql`). Real `storage.objects` columns and role setup could differ.
-- Magic-link email delivery and the free-plan email rate limit.
+- Confirmation and password-reset email delivery, and the built-in mailer's low hourly limit (use custom SMTP for real users).
+- Google sign-in end to end (no Google OAuth client exists yet).
 - That `project-files` can be created with no size/type limits on the free plan (limits are intentionally unset until the owner decides).
 - Exposed-schema setup: only `public` should be exposed through the API; `app_private` must not be.
 
@@ -94,7 +122,7 @@ Also in the Supabase dashboard: enable Email sign-in (magic link) and add `<app 
 
 - **Fixed:** the storage rollback ran `delete from storage.buckets`, which Supabase blocks (direct deletes on storage tables must use the Storage API). It no longer does; the bucket stays private and must be removed through the dashboard/API.
 - **Added test:** `tests/db/non-superuser-owner.test.ts` applies the migrations as a non-superuser owner with CREATEROLE/BYPASSRLS (how Supabase's `postgres` role behaves) and repeats the workflow, gate and spoofing checks. A customer that sets the internal `app.via` flag still cannot change status.
-- **Sign-up is open:** `signInWithOtp` creates an account for any email. That is intended (customer login), and admin rights come only from `admin_users`, never from sign-up.
+- **Sign-up is open:** anyone can register with email and password (`/api/auth/sign-up`) or Google. That is intended (customer login), and admin rights come only from `admin_users`, never from sign-up; nothing creates an `admin_users` row automatically.
 - **Redirect origin:** sign-in links use `NEXT_PUBLIC_APP_URL` if set, else the request origin. Behind a proxy or on a deployed host, set `NEXT_PUBLIC_APP_URL` and add it, plus `/auth/callback`, to Supabase's allowed redirect URLs.
 - **`select *` on payments fails for customers** by design (column grants hide `verified_by`, `audit_note`); use `PAYMENT_CUSTOMER_COLUMNS`.
 
@@ -140,9 +168,9 @@ npx supabase status -o env      # local URL and keys: copy NEXT_PUBLIC_SUPABASE_
 npx supabase stop               # when finished (add --no-backup to discard the local data)
 ```
 
-Use one host name consistently within a sign-in: the cookie that completes the magic link is host-specific, so start and finish on the same one. Either `http://localhost:3000` or `http://127.0.0.1:3000` works; the sign-in link returns to the host the browser used.
+Use one host name consistently within a Google sign-in or an emailed link: the cookie that completes it is host-specific, so start and finish on the same one. Either `http://localhost:3000` or `http://127.0.0.1:3000` works; the sign-in link returns to the host the browser used.
 
-**Origin policy** (`src/lib/supabase/origin.ts`, used by sign-in, sign-out and the callback): the expected origin is `NEXT_PUBLIC_APP_URL` when set, otherwise the request's own origin. For local development only, `localhost` and `127.0.0.1` count as the same machine (same scheme and port). Any other `Origin` gets 403, and `X-Forwarded-*` headers are never read. In production set `NEXT_PUBLIC_APP_URL` to the public https URL: only that origin is then accepted. Magic-link emails appear in the local inbox at `http://127.0.0.1:54324`.
+**Origin policy** (`src/lib/supabase/origin.ts`, used by sign-in, sign-out and the callback): the expected origin is `NEXT_PUBLIC_APP_URL` when set, otherwise the request's own origin. For local development only, `localhost` and `127.0.0.1` count as the same machine (same scheme and port). Any other `Origin` gets 403, and `X-Forwarded-*` headers are never read. In production set `NEXT_PUBLIC_APP_URL` to the public https URL: only that origin is then accepted. Confirmation and password-reset emails appear in the local inbox at `http://127.0.0.1:54324`.
 
 `tests/live/supabase-live.live.test.ts` checks the real stack: migration order, RLS on every table, sign-in and sessions, ownership isolation, the Phase 3 service layer end to end, forbidden status moves, private storage, the payment gate and the audit trail. It is not part of `npm test` and refuses to run unless the Supabase URL is this machine:
 

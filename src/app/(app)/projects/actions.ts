@@ -6,6 +6,8 @@ import { redirect } from "next/navigation";
 import { AuthError } from "@/lib/auth/errors";
 import { requireUser } from "@/lib/auth/guards";
 import { projectTypeFromSlug } from "@/lib/journeys/project-types";
+import { payWithMockGateway } from "@/lib/payments/mock-gateway";
+import { removeReference } from "@/lib/references/service";
 import {
   acceptQuote,
   createBrief,
@@ -112,4 +114,33 @@ export async function acceptQuoteAction(projectId: string, quoteId: string): Pro
   if (!result.ok) return failure(result);
   refresh(projectId);
   redirect(`/projects/${projectId}/quote`);
+}
+
+/**
+ * The "successful" outcome of the simulated payment gateway. It records a payment CLAIM for
+ * an administrator to verify; it verifies nothing. The browser sends only the project id:
+ * the amount and reference are decided on the server. Failure and cancel need no request.
+ */
+export async function mockGatewayPayAction(projectId: string): Promise<ActionState | { ok: true; reference: string }> {
+  if (!isId(projectId)) return BAD_REQUEST;
+  const result = await run(({ supabase, user }) => payWithMockGateway(supabase, createSupabaseServiceClient(), user.id, projectId));
+  if (!result.ok) return failure(result);
+  revalidatePath(`/projects/${projectId}`, "layout");
+  return { ok: true, reference: result.reference };
+}
+
+/** Removes one of the owner's own reference photos while the project is still editable. */
+export async function removeReferenceAction(projectId: string, assetId: string): Promise<ActionState> {
+  if (!isId(projectId) || !isId(assetId)) return BAD_REQUEST;
+  try {
+    const supabase = await createSupabaseServerClient();
+    const user = await requireUser(supabase);
+    const result = await removeReference(supabase, user.id, projectId, assetId);
+    if (!result.ok) return { ok: false, message: result.message };
+  } catch (error) {
+    if (error instanceof AuthError) return { ok: false, message: error.message };
+    throw error;
+  }
+  revalidatePath(`/projects/${projectId}/edit`);
+  return undefined;
 }

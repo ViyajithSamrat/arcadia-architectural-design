@@ -77,3 +77,21 @@ export function transcribeLimiter(): RequestLimiter {
   holder.__voiceTranscribeLimiter ??= new RequestLimiter(TRANSCRIBE_LIMITS);
   return holder.__voiceTranscribeLimiter;
 }
+
+/** Spoken read-back costs credits per character: per signed-in user, 5 requests a minute, one at a time. */
+export const READBACK_LIMITS: LimitOptions = { windowMs: 60_000, maxPerWindow: 5, maxConcurrent: 1, maxKeys: 10_000 };
+
+/** Transcript translation is a paid text request: per signed-in user, 5 a minute, one at a time. */
+export const TRANSLATE_LIMITS: LimitOptions = { windowMs: 60_000, maxPerWindow: 5, maxConcurrent: 1, maxKeys: 10_000 };
+
+export function translateLimiter(): RequestLimiter {
+  const holder = globalThis as typeof globalThis & { __voiceTranslateLimiter?: RequestLimiter };
+  holder.__voiceTranslateLimiter ??= new RequestLimiter(TRANSLATE_LIMITS);
+  return holder.__voiceTranslateLimiter;
+}
+
+export function readbackLimiter(): RequestLimiter {
+  const holder = globalThis as typeof globalThis & { __voiceReadbackLimiter?: RequestLimiter };
+  holder.__voiceReadbackLimiter ??= new RequestLimiter(READBACK_LIMITS);
+  return holder.__voiceReadbackLimiter;
+}

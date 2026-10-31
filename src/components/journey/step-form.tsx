@@ -7,9 +7,12 @@ import type { ProjectType } from "@/lib/db/schema";
 import { findStep, JOURNEY_STEPS, type FieldSpec } from "@/lib/journeys/steps";
 import { readStepForm, validateStep, type StepData } from "@/lib/journeys/validation";
 import type { VoiceView } from "@/lib/journeys/voice";
+import type { TranslationView } from "@/lib/translation/mode";
 import { containsMockTranscript } from "@/lib/providers/mock-speech";
+import type { ReferenceView } from "@/lib/references/service";
 import { MOCK_DESCRIPTION_REFUSED, MOCK_IN_DESCRIPTION_NOTICE } from "@/lib/voice/copy";
 import { Notice } from "./notice";
+import { ReferenceUploads } from "./reference-uploads";
 import { buttonPrimary, buttonSecondary, input } from "./styles";
 import { VoiceCapture, type TranscriptChoice } from "./voice-capture";
 
@@ -20,7 +23,15 @@ type Props = {
   /** Previously saved answers for this step. */
   initial: StepData;
   voice: VoiceView;
+  /** Whether a non-English transcript can be translated automatically. Typing the English always works. */
+  translation?: TranslationView;
+  /** The project's reference photos, loaded by the page. Null when they could not be loaded. */
+  references?: { items: ReferenceView[]; sentToImageService: boolean } | null;
 };
+
+/** A selectable tile around a checkbox: the whole row is the target, and the chosen state shows in the border and fill. */
+const tile =
+  "flex min-h-12 cursor-pointer items-center gap-3 rounded-[3px] border border-border bg-paper px-4 py-2.5 text-base transition-colors duration-200 hover:border-border-strong has-checked:border-accent has-checked:bg-success-bg/50 has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-accent";
 
 /** The description field a chosen transcript fills. */
 const DESCRIPTION_FIELD = "text";
@@ -135,13 +146,13 @@ function Field({
     case "checkbox":
       return (
         <div>
-          <label className="flex min-h-11 items-center gap-3 text-base">
+          <label className={tile}>
             <input
               type="checkbox"
               name={field.name}
               id={id}
               defaultChecked={value === true}
-              className="size-5 accent-[var(--accent)]"
+              className="size-5 shrink-0 accent-[var(--accent)]"
             />
             {field.label}
           </label>
@@ -157,15 +168,15 @@ function Field({
             {field.label}
             {required ? <span className="text-muted"> (choose at least one)</span> : null}
           </legend>
-          <div className="mt-1 grid gap-x-6 sm:grid-cols-2">
+          <div className="mt-2 grid gap-2 sm:grid-cols-2">
             {field.options.map((o) => (
-              <label key={o.value} className="flex min-h-11 items-center gap-3 text-base">
+              <label key={o.value} className={tile}>
                 <input
                   type="checkbox"
                   name={field.name}
                   value={o.value}
                   defaultChecked={selected.includes(o.value)}
-                  className="size-5 accent-[var(--accent)]"
+                  className="size-5 shrink-0 accent-[var(--accent)]"
                 />
                 {o.label}
               </label>
@@ -179,7 +190,7 @@ function Field({
   }
 }
 
-export function StepForm({ projectId, projectType, stepId, initial, voice }: Props) {
+export function StepForm({ projectId, projectType, stepId, initial, voice, translation = "off", references }: Props) {
   const step = findStep(projectType, stepId);
   const steps = JOURNEY_STEPS[projectType];
   const index = steps.findIndex((s) => s.id === stepId);
@@ -240,14 +251,31 @@ export function StepForm({ projectId, projectType, stepId, initial, voice }: Pro
 
   return (
     <form ref={formRef} onSubmit={onSubmit} onInput={onInput} noValidate className="space-y-6" aria-describedby={`${idPrefix}-intro`}>
-      <div className="space-y-1">
-        <p className="text-sm text-muted">
-          Step {index + 1} of {steps.length}
-        </p>
-        <h2 className="text-xl font-semibold">{step.title}</h2>
-        <p id={`${idPrefix}-intro`} className="text-muted">
-          {step.intro}
-        </p>
+      <div className="space-y-6">
+        <ol aria-label="Steps of this project" className="flex gap-2">
+          {steps.map((s, i) => (
+            <li key={s.id} aria-current={i === index ? "step" : undefined} className="min-w-0 flex-1 space-y-2">
+              <span
+                aria-hidden="true"
+                className={`block h-[3px] rounded-full transition-colors duration-500 ${i < index ? "bg-accent" : i === index ? "bg-sandstone" : "bg-border"}`}
+              />
+              <span className={`hidden text-xs leading-snug md:block ${i === index ? "font-semibold text-foreground" : "text-muted"}`}>{s.title}</span>
+              <span className="sr-only md:hidden">
+                {s.title}
+                {i === index ? " (current)" : ""}
+              </span>
+            </li>
+          ))}
+        </ol>
+        <div className="space-y-2">
+          <p className="eyebrow">
+            Step {index + 1} of {steps.length}
+          </p>
+          <h2 className="font-display text-4xl font-medium leading-tight">{step.title}</h2>
+          <p id={`${idPrefix}-intro`} className="max-w-2xl text-muted">
+            {step.intro}
+          </p>
+        </div>
       </div>
 
       {Object.keys(errors).length > 0 || (state && !state.ok) ? (
@@ -264,6 +292,7 @@ export function StepForm({ projectId, projectType, stepId, initial, voice }: Pro
             languages={voice.languages}
             maxSeconds={voice.maxSeconds}
             uploadTimeoutMs={voice.uploadTimeoutMs}
+            translation={translation}
             onUse={applyTranscript}
           />
         ) : (
@@ -275,7 +304,9 @@ export function StepForm({ projectId, projectType, stepId, initial, voice }: Pro
           <p>{MOCK_IN_DESCRIPTION_NOTICE}</p>
         </Notice>
       ) : null}
-      {step.showsUploadNotice ? <UploadNotice /> : null}
+      {step.showsUploadNotice ? (
+        references ? <ReferenceUploads projectId={projectId} items={references.items} sentToImageService={references.sentToImageService} /> : <UploadNotice />
+      ) : null}
 
       <div className="grid gap-5 sm:grid-cols-2">
         {step.fields.map((field) => (
@@ -288,7 +319,7 @@ export function StepForm({ projectId, projectType, stepId, initial, voice }: Pro
         ))}
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3 border-t border-border pt-6">
         <button type="submit" className={buttonPrimary} disabled={pending} aria-busy={pending}>
           {pending ? "Saving…" : isLast ? "Save and review your brief" : "Save and continue"}
         </button>
@@ -321,11 +352,8 @@ function VoiceNotice({ voice }: { voice: VoiceView }) {
 
 function UploadNotice() {
   return (
-    <Notice tone="info" title="Uploads not configured yet">
-      <p>
-        Photo and floor-plan uploads are switched off until the accepted file types, size limit and private storage
-        rules are confirmed. You can continue without them and describe your space in words instead.
-      </p>
+    <Notice tone="info" title="Photo uploads are unavailable right now">
+      <p>Your photos could not be loaded just now. You can continue without them and describe your space in words instead, or reload the page to try again.</p>
     </Notice>
   );
 }

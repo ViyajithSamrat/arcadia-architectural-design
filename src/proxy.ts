@@ -3,9 +3,11 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getSupabasePublicConfig } from "@/lib/supabase/config";
 
 /**
- * Refreshes the Supabase session cookies on auth-related routes. It does not
- * authorize anything; every route and database policy checks access itself.
- * When Supabase is not configured it passes requests through untouched.
+ * Refreshes the Supabase session cookies on every page and route (static files excluded).
+ * Server Components cannot write cookies, so without this a refreshed token is never saved
+ * and, once the one-hour access token expires, the rotated refresh token is reused and
+ * Supabase ends the session. It does not authorize anything; every route and database
+ * policy checks access itself. When Supabase is not configured it passes requests through.
  */
 export async function proxy(request: NextRequest) {
   const config = getSupabasePublicConfig();
@@ -28,5 +30,7 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/sign-in", "/auth/:path*", "/api/auth/:path*"],
+  // Everything except Next.js internals (build output, image optimisation and the development
+  // hot-reload connection) and public static files.
+  matcher: ["/((?!_next/|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|avif|ico|css|js|map|txt|woff2?)$).*)"],
 };

@@ -15,7 +15,7 @@ const LABELS: Record<IntegrationState, { text: string; symbol: string }> = {
 export function StatusBadge({ state }: { state: IntegrationState }) {
   const { text, symbol } = LABELS[state];
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-sm font-medium">
+    <span className="inline-flex items-center gap-1.5 rounded-[3px] border border-border-strong bg-paper px-2.5 py-1 text-sm font-medium">
       <span aria-hidden="true">{symbol}</span>
       {text}
     </span>

@@ -97,11 +97,49 @@ function pairedDimensions(a: string, b: string, label: string) {
   };
 }
 
+/** Smallest believable total floor area for a home, per unit (about 9 sq m). */
+const MIN_BUILT_UP = { ft: 100, m: 9 } as const;
+
+/**
+ * Built-up area is optional, but when given it must be believable for the plot: at least a
+ * small room's worth, and no more than the plot area times the floors. An out-of-range value
+ * (for example "2", typed where "Floors" was meant) is sent back to the customer to correct or
+ * clear; it is never replaced with a guess.
+ */
+function plausibleBuiltUpArea(data: Record<string, unknown>): FieldIssue[] {
+  const area = data.builtUpArea;
+  if (typeof area !== "number") return [];
+  const unit = data.unit === "m" ? "m" : "ft";
+  const sq = unit === "m" ? "square metres" : "square feet";
+  if (area < MIN_BUILT_UP[unit]) {
+    return [
+      {
+        field: "builtUpArea",
+        message: `${area} ${sq} is too small for the total floor area of a home. Enter the area of all floors together in ${sq}, or leave it empty if you do not know.`,
+      },
+    ];
+  }
+  const { plotWidth, plotLength, floors } = data;
+  if (typeof plotWidth === "number" && typeof plotLength === "number" && typeof floors === "number") {
+    const most = plotWidth * plotLength * floors;
+    if (area > most) {
+      return [
+        {
+          field: "builtUpArea",
+          message: `${area} ${sq} is more than the plot area times the number of floors (${Math.round(most)} ${sq}). Check the number, or leave it empty if you do not know.`,
+        },
+      ];
+    }
+  }
+  return [];
+}
+
 const EMPTY_PLOT_STEPS: readonly StepSpec[] = [
   {
     id: "space",
     title: "Your space",
     intro: "The plot and where it is. Orientation and built-up area are optional.",
+    check: plausibleBuiltUpArea,
     fields: [
       { kind: "number", name: "plotWidth", label: "Plot width", required: true, min: 1, max: 1000, step: 0.1 },
       { kind: "number", name: "plotLength", label: "Plot length", required: true, min: 1, max: 1000, step: 0.1 },
@@ -128,7 +166,7 @@ const EMPTY_PLOT_STEPS: readonly StepSpec[] = [
         label: "Built-up area (all floors)",
         min: 1,
         max: 1000000,
-        hint: "In the square of the unit above. Leave empty if you do not know.",
+        hint: "The floor area of all floors together, in square feet (or square metres if the unit is metres), for example 2400. Leave empty if you do not know.",
       },
       { kind: "number", name: "floors", label: "Floors", required: true, integer: true, min: 1, max: 4 },
       { kind: "text", name: "location", label: "City or area", required: true, min: 2, max: 120 },

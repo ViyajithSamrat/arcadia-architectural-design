@@ -317,3 +317,23 @@ describe("who writes the description step (R1-C: customers cannot write the tran
     expect(svc.rows("projects")[0].transcript_original ?? null).toBeNull();
   });
 });
+
+describe("an English translation used for a Tamil transcript", () => {
+  const tamil = "எனக்கு ஒரு ஹவுஸ் வேணும், 3 பெட்ரூம்";
+  const english = "I want a house with 3 bedrooms.";
+
+  it("saves the English as the description and keeps the Tamil original and its language", async () => {
+    const result = await save(english, chosen(tamil, english, { source: "gnani", sourceLanguage: "ta-IN" }), { liveTranscription: true });
+    expect(result).toMatchObject({ ok: true });
+    expect(row()).toMatchObject({ transcript_original: tamil, transcript_corrected: english, source_language: "ta-IN" });
+    expect((row().requirements_json as Record<string, Record<string, unknown>>).description.text).toBe(english);
+  });
+
+  it("stores nothing as a transcript when the provenance was signed for different Tamil text", async () => {
+    const forged = chosen("வேறு உரை", english, { source: "gnani", sourceLanguage: "ta-IN" });
+    expect(await save(english, { ...forged, original: tamil }, { liveTranscription: true })).toMatchObject({ ok: true });
+    expect(row().transcript_original ?? null).toBeNull();
+    expect(row().transcript_corrected ?? null).toBeNull();
+    expect(row().source_language).toBe("en");
+  });
+});

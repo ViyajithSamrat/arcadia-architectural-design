@@ -11,7 +11,7 @@ export function QuoteTable({ quote }: { quote: StoredQuote }) {
   const demo = isDemoVersion(quote.pricingRuleVersion);
   const money = (major: number) => formatMoney(Math.round(major * 100), cur);
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       {demo ? (
         <Notice tone="warning" title="Demo rates">
           <p>
@@ -20,55 +20,61 @@ export function QuoteTable({ quote }: { quote: StoredQuote }) {
           </p>
         </Notice>
       ) : null}
-      <div className="overflow-x-auto rounded-lg border border-border bg-surface">
-        <table className="w-full min-w-[32rem] border-collapse text-left text-sm">
-          <caption className="sr-only">Itemized quote in {cur}</caption>
-          <thead>
-            <tr className="border-b border-border">
-              <th scope="col" className="px-4 py-3 font-semibold">Item</th>
-              <th scope="col" className="px-4 py-3 font-semibold">Quantity</th>
-              <th scope="col" className="px-4 py-3 text-right font-semibold">Rate</th>
-              <th scope="col" className="px-4 py-3 text-right font-semibold">Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            {quote.lines.map((l) => (
-              <tr key={l.key} className="border-b border-border last:border-0">
-                <th scope="row" className="px-4 py-3 font-normal">
-                  {l.label}
-                  {l.includedQuantity > 0 ? (
-                    <span className="block text-muted">{l.includedQuantity} included</span>
-                  ) : null}
-                </th>
-                <td className="px-4 py-3">
-                  {l.quantity} × {l.unit}
-                </td>
-                <td className="px-4 py-3 text-right">{formatMoney(l.rateMinor, cur)}</td>
-                <td className="px-4 py-3 text-right">{formatMoney(l.amountMinor, cur)}</td>
+      <div className="overflow-hidden rounded-[4px] border border-border bg-paper shadow-soft print:shadow-none">
+        <div className="flex flex-wrap items-baseline justify-between gap-3 border-b border-border px-6 py-5 sm:px-8">
+          <p className="font-display text-2xl font-medium">Quotation</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">Amounts in {cur}</p>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[32rem] border-collapse text-left text-sm">
+            <caption className="sr-only">Itemized quote in {cur}</caption>
+            <thead>
+              <tr className="border-b border-border text-xs uppercase tracking-[0.12em] text-muted">
+                <th scope="col" className="px-6 py-3 font-semibold sm:pl-8">Item</th>
+                <th scope="col" className="px-4 py-3 font-semibold">Quantity</th>
+                <th scope="col" className="px-4 py-3 text-right font-semibold">Rate</th>
+                <th scope="col" className="px-6 py-3 text-right font-semibold sm:pr-8">Amount</th>
               </tr>
-            ))}
-          </tbody>
-          <tfoot>
-            <tr className="border-t border-border">
-              <th scope="row" colSpan={3} className="px-4 py-2 text-right font-normal">Subtotal</th>
-              <td className="px-4 py-2 text-right">{money(quote.subtotal)}</td>
-            </tr>
-            <tr>
-              <th scope="row" colSpan={3} className="px-4 py-2 text-right font-normal">Taxes and fees</th>
-              <td className="px-4 py-2 text-right">{money(quote.taxAmount)}</td>
-            </tr>
-            {quote.discountAmount > 0 ? (
+            </thead>
+            <tbody>
+              {quote.lines.map((l) => (
+                <tr key={l.key} className="border-b border-border/70 last:border-0">
+                  <th scope="row" className="px-6 py-4 align-top font-medium sm:pl-8">
+                    {l.label}
+                    {l.includedQuantity > 0 ? (
+                      <span className="block font-normal text-muted">{l.includedQuantity} included</span>
+                    ) : null}
+                  </th>
+                  <td className="px-4 py-4 align-top text-muted">
+                    {l.quantity} × {l.unit}
+                  </td>
+                  <td className="px-4 py-4 text-right align-top text-muted">{formatMoney(l.rateMinor, cur)}</td>
+                  <td className="px-6 py-4 text-right align-top font-medium sm:pr-8">{formatMoney(l.amountMinor, cur)}</td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot className="bg-surface">
+              <tr className="border-t border-border">
+                <th scope="row" colSpan={3} className="px-6 pb-1 pt-4 text-right font-normal text-muted sm:pl-8">Subtotal</th>
+                <td className="px-6 pb-1 pt-4 text-right sm:pr-8">{money(quote.subtotal)}</td>
+              </tr>
               <tr>
-                <th scope="row" colSpan={3} className="px-4 py-2 text-right font-normal">Discount</th>
-                <td className="px-4 py-2 text-right">-{money(quote.discountAmount)}</td>
+                <th scope="row" colSpan={3} className="px-6 py-1 text-right font-normal text-muted sm:pl-8">Taxes and fees</th>
+                <td className="px-6 py-1 text-right sm:pr-8">{money(quote.taxAmount)}</td>
               </tr>
-            ) : null}
-            <tr className="border-t border-border text-base font-semibold">
-              <th scope="row" colSpan={3} className="px-4 py-3 text-right">Total ({cur})</th>
-              <td className="px-4 py-3 text-right">{money(quote.totalAmount)}</td>
-            </tr>
-          </tfoot>
-        </table>
+              {quote.discountAmount > 0 ? (
+                <tr>
+                  <th scope="row" colSpan={3} className="px-6 py-1 text-right font-normal text-muted sm:pl-8">Discount</th>
+                  <td className="px-6 py-1 text-right sm:pr-8">-{money(quote.discountAmount)}</td>
+                </tr>
+              ) : null}
+              <tr className="border-t border-border-strong">
+                <th scope="row" colSpan={3} className="px-6 py-5 text-right text-base font-semibold sm:pl-8">Total ({cur})</th>
+                <td className="px-6 py-5 text-right font-display text-3xl font-semibold leading-none sm:pr-8">{money(quote.totalAmount)}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
       </div>
       <p className="text-sm text-muted">
         {quote.validUntil ? `Valid until ${dateFormat.format(new Date(quote.validUntil))}. ` : ""}

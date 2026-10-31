@@ -115,7 +115,7 @@ export function Configurator() {
               </button>
             </div>
             <p className="pl-note" aria-live="polite">
-              {heard || "Voice input is not configured. Typing works everywhere."}
+              {heard || "This preview reads typing only. In a real project, voice input is offered where it is switched on."}
             </p>
           </div>
 

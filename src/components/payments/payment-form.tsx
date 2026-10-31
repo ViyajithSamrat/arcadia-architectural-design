@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useRef, useState, type FormEvent, type ReactNode } from "react";
 import { Notice } from "@/components/journey/notice";
-import { buttonPrimary, input } from "@/components/journey/styles";
+import { buttonPrimary, fileInput, input } from "@/components/journey/styles";
 
 const MAX_BYTES = 5 * 1024 * 1024;
 
@@ -105,7 +105,7 @@ export function PaymentForm({ projectId, defaultAmount, currency }: { projectId:
       </Field>
 
       <Field id="pay-evidence" label="Receipt image (optional)" hint="JPEG, PNG or WebP, up to 5 MB. It stays private and is seen only by you and the reviewer." error={errors.evidence}>
-        <input id="pay-evidence" name="evidence" type="file" accept="image/jpeg,image/png,image/webp" aria-invalid={errors.evidence ? true : undefined} aria-describedby={describe("pay-evidence", true, errors.evidence)} className={`${input} mt-1 py-2`} />
+        <input id="pay-evidence" name="evidence" type="file" accept="image/jpeg,image/png,image/webp" aria-invalid={errors.evidence ? true : undefined} aria-describedby={describe("pay-evidence", true, errors.evidence)} className={`mt-2 ${fileInput}`} />
       </Field>
 
       {message ? (

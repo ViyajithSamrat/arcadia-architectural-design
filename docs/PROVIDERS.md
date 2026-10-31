@@ -1,18 +1,21 @@
 # Provider verification status (Phase 5)
 
-Written 2026-10-18. This records what was verified, how, and what is still unknown. **No call to OpenRouter or Gnani has been made from this code base**: every adapter is tested only with a fake `fetch`, and the default test run blocks the real network (`tests/unit/support/no-network.ts`). "Documented" below means "read in the provider's official documentation", not "tested against the service".
+Written 2026-10-18. This records what was verified, how, and what is still unknown. **Update 2026-10-29:** this file was written before any live call. On 2026-10-28 the OpenRouter text and image adapters ran against the real service and Gnani refused the configured key; see "Live verification (2026-10-28)" at the end. The tables below describe what was known on 2026-10-18. Adapters are still tested with a fake `fetch`, and the default test run blocks the real network (`tests/unit/support/no-network.ts`). "Documented" below means "read in the provider's official documentation", not "tested against the service".
 
 ## Modes
 
 - `PROVIDER_MODE` unset or `mock`: the labelled mock brief provider. No network, no usage records.
 - `PROVIDER_MODE=live`: OpenRouter for the brief, only if `OPENROUTER_API_KEY` and `OPENROUTER_TEXT_MODEL` are set; otherwise the brief says it is unavailable. It never falls back to the mock silently.
+- `PROVIDER_MODE` also decides the image generator: `mock` is the labelled placeholder generator (no network, no cost); `live` is the OpenRouter image model when its settings are complete, otherwise generation is unavailable and never becomes the mock. The generation queue (`/admin/generation`) says which of the three this server is in.
+- Transcript translation is decided by `TRANSLATION_MODE` alone: unset or `off` is off, `live` is OpenRouter (only with the key and text model set), anything else is unavailable.
+- **A mock-only run therefore sets all three switches** (`PROVIDER_MODE=mock`, `TRANSLATION_MODE=off`, `GNANI_VOICE_ENABLED=mock`); `PROVIDER_MODE=mock` alone leaves translation and live voice as `.env.local` says. The Windows commands are in `docs/DEMO_SCRIPT.md`.
 - Voice input is decided by `GNANI_VOICE_ENABLED` alone, independent of `PROVIDER_MODE`: unset means **off**, `mock` means the labelled mock transcriber (no network, no credits), and `true` means live only if `getGnaniSttReadiness` passes. Live speech-to-text is **unreachable** while `LIVE_STT_WIRED` is `false` (see "Voice input (R1-A)" below). Text-to-speech has an adapter but no route or screen.
 
 ## OpenRouter (text, brief)
 
 | Item | Finding | Status |
 |---|---|---|
-| Endpoint | `POST https://openrouter.ai/api/v1/chat/completions`, `Authorization: Bearer <key>`, optional `HTTP-Referer` and `X-Title` | documented |
+| Endpoint | `POST https://openrouter.ai/api/v1/chat/completions`, `Authorization: Bearer <key>`, optional `HTTP-Referer` and `X-OpenRouter-Title` | documented |
 | Structured output | `response_format: {type: "json_schema", json_schema: {name, strict, schema}}`; support is per endpoint, so the request also sets `provider.require_parameters: true` | documented; the exact type of `message.content` is not stated, so the adapter accepts a string or an object |
 | Free models | ids ending `:free`; 20 requests/minute; 50 requests/day with under $10 of credits ever purchased (1000/day otherwise); HTTP 429 beyond that | documented |
 | Privacy of free models | not stated on the limits page | **unknown: use synthetic demo data only** |
@@ -141,3 +144,34 @@ Server boundaries (the screens only ask; none of this is enforced by hiding a bu
 ## Tests: mocked versus live
 
 The Phase 5 adapter tests are mocked (fake `fetch`, fake database client, in-memory Postgres). The budget guard is additionally tested against the real LOCAL PostgreSQL stack (`tests/live/ai-usage-live.live.test.ts`; no provider is contacted). The Phase 6A mock image path is tested by `tests/unit/image-provider.test.ts`, `generation-prompt.test.ts` and `generation-service.test.ts` (fake client) and against the real local stack by `tests/live/generation-live.live.test.ts` (real guards, storage and release; no network beyond the local stack). No live OpenRouter, Gnani or image-provider test exists. Live smoke tests, when approved, must be separate opt-in scripts (`LIVE_OPENROUTER=1`, `LIVE_GNANI=1`) using synthetic data. The Phase 6A-2 screens' data layer and actions are covered by `generation-read.test.ts`, `generation-actions.test.ts` and `generation-components.test.ts` (markup rendered on the server; no clicks), and the release guard proposal by `tests/db/release-invariant.test.ts`. Results recorded during the Phase 6A-2 task (2026-10-20): `npm test` 37 files / 756 tests; full local live suite 4 files / 103 tests (one earlier run stalled for about ten minutes in an unrelated ledger test and failed, two reruns passed; cause not identified); a 24-check HTTP smoke of the real pages as anonymous, stranger, owner and administrator. No browser click-through test exists or was run.
+
+## Added in the real-integration pass (2026-10-21): written, never run against a real service
+
+Everything below is tested only with a fake network. Configuration presence is not proof that an API works.
+
+| Item | State |
+|---|---|
+| Live speech-to-text | `LIVE_STT_WIRED = true`. The adapter (`src/lib/providers/gnani.ts`) is used only when `GNANI_VOICE_ENABLED=true` and every setting is present; otherwise voice shows as unavailable (never the mock). Gnani documents two endpoint path variants, so the path is a setting the owner must confirm against the account. No automatic retries. Credits are estimated from owner-supplied rates (Gnani publishes none) and reserved in the budget guard first; the 5,000-credit ceiling cannot be raised. |
+| Spoken read-back (TTS) | `src/lib/voice/readback.ts` and `POST /api/projects/[id]/readback`. English `en-IN` only; speaks only the server-stored summary; consent required because the text goes to Gnani; 5 requests a minute per user; audio is returned once and never stored. Needs `en-IN` in `GNANI_LANGUAGES`, `GNANI_TTS_*`, `GNANI_CREDITS_PER_TTS_CHAR` and the voice settings. |
+| Live image generation | `src/lib/providers/openrouter-image.ts`: `POST /images` with `b64_json`, one request per view, sequential, one retry only on 429/502/503 (not billed), never on a timeout. Output is validated (magic bytes, dimensions, 5 MiB bucket limit). Usage is metered in its own `image` unit (cost from the response when present). Defaults: 1K, 16:9, JPEG, 90 s per image, 6 images per customer per hour, 20 per day overall. Needs migration `20261022000100_ai_usage_images.sql` applied to the target database (applied to the local database on 2026-10-22; not to any hosted one). |
+| Reference photos to the image service | Off unless `OPENROUTER_IMAGE_REFERENCES=true` in live mode; at most three photos, 8 MiB in total. The upload screen states which applies. |
+| Documentation check 2026-10-22 | Gnani docs (docs.gnani.ai): STT `POST https://api.vachana.ai/stt/v3` (multipart `audio_file`, `language_code`; `ta-IN` and `en-IN` listed; 60 s limit, one page says 30 s), TTS `POST https://api.vachana.ai/api/v1/tts/inference` (models `timbre-v2.5`, `timbre-v3.0`; `en-IN` listed; voices are model-specific, pick one from the voice catalog; `speed` 0.85 to 1.15). The earlier "two path variants" were documentation page paths, not API paths. Credits, prices and rate limits are NOT documented; the only mention is that a 403 can mean no credits. Language support is documented but not verified on the owner's account. |
+| Header rename | OpenRouter's current attribution header is `X-OpenRouter-Title` (the brief adapter used `X-Title`; changed and tested). |
+
+## Live verification (2026-10-28)
+
+Budget for the pass: US$0.50 OpenRouter, 5,000 Gnani credits. Spent: **US$0.0428** OpenRouter (one 2K
+image about US$0.040; one smoke brief and three app briefs under US$0.001 each), **0** Gnani credits.
+
+| Provider call | Result | Evidence |
+|---|---|---|
+| OpenRouter key and models (free reads) | Key valid, own limit US$1, expires 2026-10-29 13:00 UTC. Text model listed with structured outputs. The image model is listed only under `/models?output_modalities=...` (the smoke guard now reads `output_modalities=all`) | `GET /api/v1/key`, `GET /api/v1/models` |
+| OpenRouter structured brief | **Passed** (smoke test) and **passed through the app**: three briefs, ledger rows `openrouter / brief / SUCCEEDED`, numbers kept exactly | `npm run smoke:providers` (filtered), browser run on the production build |
+| OpenRouter image | First attempt **400**: seedream-4.5 needs at least 3,686,400 output pixels and `1K` at 16:9 is 1024 x 576. After setting `OPENROUTER_IMAGE_RESOLUTION=2K` and `OPENROUTER_IMAGE_FORMAT=jpeg`: **passed** (one image, decoded and validated). Not yet run through the admin generation screen | smoke test |
+| Gnani speech-to-text and text-to-speech | **Refused: `403 API_KEY_INACTIVE`** for the configured key (without the header Gnani answers `401 MISSING_API_KEY`, so the `X-API-Key-ID` header name is right). No credits used | one unbillable request with an empty body |
+
+The smoke guard (`tests/provider-smoke/openrouter-guard.ts`) now caps a pass at US$0.50
+(`SMOKE_PASS_BUDGET_USD`) and US$0.25 per request, separately from the US$5 ceiling on the key's own
+limit. `SMOKE_STT_WAV` points the speech-to-text smoke test at a real speech recording (16 kHz mono WAV);
+the fixture used on 2026-10-28 was synthesised by the Windows voice "Microsoft Hazel", not a human.
+

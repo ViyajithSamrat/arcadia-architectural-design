@@ -5,7 +5,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import { getCustomerResults, getGenerationDetail, listGenerationQueue } from "@/lib/generation/read";
-import { clearStaleJob, releaseProject, startGeneration } from "@/lib/generation/service";
+import { clearStaleJob, releaseProject, removeLeftoverFiles, startGeneration } from "@/lib/generation/service";
 import { mockBriefProvider } from "@/lib/journeys/brief";
 import { acceptQuote, createBrief, createDraftProject, createQuote, getLatestQuote, reviewBrief, saveStep } from "@/lib/journeys/service";
 import { sniffImage } from "@/lib/payments/evidence";
@@ -105,8 +105,8 @@ describe.skipIf(!ENABLED)("live local Supabase: mock generation and controlled r
     anon = createClient(URL_, ANON, { auth: { persistSession: false, autoRefreshToken: false } });
     for (const label of ["a", "b", "admin"] as const) await makeUser(label);
     sql(`insert into public.admin_users (user_id) values ('${users.admin.id}')`);
-    sql("delete from public.pricing_rules; delete from public.site_settings where key = 'pricing_mode'");
-    sql("", readFileSync(path.join(process.cwd(), "supabase/demo/pricing_rules.demo.sql"), "utf8"));
+    // Non-destructive: load the labelled demo rates only into an empty table, never replace existing ones.
+    if (sql("select count(*) from public.pricing_rules") === "0") sql("", readFileSync(path.join(process.cwd(), "supabase/demo/pricing_rules.demo.sql"), "utf8"));
     verified = await walk("a", "EMPTY_PLOT", "PAYMENT_VERIFIED");
     failing = await walk("a", "LANDSCAPE", "PAYMENT_VERIFIED");
     unpaid = await walk("b", "INTERIOR", "AWAITING_PAYMENT");
@@ -415,6 +415,21 @@ describe.skipIf(!ENABLED)("live local Supabase: mock generation and controlled r
       expect(await getCustomerResults(users.b.client, users.b.id, leftover)).toEqual({ state: "pending", status: "READY_FOR_REVIEW" });
       // And a new generation cannot be layered on top of it.
       expect(await startGeneration(users.admin.client, service, { projectId: leftover, idempotencyKey: key("on-top") }, { env: {} })).toMatchObject({ ok: false, code: "not_eligible" });
+    });
+
+    it("an administrator can then clear the leftover (audited, only the failed attempt's file), after which release works", async () => {
+      const goodFiles = count(`select count(*) from public.design_assets d join public.generation_jobs j on j.id = d.generation_job_id where d.project_id = '${leftover}' and j.status = 'SUCCEEDED'`);
+      await expect(removeLeftoverFiles(users.b.client, service, leftover)).rejects.toMatchObject({ status: 403 });
+      expect(await removeLeftoverFiles(users.admin.client, service, leftover)).toMatchObject({ ok: true, removedRows: 1 });
+      expect(sql(`select count(*) from public.audit_events where project_id = '${leftover}' and action = 'generation.admin_cleared_leftovers' and actor_id = '${users.admin.id}'`)).toBe("1");
+      expect(count(`select count(*) from public.design_assets d join public.generation_jobs j on j.id = d.generation_job_id where d.project_id = '${leftover}' and j.status = 'SUCCEEDED'`)).toBe(goodFiles);
+      expect(count(`select count(*) from public.design_assets where project_id = '${leftover}' and generation_job_id is not null`)).toBe(goodFiles);
+      const detail = await getGenerationDetail(users.admin.client, leftover);
+      expect(detail).toMatchObject({ leftoverCount: 0 });
+      expect(detail!.releaseBlockers).toEqual([]);
+      // nothing was released by the clearing itself
+      expect(count(`select count(*) from public.design_assets where project_id = '${leftover}' and is_released`)).toBe(0);
+      expect(status(leftover)).toBe("READY_FOR_REVIEW");
     });
   });
 

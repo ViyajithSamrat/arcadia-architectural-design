@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { GnaniConfig } from "./config";
+import type { GnaniSttConfig, GnaniTtsConfig } from "./config";
 import { ProviderError, type ProviderHooks, type SpeechToTextProvider, type TextToSpeechProvider } from "./interfaces";
 import { logProviderCall } from "./log";
 
@@ -61,7 +61,7 @@ async function send(doFetch: typeof fetch, url: string, init: RequestInit, timeo
 }
 
 export function createGnaniSttProvider(
-  config: Pick<GnaniConfig, "apiKey" | "baseUrl" | "sttPath" | "timeoutMs" | "languages">,
+  config: Pick<GnaniSttConfig, "apiKey" | "baseUrl" | "sttPath" | "timeoutMs" | "languages">,
   deps: { fetch?: typeof fetch } = {},
 ): SpeechToTextProvider {
   const doFetch = deps.fetch ?? fetch;
@@ -112,7 +112,7 @@ export function createGnaniSttProvider(
   };
 }
 
-export function createGnaniTtsProvider(config: GnaniConfig, deps: { fetch?: typeof fetch } = {}): TextToSpeechProvider {
+export function createGnaniTtsProvider(config: GnaniTtsConfig, deps: { fetch?: typeof fetch } = {}): TextToSpeechProvider {
   const doFetch = deps.fetch ?? fetch;
   return {
     id: "gnani",

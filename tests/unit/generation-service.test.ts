@@ -353,19 +353,8 @@ describe("startGeneration: provider and output failures", () => {
   });
 
   it("removes files and records when saving the second asset fails", async () => {
-    const original = db.client();
-    let inserts = 0;
-    const flaky = new Proxy(original, {
-      get(target, prop, receiver) {
-        if (prop !== "from") return Reflect.get(target, prop, receiver);
-        return (table: string) => {
-          if (table === "design_assets" && ++inserts === 2) db.failNext = { table: "design_assets", op: "insert" };
-          return (target.from as (t: string) => unknown)(table);
-        };
-      },
-    });
-    // count only asset inserts: the first from("design_assets") is the "existing assets" read
-    const result = await startGeneration(session(), flaky as SupabaseClient, { projectId: PROJECT, idempotencyKey: KEY }, { provider: createMockImageProvider(), env: {} });
+    db.failAssetInsertAt = 2;
+    const result = await startGeneration(session(), db.client(), { projectId: PROJECT, idempotencyKey: KEY }, { provider: createMockImageProvider(), env: {} });
     expect(result).toMatchObject({ ok: false, code: "failed" });
     expect(row("design_assets")).toHaveLength(0);
     expect(db.objects.size).toBe(0);
@@ -374,19 +363,9 @@ describe("startGeneration: provider and output failures", () => {
   });
 
   it("when cleanup itself fails, flags it and blocks a retry until an administrator clears the files", async () => {
-    const original = db.client();
-    let inserts = 0;
-    const flaky = new Proxy(original, {
-      get(target, prop, receiver) {
-        if (prop !== "from") return Reflect.get(target, prop, receiver);
-        return (table: string) => {
-          if (table === "design_assets" && ++inserts === 3) db.failNext = { table: "design_assets", op: "insert" };
-          if (table === "design_assets" && inserts > 3) db.failNext = { table: "design_assets", op: "delete" };
-          return (target.from as (t: string) => unknown)(table);
-        };
-      },
-    });
-    const result = await startGeneration(session(), flaky as SupabaseClient, { projectId: PROJECT, idempotencyKey: KEY }, { provider: createMockImageProvider(), env: {} });
+    db.failAssetInsertAt = 2;
+    db.failDeleteAfterAssetFailure = true;
+    const result = await startGeneration(session(), db.client(), { projectId: PROJECT, idempotencyKey: KEY }, { provider: createMockImageProvider(), env: {} });
     expect(result).toMatchObject({ ok: false, code: "failed" });
     expect(jobs()[0].error_summary).toContain("Cleanup incomplete");
     expect(row("design_assets").length).toBeGreaterThan(0);
@@ -422,8 +401,9 @@ describe("startGeneration: usage reservation (for a future metered provider)", (
     db.rpcHandlers.ai_usage_finish = () => ({ data: null });
     const { provider, calls } = spyProvider({ usage: plan });
     expect(await start(provider)).toMatchObject({ ok: true });
-    expect(db.rpcCalls.map((c) => c.name)).toEqual(["ai_usage_reserve", "ai_usage_finish"]);
-    expect(db.rpcCalls[1].args).toMatchObject({ p_status: "SUCCEEDED" });
+    const usageCalls = db.rpcCalls.filter((c) => c.name.startsWith("ai_usage_"));
+    expect(usageCalls.map((c) => c.name)).toEqual(["ai_usage_reserve", "ai_usage_finish"]);
+    expect(usageCalls[1].args).toMatchObject({ p_status: "SUCCEEDED" });
     expect(calls).toHaveLength(1);
   });
 
@@ -449,7 +429,7 @@ describe("startGeneration: usage reservation (for a future metered provider)", (
     db.rpcHandlers.ai_usage_finish = () => ({ data: null });
     const { provider } = spyProvider({ usage: plan, generate: async () => { throw new ProviderError("server", "x"); } });
     await start(provider);
-    expect(db.rpcCalls[1].args).toMatchObject({ p_status: "FAILED" });
+    expect(db.rpcCalls.find((c) => c.name === "ai_usage_finish")?.args).toMatchObject({ p_status: "FAILED" });
   });
 });
 
@@ -580,7 +560,7 @@ describe("clearStaleJob: an abandoned job never blocks a project for ever, a slo
   const ago = (minutes: number) => new Date(NOW - minutes * MIN).toISOString();
   const stuck = (jobPatch: Record<string, unknown> = {}) => {
     const fake = new FakeDb()
-      .seed("projects", [project({ status: "GENERATING" })])
+      .seed("projects", [project({ status: "GENERATING", updated_at: ago(30) })])
       .seed("generation_jobs", [
         { id: "old", project_id: PROJECT, status: "FAILED", created_at: ago(120), idempotency_key: "k-old-0123456789abcd" },
         { id: "j1", project_id: PROJECT, status: "RUNNING", created_at: ago(30), started_at: ago(25), idempotency_key: "k-j1-0123456789abcde", ...jobPatch },
@@ -674,6 +654,157 @@ describe("clearStaleJob: an abandoned job never blocks a project for ever, a slo
     expect(spy.calls).toHaveLength(1);
     expect((fake.rows("projects")[0] as { status: string }).status).toBe("READY_FOR_REVIEW");
   });
+
+  describe("the job leaves RUNNING before any file is touched", () => {
+    it("writes the FAILED job before it removes an object or a row", async () => {
+      const fake = stuck();
+      expect(await clear(fake)).toEqual({ ok: true });
+      const ops = fake.writes.map((w) => `${w.table}.${w.op}`);
+      expect(ops.indexOf("generation_jobs.update")).toBeGreaterThan(-1);
+      expect(ops.indexOf("generation_jobs.update")).toBeLessThan(ops.indexOf("design_assets.delete"));
+      // the first job write is the one that ended the job, and the storage removal came after it
+      expect(fake.writes.find((w) => w.table === "generation_jobs")?.payload).toMatchObject({ status: "FAILED", error_code: "STALE_ABANDONED" });
+      expect(fake.removals).toEqual([`${PROJECT}/generated/own.png`]);
+    });
+
+    it("refuses a late asset insert for the cleared job and stores nothing, while the job was ended first", async () => {
+      const fake = stuck();
+      expect(await clear(fake)).toEqual({ ok: true });
+      const late = await fake.client().rpc("insert_generated_asset", {
+        p_project_id: PROJECT, p_job_id: "j1", p_asset_type: "EXTERIOR_CONCEPT", p_storage_path: `${PROJECT}/generated/late.png`, p_mime_type: "image/png", p_width: 1, p_height: 1,
+      });
+      expect(late.error).toMatchObject({ code: "23514" });
+      expect(fake.rows("design_assets")).toHaveLength(0);
+    });
+
+    it("says 'Cleanup pending' until the cleanup really finished, and the final summary is clean on success", async () => {
+      const fake = stuck();
+      await clear(fake);
+      const summaries = fake.writes.filter((w) => w.table === "generation_jobs").map((w) => w.payload.error_summary);
+      expect(summaries[0]).toContain("Cleanup pending");
+      expect(fake.rows("generation_jobs").find((j) => j.id === "j1")?.error_summary).toBe("The job was interrupted and cleared by an administrator.");
+    });
+
+    it("when the storage removal fails, the job is already FAILED, the row stays as a leftover and the summary says incomplete", async () => {
+      const fake = stuck();
+      fake.failRemove = true;
+      expect(await clear(fake)).toEqual({ ok: true });
+      expect(fake.rows("generation_jobs").find((j) => j.id === "j1")).toMatchObject({ status: "FAILED", error_code: "STALE_ABANDONED" });
+      expect(fake.rows("generation_jobs").find((j) => j.id === "j1")?.error_summary).toContain("Cleanup incomplete");
+      expect(fake.rows("design_assets").map((a) => a.id)).toEqual(["own"]); // the row is the only record of the file
+      expect((fake.rows("projects")[0] as { status: string }).status).toBe("GENERATION_FAILED");
+    });
+
+    it("if the summary cannot be updated afterwards it still reads 'Cleanup pending', never clean", async () => {
+      const fake = stuck();
+      fake.failRemove = true;
+      let jobWrites = 0;
+      const client = fake.client();
+      const wrapped = new Proxy(client, {
+        get(target, prop, receiver) {
+          if (prop !== "from") return Reflect.get(target, prop, receiver);
+          return (table: string) => {
+            if (table === "generation_jobs" && ++jobWrites === 3) fake.failNext = { table: "generation_jobs", op: "update" }; // 1 = read jobs, 2 = end the job, 3 = record outcome
+            return (target.from as (t: string) => unknown)(table);
+          };
+        },
+      }) as SupabaseClient;
+      expect(await clearStaleJob(session(), wrapped, PROJECT, { now: () => NOW })).toEqual({ ok: true });
+      expect(fake.rows("generation_jobs").find((j) => j.id === "j1")?.error_summary).toContain("Cleanup pending");
+    });
+
+    it("changes nothing when the job write fails: files stay, the job stays RUNNING, the project stays GENERATING", async () => {
+      const fake = stuck();
+      fake.failNext = { table: "generation_jobs", op: "update" };
+      expect(await clear(fake)).toMatchObject({ ok: false, message: expect.stringContaining("changed while it was being cleared") });
+      expect(fake.rows("generation_jobs").find((j) => j.id === "j1")).toMatchObject({ status: "RUNNING" });
+      expect(fake.rows("design_assets").map((a) => a.id)).toEqual(["own"]);
+      expect(fake.removals).toHaveLength(0);
+      expect((fake.rows("projects")[0] as { status: string }).status).toBe("GENERATING");
+    });
+
+    it("finishes an interrupted clearing on retry: cleans the leftovers and frees the project, with no second job write to FAILED", async () => {
+      const fake = stuck();
+      // First attempt: the job is ended, the project move is lost (the project stays GENERATING).
+      fake.failNext = { table: "projects", op: "update" };
+      expect(await clear(fake)).toMatchObject({ ok: false, message: expect.stringContaining("project could not be updated") });
+      expect((fake.rows("projects")[0] as { status: string }).status).toBe("GENERATING");
+      expect(fake.rows("generation_jobs").find((j) => j.id === "j1")).toMatchObject({ status: "FAILED", error_code: "STALE_ABANDONED" });
+      fake.failNext = null;
+      fake.tables.generation_jobs.find((j) => j.id === "j1")!.completed_at = ago(5);
+
+      // Retry: no active job, but an abandoned one settled for over a minute.
+      const statusWritesBefore = fake.writes.filter((w) => w.table === "generation_jobs" && w.payload.status === "FAILED").length;
+      expect(await clear(fake)).toEqual({ ok: true });
+      expect(fake.writes.filter((w) => w.table === "generation_jobs" && w.payload.status === "FAILED")).toHaveLength(statusWritesBefore);
+      expect((fake.rows("projects")[0] as { status: string }).status).toBe("GENERATION_FAILED");
+      expect(fake.rows("audit_events").at(-1)).toMatchObject({ metadata_json: { job_id: "j1", resumed: true } });
+    });
+
+    /** A clearing that ended the job but lost the project move: GENERATING, a FAILED STALE_ABANDONED job, no active job. */
+    async function interruptedClearing() {
+      const fake = stuck();
+      fake.failNext = { table: "projects", op: "update" }; // the project move is the only project write of a clearing
+      expect(await clear(fake)).toMatchObject({ ok: false });
+      fake.failNext = null;
+      fake.tables.generation_jobs.find((j) => j.id === "j1")!.completed_at = ago(5);
+      // a file left on the ended job, so the second clearing has real cleanup to do (and a moment to be interleaved with)
+      fake.seed("design_assets", [{ id: "left", project_id: PROJECT, generation_job_id: "j1", storage_path: `${PROJECT}/generated/left.png` }]);
+      fake.objects.set(`project-files/${PROJECT}/generated/left.png`, new Uint8Array([1]));
+      expect((fake.rows("projects")[0] as { status: string }).status).toBe("GENERATING");
+      return fake;
+    }
+    const projectWrites = (fake: FakeDb) => fake.writes.filter((w) => w.table === "projects").map((w) => w.payload.status);
+
+    it("does not resume a project that was only just claimed again, whatever the age of the older failed job (stale-page clear)", async () => {
+      const fake = await interruptedClearing();
+      fake.tables.projects[0].updated_at = ago(0.2); // the fresh claim: no job yet
+      const writesBefore = fake.writes.length;
+      expect(await clear(fake)).toMatchObject({ ok: false, message: expect.stringContaining("no single interrupted job") });
+      expect(fake.writes).toHaveLength(writesBefore); // not even an audit event
+      expect((fake.rows("projects")[0] as { status: string }).status).toBe("GENERATING");
+      // the claiming run then creates its job exactly as before
+      const created = await fake.client().from("generation_jobs").insert({ id: "j-new", project_id: PROJECT, status: "RUNNING" }).select("id").single();
+      expect(created.error).toBeNull();
+      expect((fake.rows("projects")[0] as { status: string }).status).toBe("GENERATING");
+    });
+
+    it("a fresh claim that lands DURING the resumed clearing is not overwritten: the final move matches the stamp it read", async () => {
+      const fake = await interruptedClearing();
+      fake.beforeRemove = async () => {
+        // Someone else ends the interrupted attempt and claims the project again while this action is cleaning up.
+        const other = fake.client();
+        await other.from("projects").update({ status: "GENERATION_FAILED" }).eq("id", PROJECT);
+        await other.from("projects").update({ status: "GENERATING" }).eq("id", PROJECT);
+      };
+      const result = await clear(fake);
+      expect(result).toMatchObject({ ok: false, message: expect.stringContaining("changed while it was being cleared") });
+      expect((fake.rows("projects")[0] as { status: string }).status).toBe("GENERATING"); // the fresh claim survives
+      // (the clearing's own move was attempted but matched no row, so the claim's stamp is intact)
+      expect(fake.rows("projects")[0].updated_at).not.toBe(ago(30));
+      // and the claiming run can still create its job
+      expect((await fake.client().from("generation_jobs").insert({ id: "j-new", project_id: PROJECT, status: "RUNNING" }).select("id").single()).error).toBeNull();
+      expect(fake.rows("generation_jobs").find((j) => j.id === "j-new")).toMatchObject({ status: "RUNNING" });
+    });
+
+    it("a new job that appears DURING the clearing is not cut off: the project is left in GENERATING", async () => {
+      const fake = await interruptedClearing();
+      fake.beforeRemove = async () => {
+        await fake.client().from("generation_jobs").insert({ id: "j-new", project_id: PROJECT, status: "RUNNING", created_at: ago(0.1), started_at: ago(0.1) });
+      };
+      const writesBefore = projectWrites(fake).length;
+      expect(await clear(fake)).toMatchObject({ ok: false, message: expect.stringContaining("new generation run started") });
+      expect(projectWrites(fake)).toHaveLength(writesBefore);
+      expect((fake.rows("projects")[0] as { status: string }).status).toBe("GENERATING");
+      expect(fake.rows("generation_jobs").find((j) => j.id === "j-new")).toMatchObject({ status: "RUNNING" });
+    });
+
+    it("does not resume a clearing that ended less than a minute ago", async () => {
+      const fake = stuck({ status: "FAILED", error_code: "STALE_ABANDONED", completed_at: ago(0.2) });
+      expect(await clear(fake)).toMatchObject({ ok: false, message: expect.stringContaining("no single interrupted job") });
+      expect(fake.writes).toHaveLength(0);
+    });
+  });
 });
 
 describe("a request cleared as stale that is still running cannot corrupt a newer run", () => {
@@ -718,7 +849,8 @@ describe("a request cleared as stale that is still running cannot corrupt a newe
     expect(assets.every((a) => a.generation_job_id === newerJobId && a.is_released === false)).toBe(true);
     // the late request uploaded its own files and removed them again; only the newer run's remain
     expect([...db.objects.keys()].sort()).toEqual(assets.map((a) => `project-files/${a.storage_path}`).sort());
-    expect(db.uploads).toHaveLength(4);
+    // the late request's first insert is refused (its job is no longer RUNNING), so it never gets to a second file
+    expect(db.uploads).toHaveLength(3);
     expect(db.writes.some((w) => w.payload.is_released === true || w.payload.status === "RELEASED")).toBe(false);
     expect(db.rpcCalls.some((c) => c.name === "admin_release_project")).toBe(false);
   }

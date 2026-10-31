@@ -1,5 +1,6 @@
 import { isSet } from "@/lib/env/schema";
 import { getVoiceMode, LIVE_STT_WIRED } from "@/lib/journeys/voice";
+import { getGnaniTtsReadiness } from "@/lib/providers/config";
 
 /**
  * Integration status for optional services (Phase 1 foundation).
@@ -9,7 +10,7 @@ import { getVoiceMode, LIVE_STT_WIRED } from "@/lib/journeys/voice";
  * "configured_unverified" until a later phase tests it with the real provider.
  */
 
-export type IntegrationId = "supabase" | "openrouter" | "gnani" | "voice_input" | "payment_display";
+export type IntegrationId = "supabase" | "openrouter" | "gnani" | "voice_input" | "readback_audio" | "payment_display";
 
 /**
  * "mock_only": a labelled mock answers instead of the real service.
@@ -113,7 +114,7 @@ export function getVoiceInputStatus(raw: Record<string, string | undefined>): In
     case "off":
       return { ...base, state: "not_configured", missing: ["GNANI_VOICE_ENABLED"], message: "Not configured. Voice input is off, so descriptions are typed." };
     case "invalid":
-      return { ...base, state: "partial", missing: ["GNANI_VOICE_ENABLED (empty, mock or true)"], message: "GNANI_VOICE_ENABLED has a value that is not recognised, so voice input is unavailable." };
+      return { ...base, state: "partial", missing: ["GNANI_VOICE_ENABLED (empty, false, mock or true)"], message: "GNANI_VOICE_ENABLED has a value that is not recognised, so voice input is unavailable." };
     case "mock":
       return {
         ...base,
@@ -140,10 +141,29 @@ export function getVoiceInputStatus(raw: Record<string, string | undefined>): In
   }
 }
 
+const READBACK_LABEL = "Spoken read-back (text-to-speech)";
+
+/**
+ * Spoken read-back as the read-back route will actually behave. Names of missing settings only;
+ * never a value. "configured_unverified" means the settings are complete, not that Gnani answered.
+ */
+export function getReadbackStatus(raw: Record<string, string | undefined>): IntegrationStatus {
+  const base = { id: "readback_audio" as const, label: READBACK_LABEL, neededInPhase: 5 };
+  const readiness = getGnaniTtsReadiness(raw);
+  if (readiness.ready) {
+    return { ...base, state: "configured_unverified", missing: [], message: "Spoken read-back is switched on (English only). This does not confirm the service works; it has not been verified against Gnani." };
+  }
+  const switchedOn = isSet(raw, "GNANI_VOICE_ENABLED") && String(raw.GNANI_VOICE_ENABLED).trim().toLowerCase() === "true";
+  if (!switchedOn) {
+    return { ...base, state: "not_configured", missing: ["GNANI_VOICE_ENABLED=true"], message: "Not configured. The brief summary is shown as text." };
+  }
+  return { ...base, state: "partial", missing: readiness.missing, message: `Spoken read-back was requested but is unavailable. Still missing: ${readiness.missing.join(", ")}.` };
+}
+
 /** Status of every optional integration. Safe to expose: names and states only. */
 export function getIntegrationStatuses(raw: Record<string, string | undefined>): IntegrationStatus[] {
   const statuses = DEFINITIONS.map((def) => evaluate(def, raw));
   const gnani = statuses.findIndex((s) => s.id === "gnani");
-  statuses.splice(gnani + 1, 0, getVoiceInputStatus(raw));
+  statuses.splice(gnani + 1, 0, getVoiceInputStatus(raw), getReadbackStatus(raw));
   return statuses;
 }

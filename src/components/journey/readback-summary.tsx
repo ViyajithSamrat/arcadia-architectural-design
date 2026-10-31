@@ -1,12 +1,14 @@
 import { Notice } from "@/components/journey/notice";
+import { ReadbackAudio } from "@/components/journey/readback-audio";
 import { READBACK_TEXT_FALLBACK } from "@/lib/voice/copy";
 
 /**
- * The brief's read-back summary (PR-009). Spoken read-back needs a text-to-speech service, which
- * is not connected, so the summary stays visible as text and the screen says why; there is no
- * play button that could appear to work.
+ * The brief's read-back summary (PR-009). The summary is always shown as text. When the server
+ * has spoken read-back configured (`audioProjectId` given), a consent-gated Listen control sits
+ * under it; otherwise the screen says listening is not available. There is never a play button
+ * that could appear to work when it cannot.
  */
-export function ReadbackSummary({ text }: { text: string }) {
+export function ReadbackSummary({ text, audioProjectId }: { text: string; audioProjectId?: string | null }) {
   const summary = text.trim();
   return (
     <section aria-labelledby="readback-title" className="space-y-3">
@@ -18,9 +20,13 @@ export function ReadbackSummary({ text }: { text: string }) {
       ) : (
         <p className="text-muted">No separate summary was produced for this brief. The full brief is below.</p>
       )}
-      <Notice tone="info" title="Shown as text">
-        <p>{READBACK_TEXT_FALLBACK}</p>
-      </Notice>
+      {audioProjectId && summary ? (
+        <ReadbackAudio projectId={audioProjectId} />
+      ) : (
+        <Notice tone="info" title="Shown as text">
+          <p>{READBACK_TEXT_FALLBACK}</p>
+        </Notice>
+      )}
     </section>
   );
 }

@@ -61,6 +61,19 @@ describe("publishRuleVersion", () => {
     ]);
   });
 
+  it.each(["block of 500 sq ft", "sq-ft", "m2", "per sq. ft", "room/night"])("accepts the real-world unit %j", async (unit) => {
+    const db = new FakeDb();
+    expect(await publishRuleVersion(db.client(), { ...VALID, unit }, NOW)).toEqual({ ok: true, version: 1 });
+    expect(inserts(db)[0].payload).toMatchObject({ unit });
+  });
+
+  it.each(["500 sq ft", "-ft", "a<b", "a;b", "a\nb", "sq ft'--"])("still refuses the unit %j", async (unit) => {
+    const db = new FakeDb();
+    const result = await publishRuleVersion(db.client(), { ...VALID, unit }, NOW);
+    expect(result.ok).toBe(false);
+    expect(inserts(db)).toHaveLength(0);
+  });
+
   it("never edits a row: it adds the next version after every earlier one and carries the unused add-on rate over", async () => {
     const db = new FakeDb().seed("pricing_rules", [
       rule("layout_per_floor", { version: 1, add_on_rate: "25.00" }),

@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { AuthError } from "@/lib/auth/errors";
 import { requireAdmin } from "@/lib/auth/guards";
-import { clearStaleJob, releaseProject, startGeneration } from "@/lib/generation/service";
+import { clearStaleJob, releaseProject, removeLeftoverFiles, startGeneration } from "@/lib/generation/service";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
 
@@ -34,7 +34,7 @@ async function asAdmin(work: (supabase: Awaited<ReturnType<typeof createSupabase
   }
 }
 
-function done(projectId: string, flag: "started" | "released" | "cleared"): never {
+function done(projectId: string, flag: "started" | "released" | "cleared" | "leftovers"): never {
   revalidatePath("/admin/generation", "layout");
   revalidatePath(`/projects/${projectId}`, "layout");
   redirect(`/admin/generation/${projectId}?${flag}=1`);
@@ -67,4 +67,13 @@ export async function clearStaleJobAction(projectId: string, confirmed: boolean)
   const result = await asAdmin((supabase) => clearStaleJob(supabase, createSupabaseServiceClient(), projectId));
   if (!result.ok) return { ok: false, message: result.message };
   done(projectId, "cleared");
+}
+
+/** Removes files left behind by a failed attempt. Administrator only; the service refuses while a job runs or after release. */
+export async function removeLeftoverFilesAction(projectId: string, confirmed: boolean): Promise<GenerationActionState> {
+  if (!isId(projectId)) return BAD_REQUEST;
+  if (confirmed !== true) return { ok: false, message: "Confirm that you want to remove the leftover files." };
+  const result = await asAdmin((supabase) => removeLeftoverFiles(supabase, createSupabaseServiceClient(), projectId));
+  if (!result.ok) return { ok: false, message: result.message };
+  done(projectId, "leftovers");
 }

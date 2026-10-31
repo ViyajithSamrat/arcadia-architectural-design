@@ -60,13 +60,13 @@ export function RuleForm({ projectType, ruleKey, isTax, defaults }: { projectTyp
       className="space-y-4"
       onSubmit={(e) => {
         e.preventDefault();
-        const f = new FormData(e.currentTarget);
+        const form = e.currentTarget;
+        const f = new FormData(form);
         const value = (name: string) => String(f.get(name) ?? "").trim();
         const amount = (name: string) => (value(name) === "" ? Number.NaN : Number(value(name)));
         setState(undefined);
-        start(async () =>
-          setState(
-            await publishPricingRuleAction(
+        start(async () => {
+          const result = await publishPricingRuleAction(
               {
                 projectType,
                 ruleKey,
@@ -77,9 +77,11 @@ export function RuleForm({ projectType, ruleKey, isTax, defaults }: { projectTyp
                 currency: value("currency").toUpperCase(),
               },
               f.get("confirm") === "on",
-            ),
-          ),
-        );
+            );
+          setState(result);
+          // The confirmation applies to one publish only: never leave it ticked for the next one.
+          if (result === undefined) form.reset();
+        });
       }}
     >
       <div className="grid gap-4 sm:grid-cols-2">
@@ -87,7 +89,7 @@ export function RuleForm({ projectType, ruleKey, isTax, defaults }: { projectTyp
           {numberInput("rate")}
         </Field>
         {isTax ? null : (
-          <Field id={id("unit")} label="Unit" hint="For example floor, view or room." error={errors.unit}>
+          <Field id={id("unit")} label="Unit" hint="For example floor, view, room or sq ft." error={errors.unit}>
             <input id={id("unit")} name="unit" required maxLength={24} autoComplete="off" defaultValue={defaults.unit} aria-invalid={errors.unit ? true : undefined} aria-describedby={described("unit")} className={`${input} mt-1`} />
           </Field>
         )}

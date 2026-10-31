@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { clearStaleJobAction, releaseProjectAction, startGenerationAction, type GenerationActionState } from "@/app/(app)/admin/generation/actions";
+import { clearStaleJobAction, releaseProjectAction, removeLeftoverFilesAction, startGenerationAction, type GenerationActionState } from "@/app/(app)/admin/generation/actions";
 import { Notice } from "@/components/journey/notice";
 import { button, buttonPrimary } from "@/components/journey/styles";
 import { RELEASE_EXPLANATION } from "@/lib/generation/copy";
@@ -36,11 +36,17 @@ const START_TEXT: Record<StartMode, { button: string; busy: string; hint: string
  * treats as the same request. After a failure a fresh key is made, because a failed key
  * is never reused.
  */
-export function StartGenerationForm({ projectId, mode }: { projectId: string; mode: StartMode }) {
+/** Wording when the live image model is configured: the button spends real credits. */
+const LIVE_TEXT: Partial<Record<StartMode, { button: string; hint: string }>> = {
+  start: { button: "Generate concept images (live, uses credits)", hint: "Sends the approved brief to the configured AI image model. Each image is billed; there is no automatic retry." },
+  retry: { button: "Try live generation again (uses credits)", hint: "The last attempt failed and left nothing behind. This starts a new, billed attempt with the AI image model." },
+};
+
+export function StartGenerationForm({ projectId, mode, live = false }: { projectId: string; mode: StartMode; live?: boolean }) {
   const [pending, run] = useTransition();
   const [state, setState] = useState<GenerationActionState>(undefined);
   const [key, setKey] = useState(newKey);
-  const text = START_TEXT[mode];
+  const text = { ...START_TEXT[mode], ...(live ? LIVE_TEXT[mode] : undefined) };
   return (
     <form
       className="space-y-3"
@@ -120,6 +126,32 @@ export function ClearStaleJobForm({ projectId }: { projectId: string }) {
       <Failure state={state} />
       <button type="submit" className={`${button} border border-danger-fg text-danger-fg hover:bg-danger-bg`} disabled={pending} aria-busy={pending}>
         {pending ? "Clearing…" : "Clear the interrupted job"}
+      </button>
+    </form>
+  );
+}
+
+/** Removing files left by a failed attempt. The server refuses while a job runs and after release, and never touches a succeeded job's files. */
+export function RemoveLeftoverFilesForm({ projectId }: { projectId: string }) {
+  const [pending, run] = useTransition();
+  const [state, setState] = useState<GenerationActionState>(undefined);
+  return (
+    <form
+      className="space-y-3"
+      onSubmit={(e) => {
+        e.preventDefault();
+        const f = new FormData(e.currentTarget);
+        setState(undefined);
+        run(async () => setState(await removeLeftoverFilesAction(projectId, f.get("confirmed") === "on")));
+      }}
+    >
+      <label className="flex items-start gap-3">
+        <input type="checkbox" name="confirmed" required className="mt-1 size-5 accent-[var(--accent)]" />
+        <span>I understand that files from failed or unfinished attempts will be permanently removed. Files from a successful run are not touched, and nothing is released.</span>
+      </label>
+      <Failure state={state} />
+      <button type="submit" className={`${button} border border-danger-fg text-danger-fg hover:bg-danger-bg`} disabled={pending} aria-busy={pending}>
+        {pending ? "Removing…" : "Remove the leftover files"}
       </button>
     </form>
   );

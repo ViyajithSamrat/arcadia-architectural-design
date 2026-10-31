@@ -53,8 +53,11 @@ describe("mock brief provider", () => {
     expect(interior.missingOptionalDetails).toEqual(expect.arrayContaining(["Budget band"]));
     const plot = await briefFor("EMPTY_PLOT");
     expect(plot.missingOptionalDetails.join(" ")).toMatch(/Built-up area/);
-    // The uploads gap is stated plainly rather than pretending a photo was considered.
-    expect(plot.missingOptionalDetails.join(" ")).toMatch(/uploads are not configured/i);
+    // A new build has no reference upload, so no upload gap is claimed for it.
+    expect(plot.missingOptionalDetails.join(" ")).not.toMatch(/photo|upload/i);
+    // Interior and landscape say plainly that no photo was considered when none was uploaded.
+    expect(interior.missingOptionalDetails.join(" ")).toMatch(/none uploaded/i);
+    expect(landscape.missingOptionalDetails.join(" ")).toMatch(/none uploaded/i);
   });
 
   it("carries must-preserve features forward (interior)", async () => {
