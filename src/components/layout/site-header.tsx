@@ -1,4 +1,4 @@
-import { AuthNav } from "./auth-nav";
+import { AuthMenuLinks, AuthNav } from "./auth-nav";
 import { Wordmark } from "./brand";
 import { MobileMenu, NavLinks, type NavItem } from "./nav-links";
 
@@ -31,11 +31,16 @@ export function SiteHeader() {
             className="inline-flex min-h-11 items-center whitespace-nowrap rounded-[3px] border border-border-strong px-3 text-sm font-semibold transition-colors duration-300 hover:border-foreground hover:bg-paper sm:px-4"
             accountClassName="hidden max-w-[13rem] truncate text-sm text-muted xl:inline"
             tagClassName="rounded-[3px] bg-accent px-2 py-1 text-[0.6875rem] font-bold uppercase tracking-[0.14em] text-accent-contrast"
+            createClassName="hidden min-h-11 items-center whitespace-nowrap rounded-[3px] bg-accent px-3 text-sm font-semibold text-accent-contrast transition-colors duration-300 hover:bg-accent-soft sm:inline-flex"
           />
           <MobileMenu>
             <nav aria-label="Main (small screens)">
               <NavLinks items={NAV_ITEMS} className="space-y-1" linkClassName={`${link} w-full text-base`} />
             </nav>
+            <AuthMenuLinks
+              linkClassName={`${link} w-full text-base`}
+              createClassName="inline-flex min-h-11 w-full items-center justify-center rounded-[3px] bg-accent px-4 text-base font-semibold text-accent-contrast hover:bg-accent-soft"
+            />
           </MobileMenu>
         </div>
       </div>

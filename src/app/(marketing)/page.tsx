@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Configurator } from "@/components/landing/Configurator";
 import { PHOTOS, type Photo } from "@/components/landing/photos";
 import { Reveal } from "@/components/landing/Reveal";
-import { AuthNav } from "@/components/layout/auth-nav";
+import { AuthMenuLinks, AuthNav } from "@/components/layout/auth-nav";
 import { Wordmark } from "@/components/layout/brand";
 import { MobileMenu, NavLinks, type NavItem } from "@/components/layout/nav-links";
 import "@/components/landing/landing.css";
@@ -61,7 +61,7 @@ const PROCESS: { name: string; text: string }[] = [
   { name: "Read the brief", text: "Your words become a clear English brief. Assumptions are marked and anything missing is asked for, so nothing is guessed in silence." },
   { name: "See every line", text: "An itemized quote, calculated on the server from the configured rates, with tax and total shown before you accept anything." },
   { name: "A person checks payment", text: "Pay by UPI or bank transfer and send the reference. Someone on the team checks the transfer before anything is drawn." },
-  { name: "Concepts, released", text: "The concepts are generated, reviewed by a person and released to your account beside the brief they came from." },
+  { name: "Concepts, released", text: "Once the payment is verified, the concepts are generated automatically and appear in your account beside the brief they came from." },
 ];
 
 const CAPABILITIES: { title: string; text: string }[] = [
@@ -70,7 +70,7 @@ const CAPABILITIES: { title: string; text: string }[] = [
   { title: "Itemized quotation", text: "Every line priced on the server, with tax shown. An accepted quote never changes afterwards." },
   { title: "Illustrative layouts", text: "For new builds, a 2D layout sketch from your numbers: rooms, floors and plot, clearly labelled as illustrative." },
   { title: "AI concept imagery", text: "Exterior, interior and landscape concepts from an AI image model, generated only after payment is verified." },
-  { title: "Private until released", text: "Payment evidence and generated images stay in private storage. A person reviews every image before you see it." },
+  { title: "Private until released", text: "Payment evidence and generated images stay in private storage. Only you and the administrator can open them." },
 ];
 
 const FAQ = [
@@ -88,7 +88,7 @@ const FAQ = [
   },
   {
     q: "When do I see my designs?",
-    a: "After a person verifies your payment, the concepts are generated, reviewed and released to your account. Your project page shows which step you are on.",
+    a: "After a person verifies your payment, the concepts are generated automatically and appear in your account. Your project page shows which step you are on.",
   },
   {
     q: "Can I add photos of my space?",
@@ -138,6 +138,7 @@ export default function Home() {
               className="inline-flex min-h-11 items-center whitespace-nowrap rounded-[3px] border border-white/40 px-3 text-sm font-semibold text-white transition-colors duration-300 hover:border-white hover:bg-white/10 sm:px-4"
               accountClassName="hidden max-w-[12rem] truncate text-sm text-white/75 xl:inline"
               tagClassName="rounded-[3px] bg-white px-2 py-1 text-[0.6875rem] font-bold uppercase tracking-[0.14em] text-forest"
+              createClassName="hidden min-h-11 items-center whitespace-nowrap rounded-[3px] bg-white px-3 text-sm font-semibold text-forest transition-colors duration-300 hover:bg-limestone sm:inline-flex"
             />
             <MobileMenu>
               <nav aria-label="Main (small screens)" className="text-foreground">
@@ -147,6 +148,10 @@ export default function Home() {
                   linkClassName="flex min-h-11 w-full items-center text-base font-medium text-foreground"
                 />
               </nav>
+              <AuthMenuLinks
+                linkClassName="flex min-h-11 w-full items-center text-base font-medium text-foreground"
+                createClassName="inline-flex min-h-11 w-full items-center justify-center rounded-[3px] bg-forest px-4 text-base font-semibold text-white hover:bg-forest/90"
+              />
             </MobileMenu>
           </div>
         </div>
@@ -172,7 +177,7 @@ export default function Home() {
                 Architecture, <em className="font-normal italic text-[#d9d2c3]">reimagined.</em>
               </h1>
               <p className="max-w-xl text-lg leading-relaxed text-white/85 sm:text-xl">
-                Describe the home, room or garden you have in mind. GNANI turns your words into a clear brief, an itemized quote and AI concept designs, each checked by a person before it reaches you.
+                Describe the home, room or garden you have in mind. GNANI turns your words into a clear brief, an itemized quote and AI concept designs, started once a person has checked your payment.
               </p>
               <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:flex-wrap">
                 <a href="#start" className={solid}>

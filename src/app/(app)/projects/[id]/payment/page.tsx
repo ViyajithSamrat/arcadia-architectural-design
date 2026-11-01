@@ -171,8 +171,7 @@ async function PaymentContent({ params }: Props) {
         <Notice tone="success" title="Payment verified">
           <p>
             An administrator checked and verified your payment
-            {verified?.verifiedAt ? ` on ${day(verified.verifiedAt)}` : ""}. Any design concepts stay private until they have been reviewed and
-            released.
+            {verified?.verifiedAt ? ` on ${day(verified.verifiedAt)}` : ""}. Your concepts are now being prepared. They stay private to your account and appear on your project page when they are ready.
           </p>
         </Notice>
         <History payments={payments} />

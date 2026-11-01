@@ -184,6 +184,25 @@ describe("POST /api/auth/sign-up (self-service registration)", () => {
     expect((await json(await signUp(post("/api/auth/sign-up", GOOD)))).error?.code).toBe("WEAK_PASSWORD");
   });
 
+  it("says plainly that email cannot be sent, instead of a vague outage, when confirmation needs mail that is not set up", async () => {
+    auth.signUp.mockResolvedValue({ data: { user: null, session: null }, error: { code: "email_address_not_authorized", status: 400, message: "raw detail" } });
+    const res = await signUp(post("/api/auth/sign-up", { email: "new@example.test", password: "a-long-enough-password" }));
+    const text = await res.text();
+    expect(res.status).toBe(503);
+    expect(JSON.parse(text).error.code).toBe("EMAIL_NOT_AVAILABLE");
+    expect(text).not.toContain("raw detail");
+  });
+
+  it("with email confirmation off, signs the new account in at once and needs no email at all", async () => {
+    auth.signUp.mockResolvedValue({ data: { user: { id: "u1" }, session: { access_token: "t" } }, error: null });
+    const res = await signUp(post("/api/auth/sign-up", { email: "new@example.test", password: "a-long-enough-password" }));
+    const body = await res.json();
+    expect(res.status).toBe(200);
+    expect(body).toMatchObject({ ok: true });
+    expect(body.redirect.startsWith("/projects")).toBe(true);
+    expect(body.confirm).toBeUndefined();
+  });
+
   it("hides an unexpected Supabase failure behind a generic message", async () => {
     auth.signUp.mockResolvedValue({ data: { session: null, user: null }, error: { code: "unexpected_failure", status: 500, message: "db exploded at 10.0.0.1" } });
     const res = await signUp(post("/api/auth/sign-up", GOOD));
@@ -249,6 +268,16 @@ describe("POST /api/auth/forgot-password", () => {
     expect((await forgot(post("/api/auth/forgot-password", { email: "a@example.test" }))).status).toBe(429);
     auth.resetPasswordForEmail.mockResolvedValue({ data: {}, error: { status: 500 } });
     expect((await forgot(post("/api/auth/forgot-password", { email: "a@example.test" }))).status).toBe(503);
+  });
+
+  it("does not promise a reset link when the Auth server cannot send email (no custom SMTP yet)", async () => {
+    auth.resetPasswordForEmail.mockResolvedValue({ data: {}, error: { code: "email_address_not_authorized", status: 400, message: "raw detail" } });
+    const res = await forgot(post("/api/auth/forgot-password", { email: "someone@example.test" }));
+    const text = await res.text();
+    expect(res.status).toBe(503);
+    expect(JSON.parse(text).error.code).toBe("EMAIL_NOT_AVAILABLE");
+    expect(text).not.toMatch(/on its way|raw detail/);
+    expect(res.headers.get("set-cookie") ?? "").not.toMatch(/recover/i); // no reset is pending, so none is flagged
   });
 
   it("rejects an invalid email", async () => {

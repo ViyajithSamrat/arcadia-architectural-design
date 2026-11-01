@@ -553,11 +553,11 @@ See C.6 for the full list with symbols. Folders: `src/app/api/**` and the four `
 | File | Git | Notes |
 |---|---|---|
 | `CLAUDE.md` (root) | ✎ tracked, modified | The **active** instruction file for the coding assistant (section J.2) |
-| `architectural-ai-design-spec/CLAUDE.md` | ✔ tracked | "Source guidance"; the root file wins if they differ |
+| `architectural-ai-design-spec/CLAUDE.md` | removed in the final release (kept in Git history) | Was "source guidance"; the root `CLAUDE.md` governs |
 | `AGENTS.md` (root) | ✔ tracked | One block telling assistants Next.js 16 differs from training data — read `node_modules/next/dist/docs/` first. Written by `next dev` |
 | `.claude/settings.json` | ignored (`.gitignore`) | Local assistant settings (top-level key: `hooks`); not inspected further |
 | `.claude/settings.local.json` | ignored — by the user's **global** Git ignore file (`~/.config/git/ignore`, rule `**/.claude/settings.local.json`), not by this repository's `.gitignore` | Local overrides (contents not read). Another clone of the repository would not have it ignored by default. |
-| `.claude/skills/design-taste-frontend/` | tracked (29 files under `.claude` are tracked) | The one approved design skill (see `skills-lock.json`) |
+| `.claude/skills/design-taste-frontend/` | no longer tracked; kept locally and git-ignored (licence not confirmed) | The one approved design skill (see `skills-lock.json`) |
 | `.claude/skills/<13 other folders>` | ignored by `.gitignore` | Unplanned skills kept local-only |
 | `graphify-out/` | ignored | Generated knowledge graph output |
 
@@ -930,7 +930,7 @@ It is meant for the **AI assistant**; humans use `README.md`.
 
 ### J.3 Local, ignored and tracked instruction/config files
 
-- **Tracked:** `CLAUDE.md`, `architectural-ai-design-spec/CLAUDE.md`, `AGENTS.md`, `skills-lock.json`, and the approved skill `.claude/skills/design-taste-frontend/` (29 files under `.claude` are tracked).
+- **Tracked:** `CLAUDE.md`, `AGENTS.md` and `skills-lock.json`. The design skill `.claude/skills/design-taste-frontend/` is kept locally but no longer tracked (git-ignored), and the spec folder's copy of `CLAUDE.md` was removed.
 - **Ignored by the repository:** `.claude/settings.json` (a local assistant configuration; its top-level key is `hooks`; contents not reproduced here), `.env.local`, 13 unplanned skill folders, `graphify-out/`, `.next/`, `node_modules/`.
 - **Ignored by the user's global Git rules, not the repository's:** `.claude/settings.local.json`.
 - **Untracked but not ignored:** `handoff.md` and the files listed in D (＋).

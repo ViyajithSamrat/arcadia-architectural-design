@@ -1,9 +1,9 @@
 # CLAUDE.md --- Architectural AI Design Web Prototype
 
 > **Active instruction file.** This root `CLAUDE.md` is the active
-> instruction file for this repository. The copy at
-> `architectural-ai-design-spec/CLAUDE.md` is retained as source guidance.
-> If the two ever differ, this root file governs.
+> instruction file for this repository. (An older copy that lived in
+> `architectural-ai-design-spec/` was removed in the final release; it
+> remains in Git history.)
 
 This file is the primary project guide for Claude Code. Read it before
 inspecting or changing the repository. It contains the project's

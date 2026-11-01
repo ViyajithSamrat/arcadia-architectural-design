@@ -11,12 +11,16 @@ import { SIGNED_IN_PARAM, safeNextPath } from "@/lib/auth/next-path";
  * database policy checks the session itself.
  */
 
-/** A link to /sign-in that brings the visitor back to the current application page afterwards. */
-export function SignInLink({ className, children = "Sign in" }: { className?: string; children?: React.ReactNode }) {
+/**
+ * A link to /sign-in that brings the visitor back to the current application page afterwards.
+ * With `signUp` it opens the same page on its "Create account" tab.
+ */
+export function SignInLink({ className, children = "Sign in", signUp = false }: { className?: string; children?: React.ReactNode; signUp?: boolean }) {
   const pathname = usePathname();
   const next = safeNextPath(pathname);
+  const query = [signUp ? "mode=sign-up" : null, next ? `next=${encodeURIComponent(next)}` : null].filter(Boolean).join("&");
   return (
-    <Link href={next ? `/sign-in?next=${encodeURIComponent(next)}` : "/sign-in"} className={className}>
+    <Link href={query ? `/sign-in?${query}` : "/sign-in"} className={className}>
       {children}
     </Link>
   );

@@ -68,7 +68,7 @@ async function Queue() {
       <header className="space-y-1">
         <h1 className="font-display text-3xl font-medium tracking-tight">Image generation</h1>
         <p className="text-muted">
-          Projects whose payment an administrator has verified. Generation never releases anything: a person reviews the images and releases them.
+          Projects whose payment an administrator has verified. Generation starts by itself when a payment is verified. Placeholder images, failed jobs and, when automatic release is switched off, real images wait here for a person to review and release them.
         </p>
         <p>
           <Link href="/admin/payments" className="underline underline-offset-4">

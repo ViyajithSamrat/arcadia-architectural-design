@@ -86,11 +86,12 @@ describe("the generation queue banner", () => {
     for (const n of Object.values(GENERATION_MODE_NOTICE)) expect(n.body.length).toBeGreaterThan(40);
   });
 
-  it("keeps the rest of the page: the queue sections, links and the rule that nothing is released automatically", async () => {
+  it("keeps the rest of the page: the queue sections, links and the rule that placeholders and held images wait for a person", async () => {
     listGenerationQueue.mockResolvedValue([ROW]);
     const html = await render();
     expect(html).toContain("Projects whose payment an administrator has verified");
-    expect(html).toContain("Generation never releases anything: a person reviews the images and releases them");
+    expect(html).toContain("Generation starts by itself when a payment is verified.");
+    expect(html).toContain("wait here for a person to review and release them");
     expect(html).toContain("Ready to generate (1)");
     expect(html).toContain('href="/admin/generation/04e96bc2-8011-48fe-9f5f-3100839e2da5"');
     for (const section of ["In progress or needs attention (0)", "Awaiting release (0)", "Released (0)"]) expect(html).toContain(section);

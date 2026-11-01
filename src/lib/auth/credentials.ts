@@ -60,6 +60,10 @@ export function authProblem(error: { code?: string; status?: number } | null | u
     case "over_request_rate_limit":
     case "over_email_send_rate_limit":
       return { status: 429, code: "RATE_LIMITED", message: "Too many attempts. Wait a few minutes and try again." };
+    case "email_address_not_authorized":
+      // Supabase's built-in mailer sends only to pre-authorized addresses until custom SMTP is set up.
+      // The code is about the address and the mail setup, never about whether an account exists.
+      return { status: 503, code: "EMAIL_NOT_AVAILABLE", message: "This site cannot send email yet, so this action is not available. If you already have an account, sign in instead." };
     case "session_not_found":
     case "session_expired":
       return { status: 401, code: "SESSION_EXPIRED", message: "Your session has expired. Sign in again." };

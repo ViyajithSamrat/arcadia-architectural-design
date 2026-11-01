@@ -1,6 +1,6 @@
-# Database, sign-in and private storage (Phase 2)
+# Database, sign-in and private storage
 
-Everything here is **prepared and tested locally; nothing has been applied to a real Supabase project.** See "Unverified" below.
+The 12 migrations in `migrations/` are tested here against an in-process PostgreSQL and a local Supabase stack. The project owner has applied them to the hosted Mumbai project (see [`docs/SUPABASE.md`](../docs/SUPABASE.md), which has the complete, current list and the hosted setup steps). The tests in this repository do not prove hosted behaviour: see "Unverified" below. The table under "Layout" shows only the first five migrations; later ones are described further down.
 
 ## Layout
 
@@ -55,7 +55,7 @@ npm test                 # unit + database tests
 npx vitest run tests/db  # database tests only
 ```
 
-To apply the migrations to a real project later (**needs owner approval and a project; never to production without review**):
+To apply the migrations to a real project (**needs owner approval; always review `supabase db push --dry-run --linked --skip-vault` first**):
 
 ```bash
 npx supabase init                       # once, creates supabase/config.toml
@@ -163,7 +163,7 @@ For local development only, `supabase/demo/pricing_rules.demo.sql` loads unverif
 `supabase/config.toml` is the CLI's generated local configuration, with one change: the redirect allowlist holds `http://127.0.0.1:3000/auth/callback` and `http://localhost:3000/auth/callback`. No `seed.sql` exists, so no data is loaded automatically (demo pricing stays opt-in).
 
 ```bash
-npx supabase start -x studio,realtime,imgproxy,edge-runtime,logflare,vector,supavisor,postgres-meta   # needs Docker; applies the 5 migrations
+npx supabase start -x studio,realtime,imgproxy,edge-runtime,logflare,vector,supavisor,postgres-meta   # needs Docker; applies every migration in supabase/migrations/
 npx supabase status -o env      # local URL and keys: copy NEXT_PUBLIC_SUPABASE_URL, ..._ANON_KEY and SUPABASE_SERVICE_ROLE_KEY into .env.local (git-ignored); keep the file to plain KEY=value lines (no comments, no byte-order mark: the CLI also reads .env.local and fails on both, and PowerShell's Set-Content -Encoding utf8 adds a BOM)
 npx supabase stop               # when finished (add --no-backup to discard the local data)
 ```

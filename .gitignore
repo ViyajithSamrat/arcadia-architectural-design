@@ -60,3 +60,6 @@ next-env.d.ts
 /.claude/skills/stitch-design-taste/
 # Generated Graphify output
 /graphify-out/
+
+# Third-party skill used locally with Claude Code; not part of the submission repository (licence not confirmed).
+/.claude/skills/design-taste-frontend/

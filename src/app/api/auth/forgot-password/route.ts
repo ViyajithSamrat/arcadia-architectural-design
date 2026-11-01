@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { rememberRecovery } from "@/lib/auth/cookies";
-import { emailOnlySchema, firstIssue } from "@/lib/auth/credentials";
+import { authProblem, emailOnlySchema, firstIssue, problemResponse } from "@/lib/auth/credentials";
 import { getSupabasePublicConfig } from "@/lib/supabase/config";
 import { isAllowedOrigin, resolveRequestOrigin } from "@/lib/supabase/origin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -33,6 +33,8 @@ export async function POST(request: Request): Promise<Response> {
   const { error } = await supabase.auth.resetPasswordForEmail(body.data.email, {
     redirectTo: `${resolveRequestOrigin(request)}/auth/callback`,
   });
+  // No email can be sent at all (no custom SMTP yet): say so, rather than promise a link that will not come.
+  if (error?.code === "email_address_not_authorized") return problemResponse(authProblem(error));
   if (error && (error.status === undefined || error.status >= 500 || error.status === 429)) {
     const limited = error.status === 429;
     return Response.json(

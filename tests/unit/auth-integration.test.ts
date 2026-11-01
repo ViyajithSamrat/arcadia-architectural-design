@@ -31,7 +31,7 @@ vi.mock("@/lib/auth/credentials", async (importOriginal) => ({
 
 const { config: proxyConfig, proxy } = await import("@/proxy");
 const { GET: callback } = await import("@/app/auth/callback/route");
-const { AccountNav } = await import("@/components/layout/auth-nav");
+const { AccountNav, AuthMenuLinks, AuthNav } = await import("@/components/layout/auth-nav");
 const { JustSignedInNotice } = await import("@/components/layout/auth-controls");
 const { default: SignInPage } = await import("@/app/(app)/sign-in/page");
 const { signInErrorMessage, signInErrorReason } = await import("@/lib/auth/sign-in-errors");
@@ -175,6 +175,35 @@ describe("header account states", () => {
     expect(out).not.toContain("Admin");
   });
 
+  it("signed out, in a header with a Create account style: both ways in, each to the right tab", () => {
+    const out = renderToStaticMarkup(createElement(AccountNav, { account: null, className: "act", createClassName: "mk" }));
+    expect(out).toContain('<a class="act" href="/sign-in?next=%2Fprojects">Sign in</a>');
+    expect(out).toContain('<a class="mk" href="/sign-in?mode=sign-up&amp;next=%2Fprojects">Create account</a>');
+    expect(out).not.toContain("Sign out");
+  });
+
+  it("signed out without a Create account style: only Sign in (the header decides what to offer)", () => {
+    expect(render(null)).not.toContain("Create account");
+  });
+
+  it("signed in: neither Sign in nor Create account is offered", () => {
+    const out = renderToStaticMarkup(createElement(AccountNav, { account: { email: "customer@example.test", isAdmin: false }, className: "act", createClassName: "mk" }));
+    expect(out).not.toContain("Create account");
+    expect(out).not.toContain('href="/sign-in');
+    expect(out).toContain("Sign out");
+  });
+
+  it("the placeholder shown while the session is looked up is the way in, not an empty box", () => {
+    // renderToStaticMarkup cannot wait for the async account area, so it renders the Suspense fallback.
+    const header = renderToStaticMarkup(createElement(AuthNav, { className: "act", createClassName: "mk" }));
+    // The prerendered shell cannot know the current URL, so these links carry no return path.
+    expect(header).toContain('<a class="act" href="/sign-in">Sign in</a>');
+    expect(header).toContain('<a class="mk" href="/sign-in?mode=sign-up">Create account</a>');
+    const menu = renderToStaticMarkup(createElement(AuthMenuLinks, { linkClassName: "lk", createClassName: "mk" }));
+    expect(menu).toContain('<a class="lk" href="/sign-in">Sign in</a>');
+    expect(menu).toContain('<a class="mk" href="/sign-in?mode=sign-up">Create account</a>');
+  });
+
   it("signed in customer: the full email and Sign out, no Admin tag", () => {
     const out = render({ email: "customer@example.test", isAdmin: false });
     expect(out).toContain("customer@example.test");
@@ -275,5 +304,14 @@ describe("sign-in page", () => {
     const out = await renderPage({});
     expect(out).toContain("has not been configured");
     expect(getAccountSummary).not.toHaveBeenCalled();
+  });
+});
+
+describe("every header offers the way in", () => {
+  it.each(["src/components/layout/site-header.tsx", "src/app/(marketing)/page.tsx"])("%s shows Create account and puts the sign-in links in the small-screen menu", async (file) => {
+    const { readFileSync } = await import("node:fs");
+    const source = readFileSync(file, "utf8");
+    expect(source).toMatch(/<AuthNav[\s\S]*?createClassName=/);
+    expect(source).toMatch(/<MobileMenu>[\s\S]*?<AuthMenuLinks[\s\S]*?<\/MobileMenu>/);
   });
 });
