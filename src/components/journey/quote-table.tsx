@@ -1,9 +1,10 @@
 import { formatMoney } from "@/lib/journeys/money";
-import { isDemoVersion } from "@/lib/journeys/quote";
+import { DEMO_QUOTE_LABEL, isDemoVersion } from "@/lib/journeys/quote";
 import type { StoredQuote } from "@/lib/journeys/service";
 import { Notice } from "./notice";
 
 const dateFormat = new Intl.DateTimeFormat("en", { dateStyle: "medium" });
+
 
 /** The itemized quote exactly as stored. Amounts come from the frozen snapshot, never recalculated here. */
 export function QuoteTable({ quote }: { quote: StoredQuote }) {
@@ -13,7 +14,7 @@ export function QuoteTable({ quote }: { quote: StoredQuote }) {
   return (
     <div className="space-y-5">
       {demo ? (
-        <Notice tone="warning" title="Demo rates">
+        <Notice tone="warning" title={DEMO_QUOTE_LABEL}>
           <p>
             This quote uses demonstration rates that have not been verified or approved by the business. It is not an
             approved price.
@@ -23,6 +24,7 @@ export function QuoteTable({ quote }: { quote: StoredQuote }) {
       <div className="overflow-hidden rounded-[4px] border border-border bg-paper shadow-soft print:shadow-none">
         <div className="flex flex-wrap items-baseline justify-between gap-3 border-b border-border px-6 py-5 sm:px-8">
           <p className="font-display text-2xl font-medium">Quotation</p>
+          {demo ? <p className="w-full text-xs font-bold uppercase tracking-[0.16em] text-warning-fg">{DEMO_QUOTE_LABEL}</p> : null}
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">Amounts in {cur}</p>
         </div>
         <div className="overflow-x-auto">

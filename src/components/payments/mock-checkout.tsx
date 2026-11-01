@@ -6,6 +6,9 @@ import { mockGatewayPayAction } from "@/app/(app)/projects/actions";
 import { Notice } from "@/components/journey/notice";
 import { buttonPrimary, buttonSecondary } from "@/components/journey/styles";
 
+/** Shown on the payment page and inside the checkout dialog. */
+export const SIMULATED_PAYMENT_LABEL = "SIMULATED PAYMENT — NO MONEY IS TRANSFERRED";
+
 /**
  * The simulated payment gateway's checkout. It looks like a hosted checkout but is a
  * demonstration only: no money moves, nothing is collected (no card, UPI or bank details),
@@ -52,6 +55,7 @@ export function MockCheckout({ projectId, amountLabel }: { projectId: string; am
         </h2>
         <span className="rounded-md bg-warning-bg px-2 py-0.5 text-sm font-semibold text-warning-fg">Simulation</span>
       </div>
+      <p className="text-sm font-bold uppercase tracking-[0.12em] text-warning-fg">{SIMULATED_PAYMENT_LABEL}</p>
       <p className="text-muted">
         A simulated online checkout for demonstrations. No real money moves and no payment details are asked for. A successful simulated payment is
         still checked by an administrator before any design work starts.
@@ -96,6 +100,7 @@ export function MockCheckout({ projectId, amountLabel }: { projectId: string; am
             </h3>
             <span className="rounded-md bg-warning-bg px-2 py-0.5 text-xs font-semibold text-warning-fg">TEST MODE · NO REAL MONEY</span>
           </div>
+          <p className="text-sm font-bold uppercase tracking-[0.12em] text-warning-fg">{SIMULATED_PAYMENT_LABEL}</p>
           <dl className="grid grid-cols-2 gap-y-1 text-sm">
             <dt className="text-muted">Paying</dt>
             <dd>Architectural AI Design (demo)</dd>

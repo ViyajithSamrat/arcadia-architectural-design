@@ -136,6 +136,9 @@ export type QuoteOutcome =
  */
 export const DEMO_VERSION_PREFIX = "DEMO:";
 
+/** Printed on a quote built from demonstration values, on screen and in the printed or saved quote. */
+export const DEMO_QUOTE_LABEL = "DEMO RATES — NOT COMMERCIAL PRICING";
+
 export function isDemoVersion(version: string): boolean {
   return version.startsWith(DEMO_VERSION_PREFIX);
 }
