@@ -175,7 +175,7 @@ export function createOpenRouterImageProvider(
         }
       } catch (error) {
         if (error instanceof ProviderError) {
-          logProviderCall({ provider: "openrouter", operation: "image", model: config.model, status: "error", reason: error.code, durationMs: Date.now() - started, units: outputs.length, costUsd: cost });
+          logProviderCall({ provider: "openrouter", operation: "image", model: config.model, status: "error", reason: error.code, ...(error.status ? { httpStatus: error.status } : {}), durationMs: Date.now() - started, units: outputs.length, costUsd: cost });
         }
         throw error;
       }

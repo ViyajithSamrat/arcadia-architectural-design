@@ -16,7 +16,7 @@ type Client = SupabaseClient;
 
 export type UsagePlan = {
   provider: "openrouter" | "gnani";
-  operation: "brief" | "image" | "stt" | "tts";
+  operation: "brief" | "translate" | "image" | "stt" | "tts";
   model: string | null;
   /** "image" counts generated images and is accounted apart from "request" (briefs). */
   unit: "request" | "image" | "credit";
@@ -167,6 +167,19 @@ export function planOpenRouterBrief(config: OpenRouterConfig): UsagePlan {
       globalWindowMinutes: 24 * 60,
       maxInFlight: null,
     },
+  };
+}
+
+/**
+ * A transcript translation is one OpenRouter text request with its own per-customer hourly
+ * allowance (migration 13 counts requests per operation), so translating never uses up the brief
+ * limit. The app-wide daily cap is the same one briefs use: together they stay within it.
+ */
+export function planOpenRouterTranslation(config: OpenRouterConfig): UsagePlan {
+  return {
+    ...planOpenRouterBrief(config),
+    operation: "translate",
+    limits: { ...planOpenRouterBrief(config).limits, customerLimit: config.translationsPerHour },
   };
 }
 

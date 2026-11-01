@@ -115,6 +115,7 @@ export const envSchema = z.object({
   // AI request limits (Phase 5)
   PROVIDER_TIMEOUT_MS: optionalText,
   AI_BRIEFS_PER_HOUR: optionalText,
+  AI_TRANSLATIONS_PER_HOUR: optionalText,
   // OpenRouter reasoning effort for the brief and translation: "none", "minimal" or "low"; empty = model default.
   OPENROUTER_TEXT_REASONING_EFFORT: optionalText,
   OPENROUTER_DAILY_REQUEST_CAP: optionalText,

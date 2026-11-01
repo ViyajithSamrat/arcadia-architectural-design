@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { UsagePlan } from "./budget";
-import { planOpenRouterBrief } from "./budget";
+import { planOpenRouterTranslation } from "./budget";
 import type { OpenRouterConfig } from "./config";
 import { ProviderError, type ProviderHooks } from "./interfaces";
 import { logProviderCall } from "./log";
@@ -14,10 +14,9 @@ import { logProviderCall } from "./log";
  * server constant. The output is UNTRUSTED: it is parsed against a strict schema and only ever
  * shown to the customer as an editable suggestion. It can set nothing else.
  *
- * Metering: a translation is one OpenRouter text request. The usage ledger only accepts the
- * operations brief, image, stt and tts (migrations 20261018000200 and 20261022000100), so it is
- * reserved as an OpenRouter "brief" request and shares that per-customer hourly limit and the
- * app-wide daily cap. A separate "translate" category would need a new migration.
+ * Metering: a translation is one OpenRouter text request, reserved as the ledger operation
+ * "translate" (migration 20261101000200). It has its own per-customer hourly allowance
+ * (AI_TRANSLATIONS_PER_HOUR) and shares the app-wide daily cap with briefs.
  */
 
 export const TRANSLATE_PROMPT_VERSION = "translate-or-1";
@@ -95,7 +94,7 @@ export function createOpenRouterTranslator(config: OpenRouterConfig, deps: { fet
   return {
     id: "openrouter",
     model: config.model,
-    usage: planOpenRouterBrief(config),
+    usage: planOpenRouterTranslation(config),
     async translate(input, hooks) {
       const started = Date.now();
       try {

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { planOpenRouterBrief } from "@/lib/providers/budget";
+import { planOpenRouterTranslation } from "@/lib/providers/budget";
 import type { OpenRouterConfig } from "@/lib/providers/config";
 import { ProviderError } from "@/lib/providers/interfaces";
 import { MOCK_TRANSCRIPT } from "@/lib/providers/mock-speech";
@@ -14,7 +14,7 @@ const OTHER = "22222222-2222-4222-8222-222222222222";
 const PROJECT = "33333333-3333-4333-8333-333333333333";
 const KEY: TranscriptKey = { secret: Buffer.from("t".repeat(40)), mockOnly: false };
 const TAMIL = "எனக்கு ஒரு ஹவுஸ் வேணும், 3 பெட்ரூம், 30 x 40 அடி";
-const CONFIG: OpenRouterConfig = { apiKey: "or-SECRET-key", baseUrl: "https://openrouter.ai/api/v1", model: "test/model", referer: null, title: null, timeoutMs: 1000, briefsPerHour: 5, dailyRequestCap: 40 };
+const CONFIG: OpenRouterConfig = { apiKey: "or-SECRET-key", baseUrl: "https://openrouter.ai/api/v1", model: "test/model", referer: null, title: null, timeoutMs: 1000, briefsPerHour: 5, translationsPerHour: 7, dailyRequestCap: 40 };
 const LIVE = { kind: "live", config: CONFIG } as const;
 
 const token = (o: { transcript?: string; source?: "gnani" | "mock"; lang?: string | null; user?: string; project?: string } = {}) =>
@@ -38,7 +38,7 @@ beforeEach(() => {
   translator = {
     id: "openrouter",
     model: "test/model",
-    usage: planOpenRouterBrief(CONFIG),
+    usage: planOpenRouterTranslation(CONFIG),
     translate: vi.fn(async () => ({ english: "I want a house, 3 bedrooms, 30 x 40 feet", model: "test/model", requestId: "r1" })),
   };
 });
@@ -69,7 +69,8 @@ describe("translateForProject", () => {
     expect(result).toMatchObject({ ok: true, english: "I want a house, 3 bedrooms, 30 x 40 feet", sourceLanguage: "ta-IN", numbersToCheck: [] });
     expect(translator.translate).toHaveBeenCalledWith({ text: TAMIL, sourceLanguage: "ta-IN", maxChars: 2000 }, expect.anything());
     expect(serviceDb.rpcCalls.map((c) => c.name)).toEqual(["ai_usage_reserve", "ai_usage_finish"]);
-    expect(serviceDb.rpcCalls[0].args).toMatchObject({ p_provider: "openrouter", p_operation: "brief", p_unit: "request", p_customer_id: ME, p_project_id: PROJECT });
+    // A translation has its own hourly allowance (7 here), apart from briefs (5), and shares the daily cap.
+    expect(serviceDb.rpcCalls[0].args).toMatchObject({ p_provider: "openrouter", p_operation: "translate", p_unit: "request", p_customer_id: ME, p_project_id: PROJECT, p_customer_limit: 7, p_customer_window_minutes: 60, p_global_limit: 40, p_global_window_minutes: 1440 });
     // nothing is written to the project: the customer decides whether to use the text
     expect(userDb.writes).toHaveLength(0);
   });
@@ -149,6 +150,17 @@ describe("numbersToCheck", () => {
 describe("the OpenRouter translation adapter", () => {
   const reply = (content: unknown, status = 200) =>
     vi.fn(async () => new Response(JSON.stringify({ id: "gen-1", model: "test/model", choices: [{ message: { content: typeof content === "string" ? content : JSON.stringify(content) } }] }), { status }));
+
+  it("is metered as the ledger operation 'translate', with its own hourly allowance apart from briefs", () => {
+    expect(createOpenRouterTranslator(CONFIG).usage).toEqual({
+      provider: "openrouter",
+      operation: "translate",
+      model: "test/model",
+      unit: "request",
+      units: 1,
+      limits: { customerLimit: 7, customerWindowMinutes: 60, globalLimit: 40, globalWindowMinutes: 1440, maxInFlight: null },
+    });
+  });
 
   it("sends the transcript as data with a strict schema, one request, and returns the English", async () => {
     const fetch = reply({ english: "  I want a house  " });

@@ -257,7 +257,7 @@ describe.skipIf(!ENABLED)("live local ai_usage budget guard", () => {
 
   describe("createBrief against the real ledger (stub provider, no network)", () => {
     let projectId = "";
-    const config = { apiKey: "stub", baseUrl: "https://openrouter.ai/api/v1", model: "stub/model", referer: null, title: null, timeoutMs: 1000, briefsPerHour: 2, dailyRequestCap: 50 };
+    const config = { apiKey: "stub", baseUrl: "https://openrouter.ai/api/v1", model: "stub/model", referer: null, title: null, timeoutMs: 1000, briefsPerHour: 2, translationsPerHour: 2, dailyRequestCap: 50 };
     const stub = (generate: BriefProvider["generate"]): BriefProvider => ({ id: "openrouter", usage: planOpenRouterBrief(config), generate });
 
     beforeAll(async () => {

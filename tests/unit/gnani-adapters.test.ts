@@ -106,10 +106,14 @@ describe("speech-to-text adapter (documented shape, mocked network)", () => {
 
   it.each([
     [400, "bad_request"],
+    [401, "auth"],
+    [402, "auth"],
     [403, "auth"],
+    [422, "bad_request"],
     [429, "rate_limited"],
     [500, "server"],
     [503, "server"],
+    [504, "server"],
   ])("maps HTTP %i to %s and makes no retry", async (status, code) => {
     const { fn, calls } = fakeFetch(() => new Response(JSON.stringify({ success: false, error: { type: "X", message: `bad ${KEY}` } }), { status }));
     const error = await createGnaniSttProvider(config(), { fetch: fn }).transcribe(stt()).catch((e: unknown) => e);
@@ -117,6 +121,9 @@ describe("speech-to-text adapter (documented shape, mocked network)", () => {
     expect(error).toMatchObject({ code });
     expect((error as Error).message).not.toContain(KEY);
     expect(calls).toHaveLength(1);
+    const logged = info.mock.calls.flat().join("\n");
+    expect(logged).toContain(`"httpStatus":${status}`);
+    expect(logged).not.toContain(KEY);
   });
 
   it("maps a timeout and a network failure, with no retry", async () => {
@@ -189,6 +196,7 @@ describe("text-to-speech adapter (documented shape, mocked network)", () => {
 
   it.each([
     [400, "bad_request"],
+    [402, "auth"],
     [403, "auth"],
     [429, "rate_limited"],
     [500, "server"],

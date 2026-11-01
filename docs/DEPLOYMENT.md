@@ -15,8 +15,9 @@ break every workflow after sign-in, so it stays.
 Owner approval is needed for each step:
 
 1. Create a Supabase project (region near the users, for example Mumbai).
-2. Apply every migration in `supabase/migrations/` (12 at the time of writing; the last, `system_release_project`,
-   is what lets finished concepts reach the customer automatically). Use `npx supabase link` and review
+2. Apply every migration in `supabase/migrations/` (13 at the time of writing; `system_release_project` (12)
+   is what lets finished concepts reach the customer automatically, and `ai_usage_translate` (13) gives
+   translations their own per-customer allowance; apply 13 BEFORE deploying code that reserves `translate`). Use `npx supabase link` and review
    `npx supabase db push --dry-run --linked --skip-vault` first. Do **not** apply anything in
    `supabase/proposed/`, and never use `--include-seed` or `--include-all`.
 3. Load prices: publish rates from `/admin/pricing` after step 5. (`supabase/demo/pricing_rules.demo.sql` loads
@@ -52,7 +53,7 @@ Set these for the **Production** environment. Values must never appear in Git, l
 | `TRANSLATION_MODE` | no | `live` for Tamil → English translation |
 | `PROVIDER_MODE` | no | `live` for the OpenRouter brief **and** images; empty = labelled mocks |
 | `OPENROUTER_IMAGE_MODEL` (+ optional `OPENROUTER_IMAGE_*`) | no | Live images (required when `PROVIDER_MODE=live`) |
-| `AI_BRIEFS_PER_HOUR`, `OPENROUTER_DAILY_REQUEST_CAP`, `OPENROUTER_IMAGES_PER_HOUR`, `OPENROUTER_IMAGES_PER_DAY`, `MAX_GENERATION_IMAGES`, `PROVIDER_TIMEOUT_MS` | no | Spending caps (defaults apply when empty) |
+| `AI_BRIEFS_PER_HOUR`, `AI_TRANSLATIONS_PER_HOUR`, `OPENROUTER_DAILY_REQUEST_CAP`, `OPENROUTER_IMAGES_PER_HOUR`, `OPENROUTER_IMAGES_PER_DAY`, `MAX_GENERATION_IMAGES`, `PROVIDER_TIMEOUT_MS` | no | Spending caps (defaults apply when empty) |
 
 Do not set `LIVE_SUPABASE` on Vercel (it is for local live tests only). A `NEXT_PUBLIC_*` value is
 built into the browser bundle, so it must never hold a secret. The only `NEXT_PUBLIC_*` names are

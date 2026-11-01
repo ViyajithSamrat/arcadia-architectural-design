@@ -314,6 +314,7 @@ describe("failures: never a success, never a leak", () => {
     const logged = (console.info as unknown as { mock: { calls: unknown[][] } }).mock.calls.flat().join("\n");
     expect(logged).toContain('"operation":"image"');
     expect(logged).toContain('"costUsd":0.04');
+    expect(logged).toContain('"reason":"auth","httpStatus":401');
     for (const secret of [KEY, "A two floor home", "FIXED INSTRUCTIONS", B64.slice(0, 40)]) expect(logged).not.toContain(secret);
   });
 });

@@ -12,9 +12,12 @@ import { logProviderCall } from "./log";
  *   - the request is made only after the budget guard has reserved credits;
  *   - nothing is logged except provider, operation, model, request id and status.
  *
- * Documented request shapes (docs.gnani.ai, read 2026-10-18):
+ * Documented request shapes (docs.gnani.ai, read 2026-10-18; STT rechecked 2026-11-01 against
+ * docs.gnani.ai/api/STT/speech-to-text.md):
  *   STT  POST {base}{sttPath}  multipart: audio_file, language_code;  header X-API-Key-ID
- *        200 JSON { success, transcript, request_id? }
+ *        200 JSON { success, transcript, request_id? }. `format` is optional (default verbatim);
+ *        the reference has no `preferred_language` field. Credential, scope and credit
+ *        refusals answer 401, 402 or 403; validation errors 422; upstream timeouts 504.
  *   TTS  POST {base}{ttsPath}  JSON: { text, model, voice, language, speed, audio_config };
  *        header X-API-Key-ID;  200 raw audio bytes
  */
@@ -42,7 +45,7 @@ const SttResponseSchema = z.object({
 });
 
 function statusError(status: number): ProviderError {
-  if (status === 401 || status === 403) return new ProviderError("auth", "provider refused the credentials or credits", status);
+  if (status === 401 || status === 402 || status === 403) return new ProviderError("auth", "provider refused the credentials or credits", status);
   if (status === 429) return new ProviderError("rate_limited", "provider rate limit", status);
   if (status >= 500) return new ProviderError("server", "provider server error", status);
   return new ProviderError("bad_request", "provider rejected the request", status);
@@ -104,7 +107,7 @@ export function createGnaniSttProvider(
         return { transcript, provider: "gnani", requestId: parsed.request_id };
       } catch (error) {
         if (error instanceof ProviderError) {
-          logProviderCall({ provider: "gnani", operation: "stt", status: "error", reason: error.code, durationMs: Date.now() - started });
+          logProviderCall({ provider: "gnani", operation: "stt", status: "error", reason: error.code, ...(error.status ? { httpStatus: error.status } : {}), durationMs: Date.now() - started });
         }
         throw error;
       }
@@ -151,7 +154,7 @@ export function createGnaniTtsProvider(config: GnaniTtsConfig, deps: { fetch?: t
         return { audio, mimeType, provider: "gnani", model: config.ttsModel };
       } catch (error) {
         if (error instanceof ProviderError) {
-          logProviderCall({ provider: "gnani", operation: "tts", model: config.ttsModel, status: "error", reason: error.code, durationMs: Date.now() - started });
+          logProviderCall({ provider: "gnani", operation: "tts", model: config.ttsModel, status: "error", reason: error.code, ...(error.status ? { httpStatus: error.status } : {}), durationMs: Date.now() - started });
         }
         throw error;
       }

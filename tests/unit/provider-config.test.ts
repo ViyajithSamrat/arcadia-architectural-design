@@ -55,6 +55,7 @@ describe("OpenRouter configuration", () => {
       baseUrl: "https://openrouter.ai/api/v1",
       model: "vendor/model:free",
       briefsPerHour: 5,
+      translationsPerHour: 6,
       dailyRequestCap: 40,
       timeoutMs: 30_000,
       referer: null,
@@ -79,6 +80,9 @@ describe("OpenRouter configuration", () => {
   it("bounds the per-customer and daily limits", () => {
     expect(getOpenRouterConfig({ ...OPENROUTER, AI_BRIEFS_PER_HOUR: "0", OPENROUTER_DAILY_REQUEST_CAP: "99999" })).toMatchObject({ briefsPerHour: 1, dailyRequestCap: 1000 });
     expect(getOpenRouterConfig({ ...OPENROUTER, AI_BRIEFS_PER_HOUR: "x" })?.briefsPerHour).toBe(5);
+    expect(getOpenRouterConfig({ ...OPENROUTER, AI_TRANSLATIONS_PER_HOUR: "0" })?.translationsPerHour).toBe(1);
+    expect(getOpenRouterConfig({ ...OPENROUTER, AI_TRANSLATIONS_PER_HOUR: "500" })?.translationsPerHour).toBe(50);
+    expect(getOpenRouterConfig({ ...OPENROUTER, AI_BRIEFS_PER_HOUR: "3", AI_TRANSLATIONS_PER_HOUR: "10" })).toMatchObject({ briefsPerHour: 3, translationsPerHour: 10 });
   });
 });
 

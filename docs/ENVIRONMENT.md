@@ -51,7 +51,8 @@ A secret key in a public variable, or a publishable key in a secret variable, is
 | `OPENROUTER_IMAGES_PER_DAY` | | All customers; default 20. |
 | `OPENROUTER_IMAGE_REFERENCES` | | `true` sends up to three customer reference photos to the image service; anything else never does. |
 | `OPENROUTER_HTTP_REFERER`, `OPENROUTER_APP_TITLE` | | Optional attribution headers. |
-| `AI_BRIEFS_PER_HOUR` | | Per-customer text requests per hour. |
+| `AI_BRIEFS_PER_HOUR` | | Per-customer briefs per hour (default 5, 1 to 50). |
+| `AI_TRANSLATIONS_PER_HOUR` | | Per-customer transcript translations per hour, counted apart from briefs (default 6, 1 to 50). Needs migration 13. |
 | `OPENROUTER_DAILY_REQUEST_CAP` | | All-customer text requests per day. |
 | `PROVIDER_TIMEOUT_MS` | | Provider call timeout. |
 
