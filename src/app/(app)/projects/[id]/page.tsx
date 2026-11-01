@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { GenerationWatcher } from "@/components/generation/generation-watcher";
 import { AccessGate } from "@/components/journey/access-gate";
 import { Loading } from "@/components/journey/loading";
 import { Notice } from "@/components/journey/notice";
@@ -44,6 +45,7 @@ async function ProjectHub({ params }: Props) {
           <span className="font-semibold">Status:</span> {info.label}
         </p>
       </header>
+      <GenerationWatcher projectId={project.id} status={project.status} />
       <Progress status={project.status} />
       <section aria-labelledby="next-title" className="grid gap-6 rounded-[4px] bg-forest p-7 text-white sm:grid-cols-[1fr_auto] sm:items-center sm:p-9">
         <div className="space-y-2">

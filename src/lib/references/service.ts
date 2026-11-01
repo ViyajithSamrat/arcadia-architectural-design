@@ -5,6 +5,7 @@ import { getOwnedProject } from "@/lib/journeys/service";
 import { checkEvidenceFile } from "@/lib/payments/evidence";
 import { readImageSize } from "@/lib/providers/images";
 import { buildObjectPath, newObjectName, parseObjectPath, PROJECT_FILES_BUCKET } from "@/lib/storage/paths";
+import { UPLOAD_MAX_BYTES, UPLOAD_REQUEST_MAX_BYTES } from "@/lib/uploads/limits";
 
 /**
  * Reference photos and floor plans for interior and landscape projects (PR-010; PRD 1.5).
@@ -24,7 +25,7 @@ import { buildObjectPath, newObjectName, parseObjectPath, PROJECT_FILES_BUCKET }
  *   - the caller owns the project, it is editable, and its type uses references (interior and
  *     landscape; a new build has no reference upload in the specification);
  *   - the project holds fewer than REFERENCES_PER_PROJECT files;
- *   - the file is at most 5 MiB and a real JPEG, PNG or WebP by its first bytes, with a readable
+ *   - the file is at most 4 MiB (the request-path limit) and a real JPEG, PNG or WebP by its first bytes, with a readable
  *     size inside sane bounds. The file name and the browser's declared type are never used;
  *   - the object name is a random UUID plus an extension the server derived from the content.
  * Order, so no misleading record is ever left: upload the file, then insert the row; if the row
@@ -34,9 +35,9 @@ import { buildObjectPath, newObjectName, parseObjectPath, PROJECT_FILES_BUCKET }
 
 type Client = SupabaseClient;
 
-export const REFERENCE_MAX_BYTES = 5 * 1024 * 1024;
-/** Room for the multipart framing around a file of the maximum size. */
-export const REFERENCE_REQUEST_MAX_BYTES = REFERENCE_MAX_BYTES + 64 * 1024;
+/** The request-path upload limit (src/lib/uploads/limits.ts), enforced by checkEvidenceFile. */
+export const REFERENCE_MAX_BYTES = UPLOAD_MAX_BYTES;
+export const REFERENCE_REQUEST_MAX_BYTES = UPLOAD_REQUEST_MAX_BYTES;
 export const REFERENCES_PER_PROJECT = 6;
 export const REFERENCE_MIN_DIMENSION = 64;
 export const REFERENCE_MAX_DIMENSION = 12_000;

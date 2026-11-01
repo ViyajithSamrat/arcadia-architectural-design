@@ -25,7 +25,7 @@ const newKey = () => (typeof crypto !== "undefined" && "randomUUID" in crypto ? 
 export type StartMode = "start" | "retry" | "resume" | "finish";
 
 const START_TEXT: Record<StartMode, { button: string; busy: string; hint: string }> = {
-  start: { button: "Start mock generation", busy: "Generating…", hint: "Creates placeholder images with the test generator. No AI model is used and nothing is spent." },
+  start: { button: "Start generation now", busy: "Generating…", hint: "Generation normally starts by itself once a payment is verified. If it has not, this starts it now. Without a live image service it creates placeholder images with the test generator: no AI model is used and nothing is spent." },
   retry: { button: "Try generation again", busy: "Generating…", hint: "The last attempt failed and left nothing behind. This starts a new attempt with the test generator." },
   resume: { button: "Start generation again", busy: "Generating…", hint: "Generation was claimed but never began. This starts it again." },
   finish: { button: "Finish and move to review", busy: "Finishing…", hint: "The images were created but the project was not advanced. This completes that step without generating again." },
@@ -38,7 +38,7 @@ const START_TEXT: Record<StartMode, { button: string; busy: string; hint: string
  */
 /** Wording when the live image model is configured: the button spends real credits. */
 const LIVE_TEXT: Partial<Record<StartMode, { button: string; hint: string }>> = {
-  start: { button: "Generate concept images (live, uses credits)", hint: "Sends the approved brief to the configured AI image model. Each image is billed; there is no automatic retry." },
+  start: { button: "Start generation now (uses credits)", hint: "Generation normally starts by itself once a payment is verified. If it has not, this starts it now: it sends the approved brief to the configured AI image model. Each image is billed; there is no automatic retry." },
   retry: { button: "Try live generation again (uses credits)", hint: "The last attempt failed and left nothing behind. This starts a new, billed attempt with the AI image model." },
 };
 

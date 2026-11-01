@@ -415,7 +415,7 @@ export default function Home() {
           <div className="grid gap-12 lg:grid-cols-12">
             <div className="space-y-4 lg:col-span-4">
               <p className="font-display text-4xl font-semibold tracking-[0.18em] text-white">GNANI</p>
-              <p className="max-w-xs text-sm leading-relaxed">Architectural AI studio prototype. Concept designs from your words, checked by people.</p>
+              <p className="max-w-xs text-sm leading-relaxed">Architectural AI studio. Concept designs from your words. Every payment is checked by a person.</p>
             </div>
             <nav aria-label="Footer" className="lg:col-span-2">
               <h2 className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-white/50">Projects</h2>
@@ -452,7 +452,7 @@ export default function Home() {
             </div>
           </div>
           <div className="mt-14 flex flex-wrap items-center justify-between gap-4 border-t border-white/10 pt-6 text-xs">
-            <span>GNANI Architectural AI prototype. Concept designs only.</span>
+            <span>GNANI Architectural AI. Concept designs only: not construction drawings.</span>
             <a href="#top" className="inline-flex min-h-11 items-center hover:text-white">
               Back to top ↑
             </a>

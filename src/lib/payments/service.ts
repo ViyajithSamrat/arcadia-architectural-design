@@ -328,7 +328,7 @@ export async function verifyPayment(
   supabase: Client,
   paymentId: string,
   input: { confirmedAmount: unknown; note: unknown; acknowledged: boolean },
-): Promise<ServiceResult> {
+): Promise<ServiceResult<{ projectId: string }>> {
   if (!/^[0-9a-f-]{36}$/i.test(paymentId)) return fail(PAYMENT_NOT_FOUND);
   if (input.acknowledged !== true) return fail("Confirm that you checked the receiving account before verifying.");
   const minor = typeof input.confirmedAmount === "string" ? parseConfirmedAmount(input.confirmedAmount) : null;
@@ -338,7 +338,7 @@ export async function verifyPayment(
 
   const { data: payment, error } = await supabase
     .from("payments")
-    .select("id, status, quotes(total_amount)")
+    .select("id, status, project_id, quotes(total_amount)")
     .eq("id", paymentId)
     .maybeSingle();
   if (error || !payment) return fail(PAYMENT_NOT_FOUND);
@@ -351,7 +351,8 @@ export async function verifyPayment(
     p_confirmed_amount: minorToDecimal(minor),
     p_audit_note: note || null,
   });
-  return result.error ? decisionFailure(result.error) : { ok: true };
+  // The project id lets the caller start generation for the project this decision just unlocked.
+  return result.error ? decisionFailure(result.error) : { ok: true, projectId: String(payment.project_id) };
 }
 
 /**

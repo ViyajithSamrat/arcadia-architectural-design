@@ -30,10 +30,10 @@ describe("the fixed wording", () => {
     }
   });
 
-  it("tells the administrator what becomes visible, that it cannot be undone and that nothing is automatic", () => {
+  it("tells the administrator what becomes visible, that it cannot be undone and when it is needed", () => {
     expect(RELEASE_EXPLANATION).toMatch(/visible to the customer/);
     expect(RELEASE_EXPLANATION).toMatch(/cannot be undone/);
-    expect(RELEASE_EXPLANATION).toMatch(/Nothing is released automatically/);
+    expect(RELEASE_EXPLANATION).toMatch(/normally released automatically when generation finishes/);
   });
 });
 
@@ -123,7 +123,7 @@ describe("FloorPlanSketch", () => {
 
 describe("administrator controls", () => {
   it.each([
-    ["start", "Start mock generation", /test generator\. No AI model is used and nothing is spent/],
+    ["start", "Start generation now", /starts by itself once a payment is verified.*no AI model is used and nothing is spent/],
     ["retry", "Try generation again", /last attempt failed and left nothing behind/],
     ["resume", "Start generation again", /never began/],
     ["finish", "Finish and move to review", /without generating again/],

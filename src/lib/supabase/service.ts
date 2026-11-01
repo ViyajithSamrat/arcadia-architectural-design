@@ -5,7 +5,7 @@ import { getServiceRoleKey, getSupabasePublicConfig } from "./config";
 import { createTimeoutFetch } from "./timeout";
 
 /**
- * A client using the SERVICE ROLE key. It bypasses row level security, so it must
+ * A client using the secret key (or the legacy SERVICE ROLE key). It bypasses row level security, so it must
  * be used only in trusted server code, only AFTER the caller has been authenticated
  * and authorized (requireUser / requireAdmin and an ownership check), and never to
  * serve ordinary customer reads. The database workflow guards still apply to it.

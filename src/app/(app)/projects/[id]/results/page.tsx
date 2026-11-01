@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ConceptViewer } from "@/components/generation/concept-viewer";
+import { GenerationWatcher } from "@/components/generation/generation-watcher";
 import { FloorPlanSketch } from "@/components/generation/floor-plan";
 import { ConceptDisclaimer, CustomerMockWarning } from "@/components/generation/image-gallery";
 import { ResultsStatus } from "@/components/generation/results-status";
@@ -44,6 +45,7 @@ async function Results({ params }: Props) {
     return (
       <>
         <ProjectHeader projectId={id} kind={journey.title} title="Your concepts" />
+        <GenerationWatcher projectId={id} status={results.status} />
         <ResultsStatus projectId={id} status={results.status} />
       </>
     );
@@ -61,7 +63,7 @@ async function Results({ params }: Props) {
   const mockIds = provenance.state === "known" ? provenance.mockAssetIds.filter((m) => visible.has(m)) : null;
   return (
     <>
-      <ProjectHeader projectId={id} kind="Released concepts" title={journey.title} />
+      <ProjectHeader projectId={id} kind="Your concepts" title={journey.title} />
 
       {results.assets.length === 0 ? (
         <Notice tone="warning" title="Your images could not be loaded">
@@ -102,7 +104,7 @@ async function Results({ params }: Props) {
       {results.floorPlan ? (
         <div className="space-y-4 border-t border-border-strong pt-10">
           <p className="eyebrow">Separate from the AI concepts above</p>
-          <FloorPlanSketch plan={results.floorPlan} audience="customer" />
+          <FloorPlanSketch plan={results.floorPlan} audience="customer" downloadProjectId={id} />
         </div>
       ) : null}
     </>

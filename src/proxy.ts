@@ -14,7 +14,7 @@ export async function proxy(request: NextRequest) {
   if (!config) return NextResponse.next();
 
   let response = NextResponse.next({ request });
-  const supabase = createServerClient(config.url, config.anonKey, {
+  const supabase = createServerClient(config.url, config.publicKey, {
     cookies: {
       getAll: () => request.cookies.getAll(),
       setAll: (cookiesToSet, headers) => {

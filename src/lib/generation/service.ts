@@ -121,9 +121,9 @@ export type StartDeps = {
 };
 
 /**
- * Starts mock generation for a project. `supabase` is the CALLER's session client (checked
- * as administrator); `service` is the trusted client. Throws AuthError when the caller is
- * not signed in or not an administrator.
+ * Starts (or retries) generation for a project on an administrator's request. `supabase` is the
+ * CALLER's session client (checked as administrator); `service` is the trusted client. Throws
+ * AuthError when the caller is not signed in or not an administrator.
  */
 export async function startGeneration(
   supabase: Client,
@@ -132,6 +132,25 @@ export async function startGeneration(
   deps: StartDeps = {},
 ): Promise<GenerationResult> {
   const admin = await requireAdmin(supabase);
+  return runGeneration(service, { ...input, actorId: admin.id, source: "admin" }, deps);
+}
+
+export type RunInput = {
+  projectId: string;
+  idempotencyKey: string;
+  /** The administrator on whose decision this runs: recorded in the audit event. */
+  actorId: string | null;
+  /** "auto" is the run that follows a payment verification; it must never be called with browser input. */
+  source: "admin" | "auto";
+};
+
+/**
+ * The generation run itself, shared by the administrator's retry and the automatic run after a
+ * payment verification. It trusts nothing about the caller: it re-reads the project and relies on
+ * the conditional claim below and the database guards (verified payment, one active job), so a
+ * repeated or concurrent call can never run the provider twice. Callers authorize before calling.
+ */
+export async function runGeneration(service: Client, input: RunInput, deps: StartDeps = {}): Promise<GenerationResult> {
   const env = deps.env ?? process.env;
 
   if (typeof input.projectId !== "string" || !ID.test(input.projectId) || typeof input.idempotencyKey !== "string" || !KEY.test(input.idempotencyKey)) {
@@ -244,8 +263,8 @@ export async function startGeneration(
 
   // Who started it: the audit triggers see no signed-in user for the service role.
   const audit = await service.from("audit_events").insert({
-    actor_id: admin.id,
-    action: "generation.admin_started",
+    actor_id: input.actorId,
+    action: input.source === "auto" ? "generation.auto_started" : "generation.admin_started",
     project_id: project.id,
     metadata_json: { job_id: jobId, provider: provider.id, mock: provider.mock },
   });

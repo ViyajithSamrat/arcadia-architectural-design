@@ -17,7 +17,7 @@ const item = (n: number, url: string | null = `https://signed.test/${n}`) => ({ 
 describe("ReferenceUploads", () => {
   it("states the constraints and that the files are private, and offers a labelled file input for the three image types", () => {
     const out = html(createElement(ReferenceUploads, { projectId: ID, items: [], sentToImageService: false }));
-    expect(out).toContain("JPEG, PNG or WebP, up to 5 MB each, up to 6 files");
+    expect(out).toContain("JPEG, PNG or WebP, up to 4 MB each, up to 6 files");
     expect(out).toContain("stored privately: only you and our reviewer can see them");
     expect(out).toContain("In this setup they are not sent to any outside service.");
     expect(out).toContain("No photos added yet. You can continue without them.");

@@ -25,6 +25,11 @@ vi.mock("next/navigation", () => ({ redirect: (url: string) => redirect(url), us
 const revalidatePath = vi.fn();
 vi.mock("next/cache", () => ({ revalidatePath: (...a: unknown[]) => revalidatePath(...a) }));
 
+// A verification schedules the generation that follows it (src/lib/generation/auto.ts) with after();
+// outside a request that call is an error, so it is captured here and never run in these tests.
+const scheduled: (() => unknown)[] = [];
+vi.mock("next/server", async (importOriginal) => ({ ...(await importOriginal<object>()), after: (fn: () => unknown) => scheduled.push(fn) }));
+
 const createServerClient = vi.fn();
 vi.mock("@/lib/supabase/server", () => ({ createSupabaseServerClient: () => createServerClient() }));
 
@@ -78,6 +83,7 @@ const statusOf = (db: FakeDb) => db.tables.payments.find((p) => p.id === PAYMENT
 
 beforeEach(() => {
   vi.clearAllMocks();
+  scheduled.length = 0;
   redirect.mockImplementation((url: string) => {
     throw new Error(`NEXT_REDIRECT:${url}`);
   });
@@ -113,7 +119,7 @@ describe("the amount an administrator confirms", () => {
 describe("verifyPayment with the amount as the review page shows it (the reported defect)", () => {
   it("verifies when the administrator types ₹7,611.00, and sends the plain decimal to the database", async () => {
     const db = paymentDb(true);
-    expect(await verifyPayment(db.client(), PAYMENT, { confirmedAmount: "₹7,611.00", note: "", acknowledged: true })).toEqual({ ok: true });
+    expect(await verifyPayment(db.client(), PAYMENT, { confirmedAmount: "₹7,611.00", note: "", acknowledged: true })).toEqual({ ok: true, projectId: PROJECT });
     expect(decisionCalls(db)).toEqual([{ name: "admin_verify_payment", args: { p_payment_id: PAYMENT, p_confirmed_amount: "7611.00", p_audit_note: null } }]);
   });
 
@@ -142,6 +148,8 @@ describe("the payment decision Server Actions", () => {
     expect(decisionCalls(db)).toEqual([{ name: "admin_verify_payment", args: { p_payment_id: PAYMENT, p_confirmed_amount: "7611.00", p_audit_note: "Seen in the statement." } }]);
     // "/admin" as a layout covers the overview's pending count, the queue and this payment's page.
     expect(revalidatePath).toHaveBeenCalledWith("/admin", "layout");
+    // The verification owes the customer a generation: one run is scheduled, to start after the response.
+    expect(scheduled).toHaveLength(1);
   });
 
   it("rejection: recorded with its reason, refreshed and shown the same way", async () => {
@@ -184,6 +192,8 @@ describe("the payment decision Server Actions", () => {
     expect(decisionCalls(db).map((c) => c.name)).toEqual(["admin_verify_payment", "admin_reject_payment"]);
     expect(statusOf(db)).toBe("VERIFIED");
     expect(revalidatePath).not.toHaveBeenCalled();
+    // Only the first approval scheduled a generation; the repeats and the rejection scheduled none.
+    expect(scheduled).toHaveLength(1);
   });
 
   it("refuses malformed arguments before reading anything", async () => {

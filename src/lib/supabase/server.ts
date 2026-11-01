@@ -5,7 +5,7 @@ import { getSupabasePublicConfig } from "./config";
 import { createTimeoutFetch } from "./timeout";
 
 /**
- * A Supabase client that acts AS THE SIGNED-IN USER (anon key + the user's session
+ * A Supabase client that acts AS THE SIGNED-IN USER (public key + the user's session
  * cookies), so every query is subject to row level security. Use this for ordinary
  * customer and administrator requests.
  *
@@ -19,7 +19,7 @@ export async function createSupabaseServerClient() {
     throw new AuthError(503, "AUTH_NOT_CONFIGURED", "Sign-in is not available yet.");
   }
   const cookieStore = await cookies();
-  return createServerClient(config.url, config.anonKey, {
+  return createServerClient(config.url, config.publicKey, {
     global: { fetch: createTimeoutFetch() },
     cookies: {
       getAll: () => cookieStore.getAll(),

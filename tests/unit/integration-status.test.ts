@@ -18,7 +18,13 @@ describe("getIntegrationStatuses", () => {
   it("reports a partly set integration as partial and names what is missing", () => {
     const status = byId({ NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co" }).supabase;
     expect(status.state).toBe("partial");
-    expect(status.missing).toEqual(["NEXT_PUBLIC_SUPABASE_ANON_KEY"]);
+    expect(status.missing).toEqual(["one of: NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY / NEXT_PUBLIC_SUPABASE_ANON_KEY"]);
+  });
+
+  it("accepts either the publishable key or the legacy anon key for Supabase", () => {
+    const url = { NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co" };
+    expect(byId({ ...url, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_x" }).supabase.state).toBe("configured_unverified");
+    expect(byId({ ...url, NEXT_PUBLIC_SUPABASE_ANON_KEY: "legacy" }).supabase.state).toBe("configured_unverified");
   });
 
   it("never says an integration works: complete settings are only 'configured, not verified'", () => {

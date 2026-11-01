@@ -16,6 +16,9 @@ import { isMockGatewayReference } from "@/lib/payments/mock-gateway";
 
 export const metadata: Metadata = { title: "Review payment", robots: { index: false, follow: false } };
 
+/** Verifying a payment starts image generation after the response (see actions.ts); the platform limit for that work is set here. */
+export const maxDuration = 300;
+
 type Props = { params: Promise<{ paymentId: string }>; searchParams: Promise<{ decided?: string }> };
 
 const dateTime = new Intl.DateTimeFormat("en", { dateStyle: "medium", timeStyle: "short" });

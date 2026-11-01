@@ -4,8 +4,9 @@ import { useRouter } from "next/navigation";
 import { useRef, useState, type FormEvent, type ReactNode } from "react";
 import { Notice } from "@/components/journey/notice";
 import { buttonPrimary, fileInput, input } from "@/components/journey/styles";
+import { UPLOAD_MAX_BYTES, UPLOAD_MAX_LABEL } from "@/lib/uploads/limits";
 
-const MAX_BYTES = 5 * 1024 * 1024;
+const MAX_BYTES = UPLOAD_MAX_BYTES;
 
 type Errors = Record<string, string>;
 
@@ -55,7 +56,7 @@ export function PaymentForm({ projectId, defaultAmount, currency }: { projectId:
 
     const file = data.get("evidence");
     if (file instanceof File && file.size > MAX_BYTES) {
-      setErrors({ evidence: "The image is larger than 5 MB. Choose a smaller one." });
+      setErrors({ evidence: `The image is larger than ${UPLOAD_MAX_LABEL}. Choose a smaller one.` });
       return;
     }
     setErrors({});
@@ -104,7 +105,7 @@ export function PaymentForm({ projectId, defaultAmount, currency }: { projectId:
         </select>
       </Field>
 
-      <Field id="pay-evidence" label="Receipt image (optional)" hint="JPEG, PNG or WebP, up to 5 MB. It stays private and is seen only by you and the reviewer." error={errors.evidence}>
+      <Field id="pay-evidence" label="Receipt image (optional)" hint={`JPEG, PNG or WebP, up to ${UPLOAD_MAX_LABEL}. It stays private and is seen only by you and the reviewer.`} error={errors.evidence}>
         <input id="pay-evidence" name="evidence" type="file" accept="image/jpeg,image/png,image/webp" aria-invalid={errors.evidence ? true : undefined} aria-describedby={describe("pay-evidence", true, errors.evidence)} className={`mt-2 ${fileInput}`} />
       </Field>
 

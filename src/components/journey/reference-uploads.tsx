@@ -6,6 +6,7 @@ import { removeReferenceAction } from "@/app/(app)/projects/actions";
 import { Notice } from "@/components/journey/notice";
 import { buttonSecondary, fileInput } from "@/components/journey/styles";
 import type { ReferenceView } from "@/lib/references/service";
+import { UPLOAD_MAX_BYTES, UPLOAD_MAX_LABEL } from "@/lib/uploads/limits";
 
 /**
  * Reference photos and floor plans (PR-010). The photos are stored PRIVATELY: this component only
@@ -16,7 +17,7 @@ import type { ReferenceView } from "@/lib/references/service";
  * not pulled into the browser bundle); the server enforces the real limits.
  */
 
-const MAX_BYTES = 5 * 1024 * 1024;
+const MAX_BYTES = UPLOAD_MAX_BYTES;
 const MAX_FILES = 6;
 const ACCEPT = "image/jpeg,image/png,image/webp";
 
@@ -61,7 +62,7 @@ export function ReferenceUploads({ projectId, items, sentToImageService }: { pro
   async function choose(file: File | undefined) {
     if (!file) return;
     if (file.size === 0) return setUpload({ kind: "error", message: "That file is empty. Choose another." });
-    if (file.size > MAX_BYTES) return setUpload({ kind: "error", message: "That photo is larger than 5 MB. Choose a smaller one." });
+    if (file.size > MAX_BYTES) return setUpload({ kind: "error", message: `That photo is larger than ${UPLOAD_MAX_LABEL}. Choose a smaller one.` });
     if (!ACCEPT.split(",").includes(file.type)) return setUpload({ kind: "error", message: "Use a JPEG, PNG or WebP image." });
     setUpload({ kind: "uploading", percent: 0 });
     const result = await send(projectId, file, (percent) => setUpload({ kind: "uploading", percent }));
@@ -86,7 +87,7 @@ export function ReferenceUploads({ projectId, items, sentToImageService }: { pro
         Photos or a floor plan (optional)
       </h3>
       <p className="text-sm text-muted">
-        JPEG, PNG or WebP, up to 5 MB each, up to {MAX_FILES} files. They are stored privately: only you and our reviewer can see them.{" "}
+        JPEG, PNG or WebP, up to {UPLOAD_MAX_LABEL} each, up to {MAX_FILES} files. They are stored privately: only you and our reviewer can see them.{" "}
         {sentToImageService
           ? "When concept images are made with the live image service, up to three of these photos are sent to it as reference input."
           : "In this setup they are not sent to any outside service."}{" "}

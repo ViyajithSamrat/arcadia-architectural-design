@@ -83,7 +83,7 @@ export async function getAuthProviders(fetchImpl: typeof fetch = createTimeoutFe
   const config = getSupabasePublicConfig();
   if (!config) return null;
   try {
-    const res = await fetchImpl(`${config.url}/auth/v1/settings`, { headers: { apikey: config.anonKey }, cache: "no-store" });
+    const res = await fetchImpl(`${config.url}/auth/v1/settings`, { headers: { apikey: config.publicKey }, cache: "no-store" });
     if (!res.ok) return null;
     const json = (await res.json()) as { external?: Record<string, unknown>; disable_signup?: unknown; mailer_autoconfirm?: unknown };
     return {

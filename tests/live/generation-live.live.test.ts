@@ -326,7 +326,7 @@ describe.skipIf(!ENABLED)("live local Supabase: mock generation and controlled r
       if (result.state !== "released") return;
       expect(result.assets).toHaveLength(2);
       expect(result.unavailable).toBe(0);
-      expect(Object.keys(result.assets[0]).sort()).toEqual(["height", "id", "label", "url", "width"]);
+      expect(Object.keys(result.assets[0]).sort()).toEqual(["downloadUrl", "height", "id", "label", "url", "width"]);
       for (const asset of result.assets) {
         const response = await fetch(asset.url);
         expect(response.ok).toBe(true);

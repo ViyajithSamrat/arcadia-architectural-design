@@ -1,4 +1,5 @@
 import { Notice } from "@/components/journey/notice";
+import { buttonPrimary, buttonSecondary } from "@/components/journey/styles";
 import type { FloorPlanView } from "@/lib/generation/floor-plan";
 
 /**
@@ -6,8 +7,11 @@ import type { FloorPlanView } from "@/lib/generation/floor-plan";
  * and shown as an <img> data URL: as an image the browser runs no script in it and fetches
  * nothing it references. Room names are also listed as text, so nothing depends on a label
  * fitting inside its block.
+ *
+ * With `downloadProjectId` (the owner's results page) it also offers the same layout as an editable
+ * CAD file and as SVG, from /api/projects/[id]/plan, which authorizes every download itself.
  */
-export function FloorPlanSketch({ plan, audience }: { plan: FloorPlanView; audience: "admin" | "customer" }) {
+export function FloorPlanSketch({ plan, audience, downloadProjectId }: { plan: FloorPlanView; audience: "admin" | "customer"; downloadProjectId?: string }) {
   return (
     <section aria-labelledby="floor-plan-title" className="space-y-3">
       <h2 id="floor-plan-title" className="text-xl font-semibold">
@@ -65,6 +69,24 @@ export function FloorPlanSketch({ plan, audience }: { plan: FloorPlanView; audie
               </ul>
             </div>
           </div>
+          {downloadProjectId ? (
+            <div className="space-y-4 rounded-[4px] border border-border bg-surface p-5 sm:p-6">
+              <h3 className="font-medium">Download the 2D drawing</h3>
+              <p className="max-w-prose text-sm leading-relaxed text-muted">
+                An editable CAD file (DXF) that opens in AutoCAD, LibreCAD, DraftSight and other CAD programs. It holds your plot outline at the size you entered, dimensioned, and one outline for each requested room or space, each on its own layer. The room outlines are schematic: they carry no sizes, and there are no walls, doors or windows. This is a layout sketch, not a construction drawing, and it has not been checked by an architect or against any building rules.
+              </p>
+              <div className="flex flex-wrap items-center gap-3">
+                <a href={`/api/projects/${downloadProjectId}/plan?format=dxf`} download className={buttonPrimary}>
+                  Download 2D CAD drawing (DXF)
+                </a>
+                {plan.floors.map((floor, i) => (
+                  <a key={floor.name} href={`/api/projects/${downloadProjectId}/plan?format=svg&floor=${i + 1}`} download className={buttonSecondary}>
+                    {plan.floors.length > 1 ? `SVG: ${floor.name}` : "Download SVG"}
+                  </a>
+                ))}
+              </div>
+            </div>
+          ) : null}
           <p className="text-sm text-muted">Sketch version {plan.version}.</p>
         </>
       )}

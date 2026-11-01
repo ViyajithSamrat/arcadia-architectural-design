@@ -7,9 +7,9 @@ import type { ProjectStatus } from "@/lib/db/schema";
 export const RELEASE_MILESTONES = [
   { id: "payment", label: "Payment", detail: "Pay and send your transfer details." },
   { id: "verification", label: "Verification", detail: "A person checks the transfer. Submitting is not verification." },
-  { id: "generation", label: "Generation", detail: "The concepts are drawn from your approved brief." },
-  { id: "review", label: "Review", detail: "The team reviews every image before you see it." },
-  { id: "release", label: "Release", detail: "Your concepts appear on this page." },
+  { id: "generation", label: "Generation", detail: "Starts by itself once your payment is verified. Your concepts are drawn from your approved brief." },
+  { id: "review", label: "Checks", detail: "The finished set is checked before it appears. Anything that cannot be checked automatically waits for a person." },
+  { id: "release", label: "Ready", detail: "Your concepts and 2D drawing appear on this page." },
 ] as const;
 
 export type MilestoneState = "done" | "current" | "problem" | "todo";

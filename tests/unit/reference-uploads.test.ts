@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { loadReferenceInputs } from "@/lib/generation/references";
+import { loadReferenceInputs, REFERENCE_MAX_BYTES as STORED_REFERENCE_MAX_BYTES } from "@/lib/generation/references";
 import { createBrief } from "@/lib/journeys/service";
 import { mockBriefProvider } from "@/lib/journeys/brief";
 import type { BriefProvider } from "@/lib/journeys/brief";
@@ -99,7 +99,7 @@ describe("addReference", () => {
   it("refuses an oversized file WITHOUT reading it", async () => {
     const arrayBuffer = vi.fn(async () => new ArrayBuffer(0));
     const result = await addReference(client(), ME, PROJECT, { size: REFERENCE_MAX_BYTES + 1, arrayBuffer });
-    expect(result).toMatchObject({ ok: false, message: expect.stringMatching(/larger than 5 MB/) });
+    expect(result).toMatchObject({ ok: false, message: expect.stringMatching(/larger than 4 MB/) });
     expect(arrayBuffer).not.toHaveBeenCalled();
     expect(db.uploads).toHaveLength(0);
   });
@@ -359,7 +359,7 @@ describe("loadReferenceInputs (what an image provider may be given)", () => {
     const out = await loadReferenceInputs(withStorage({ [`${OTHER_PROJECT}/references/a.png`]: png, [own("b.txt")]: new TextEncoder().encode("not an image at all"), [`${PROJECT}/payment-proofs/c.png`]: png }), PROJECT);
     expect(out).toEqual([]);
     db.tables.design_assets = [row("5", own("e.png"), "2026-10-21T00:00:05Z"), row("6", own("f.png"), "2026-10-21T00:00:06Z")];
-    const big = new Uint8Array(REFERENCE_MAX_BYTES + 1);
+    const big = new Uint8Array(STORED_REFERENCE_MAX_BYTES + 1);
     big.set([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
     expect(await loadReferenceInputs(withStorage({ [own("e.png")]: new Uint8Array(0), [own("f.png")]: big }), PROJECT)).toEqual([]);
   });

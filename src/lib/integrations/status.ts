@@ -47,7 +47,8 @@ const DEFINITIONS: Definition[] = [
     id: "supabase",
     label: "Supabase (database, sign-in, private storage)",
     neededInPhase: 2,
-    allOf: ["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY"],
+    allOf: ["NEXT_PUBLIC_SUPABASE_URL"],
+    anyOf: ["NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "NEXT_PUBLIC_SUPABASE_ANON_KEY"],
   },
   {
     id: "openrouter",

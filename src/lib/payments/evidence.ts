@@ -1,17 +1,19 @@
 import { minorToDecimal } from "@/lib/journeys/money";
 import { PAYMENT_METHODS, type PaymentMethod } from "@/lib/db/schema";
+import { UPLOAD_MAX_BYTES, UPLOAD_MAX_LABEL, UPLOAD_REQUEST_MAX_BYTES } from "@/lib/uploads/limits";
 
 /**
  * Validation of what a customer submits as payment evidence. Everything here is a claim
  * to be reviewed by a person; nothing in this file decides whether a payment happened.
  *
- * The file limits match the bucket restriction in
- * supabase/migrations/20261018000100_payment_proof_limits.sql. Keep the two in step.
+ * The allowed types match the bucket restriction in
+ * supabase/migrations/20261018000100_payment_proof_limits.sql. The size limit is the
+ * request-path limit in src/lib/uploads/limits.ts, which is below the bucket's 5 MiB.
  */
 
-export const EVIDENCE_MAX_BYTES = 5 * 1024 * 1024;
-/** Room for the multipart framing around a file of the maximum size. */
-export const EVIDENCE_REQUEST_MAX_BYTES = EVIDENCE_MAX_BYTES + 64 * 1024;
+export const EVIDENCE_MAX_BYTES = UPLOAD_MAX_BYTES;
+export const EVIDENCE_REQUEST_MAX_BYTES = UPLOAD_REQUEST_MAX_BYTES;
+const TOO_LARGE = `The image is larger than ${UPLOAD_MAX_LABEL}. Choose a smaller one.`;
 
 export const EVIDENCE_TYPES = {
   "image/jpeg": "jpg",
@@ -43,10 +45,10 @@ export type FileCheck = { ok: true; image: SniffedImage; bytes: Uint8Array } | {
 
 /** Checks size first (so an oversized file is never read) and then the real type. */
 export async function checkEvidenceFile(file: { size: number; arrayBuffer(): Promise<ArrayBuffer> }): Promise<FileCheck> {
-  if (file.size > EVIDENCE_MAX_BYTES) return { ok: false, message: "The image is larger than 5 MB. Choose a smaller one." };
+  if (file.size > EVIDENCE_MAX_BYTES) return { ok: false, message: TOO_LARGE };
   const bytes = new Uint8Array(await file.arrayBuffer());
   if (bytes.length === 0) return { ok: false, message: "The image is empty. Choose another file." };
-  if (bytes.length > EVIDENCE_MAX_BYTES) return { ok: false, message: "The image is larger than 5 MB. Choose a smaller one." };
+  if (bytes.length > EVIDENCE_MAX_BYTES) return { ok: false, message: TOO_LARGE };
   const image = sniffImage(bytes);
   if (!image) return { ok: false, message: "Use a JPEG, PNG or WebP image." };
   return { ok: true, image, bytes };

@@ -1,278 +1,123 @@
-# Architectural AI Design — Web Prototype
+# GNANI — Architectural AI Design
 
-A concept-design prototype. A customer describes a new building on an empty plot, an interior refresh or a garden. The app turns the answers into an English brief and a server-calculated quote. The customer submits evidence of an offline payment, an administrator verifies it, and only then are concept images generated. They stay private until an administrator releases them.
+GNANI turns a plain description of a building, a room or a garden into an English design brief, an itemized quote and AI-generated concept images. A customer describes what they want in text (or by voice where enabled), reviews the brief and quote, and sends evidence of an offline payment. A person verifies the payment; generation then starts automatically and the finished concepts appear in the customer's project.
 
-Outputs are conceptual design ideas, not construction drawings, CAD/BIM models or code-compliant plans.
+The output is **conceptual**. Generated images and the layout sketch are illustrations for exploring ideas. They are not construction drawings, engineering plans, CAD/BIM deliverables or code-compliant designs, and nothing in the product says otherwise.
 
-**Status (2026-10-21): a local prototype with mock AI providers. The local demo path has been run end to end in a browser (development server); the application is not deployed.**
-- Phases 1–5 and Phase 6A are complete in the history up to commit `5ecf040`. The release commits after it add the empty-plot SVG layout sketch, the brief's text read-back summary, the administrator pricing screen and this documentation.
-- All three journeys passed a local browser run on 2026-10-21 (see "What works today"). That run used the development server, not the production build, and covered neither mobile width nor a real microphone.
-- Voice input and concept images are **labelled mocks**. No live AI provider has ever been called. Reference uploads are not built.
-- The verified progress ledger, with requirement-by-requirement evidence, is the "Verified Implementation Checkpoint" at the end of `architectural-ai-design-spec/06_IMPLEMENTATION_PLAN.md`.
+## Features
 
-## Contents
+- **Three journeys** — a new build on an empty plot, an interior refresh, and landscaping. Each is a validated multi-step form.
+- **Brief** — the answers become a structured English brief. With a live provider the wording is drafted by an OpenRouter text model; the server composes and validates the stored brief, so model output is never trusted as data.
+- **Quote** — priced on the server from administrator-managed pricing rules, itemized, and frozen when the customer accepts it.
+- **Payment** — manual/offline. The customer submits a reference and an optional receipt image; an administrator verifies the full quoted amount or rejects with a reason. There is **no payment gateway**; a clearly labelled simulated checkout exists for demonstrations.
+- **Automatic generation** — verifying a payment starts image generation without a second click. The customer's project page updates by itself and shows the images when they are ready.
+- **2D layout drawing** — for new builds, an editable DXF (and SVG) generated from the same structured layout as the on-screen sketch. See [Limitations](#limitations).
+- **Voice (optional)** — Gnani speech-to-text for dictating a description and text-to-speech for reading the brief back. Off unless configured.
+- **Administration** — payment review queue, generation monitor and retry, pricing management.
+- **Security by design** — row level security, private storage, server-side authorization on every action, audit events. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-1. [What works today](#what-works-today)
-2. [Known limitations](#known-limitations)
-3. [Environment checklist](#environment-checklist)
-4. [Runbook](#runbook)
-5. [Five-minute demo](#five-minute-demo)
-6. [Configuration](#configuration)
-7. [Project layout](#project-layout)
-8. [Notes for developers](#notes-for-developers)
-9. [Roadmap](#roadmap)
+## How a project moves
 
-## What works today
-
-How the "Evidence" column was established:
-- **Offline:** the unit and in-memory PostgreSQL tests (`npm test`) were run on the current code: 52 files, 1,126 tests passed on 2026-10-21. The production build passed the same day.
-- **Local stack (earlier):** recorded in earlier sessions against a local Supabase stack, or in a local browser. Not re-run since.
-- **Browser (2026-10-21):** all three journeys were run end to end in a headless Edge browser against the local development server (`next dev`) and the local Supabase stack, through the real UI, with demo data: create, brief, quote, payment evidence, administrator verification, mock generation, release, and the owner's view of the released results. Isolation and access checks were included: a signed-out visitor, a customer on admin pages, another customer's projects, results before release, and generation before verified payment. No console errors or failed requests were recorded. **Not covered:** the production build in a browser, mobile width, accessibility, a real microphone, receipt-image upload, and a forced generation failure.
-- **Not browser-tested:** has never been exercised in a browser.
-
-| Area | What it does | Evidence |
-|---|---|---|
-| Landing page and three journeys | `/`, `/new/empty-plot`, `/new/interior`, `/new/landscape`; validated multi-step forms; text-only path | Offline; local stack and browser (earlier) |
-| Sign-in | Email and password with self-service registration and Forgot password; Continue with Google (`/sign-in`, `/auth/callback`, `/reset-password`). Google needs provider credentials (see `supabase/README.md`, "Sign-in methods") | Offline tests; Google not configured or verified |
-| Brief | With `PROVIDER_MODE=live` the wording is drafted by OpenRouter (`google/gemini-3.1-flash-lite`) and labelled "Drafted with AI from your answers"; the server composes the stored brief, keeps every number from the answers and lists missing details; otherwise a labelled **mock** writer. The customer edits and must tick a confirmation before approving | **Live verified 2026-10-28** (smoke test plus three briefs through the app and its ledger, production build, real browser) |
-| Quote | Calculated on the server from `pricing_rules`, itemized, frozen on acceptance; "Pricing not configured" without rules; "Demo rates" label in demo mode (`/projects/[id]/quote`) | Offline; local stack (earlier); browser-verified 2026-10-21 ("Demo rates" label, itemized lines, accepted) |
-| Payment evidence | Manual instructions from server configuration; the customer submits a reference and optional receipt image; status is pending, never verified automatically (`/projects/[id]/payment`) | Offline; local stack and browser (earlier); browser-verified 2026-10-21 without a receipt file |
-| Admin payment review | `/admin/payments`: 60-second proof links, verify with the full amount or reject with a reason, audited | Offline; local stack and browser (earlier); browser-verified 2026-10-21 (verify only; reject and the proof link were not exercised) |
-| Generation and release | `/admin/generation`: an administrator starts generation only after verified payment, reviews and releases. Images come from OpenRouter (`bytedance-seed/seedream-4.5`, needs `OPENROUTER_IMAGE_RESOLUTION=2K`) when `PROVIDER_MODE=live`, otherwise from a **mock** generator marked "MOCK — NOT A DESIGN". One live image passed the smoke test on 2026-10-28; live generation through the admin screen has not been run. The generation queue states which mode the server is in (mock, live, or live requested but not available). Customers see nothing before release (`/projects/[id]/results`) | Offline; browser-verified 2026-10-21 for all three journeys (start mock generation, release with both confirmations, owner's view); local stack (earlier, 103/103 before later fixes) |
-| Empty-plot layout sketch | Deterministic SVG drawn from the saved answers on the admin review and customer results pages, under the same release rules as the images. Labelled "Illustrative layout only — not CAD or a construction drawing" | Offline and build; browser-verified 2026-10-21 (two floors for the empty-plot demo project, none for interior and landscape) |
-| Pricing settings | `/admin/pricing`: an administrator publishes a new version of a rate, minimum charge, included quantity, currency or tax rate, in force immediately; history kept; audited | Offline and build; browser-verified 2026-10-21 as a read-only view (17 demo rules, nothing published); **publishing was not exercised against real Supabase** |
-| Reference photos | Optional, interior and landscape: private upload (JPEG/PNG/WebP, 5 MB, 6 per project), thumbnails by short-lived signed links, removal while editable | Upload, removal and fake-image refusal browser-verified at 390 px on the production build (2026-10-28); live local storage suite 11/11. Earlier note: not browser-tested, not run on hosted Supabase |
-| Voice input | Off by default. With `GNANI_VOICE_ENABLED=mock`: consent, browser recording or WAV upload, then a fixed **mock** placeholder transcript that cannot be saved as the description | Offline; headless browser with a fake microphone (earlier) Live Gnani: configured, but the API key is **inactive** (`API_KEY_INACTIVE`, 2026-10-28), so live voice shows as unavailable |
-| `/status` and `GET /api/health` | Which optional services have settings present: names and states only, never values; "configured" never means "verified" | Offline |
-
-## Known limitations
-
-These come from the code and the original requirements (`architectural-ai-design-spec/01_PRD.md`, PR-001 to PR-035).
-
-**Voice**
-- **Live speech-to-text is written but has never been run against Gnani.** `LIVE_STT_WIRED = true` (`src/lib/journeys/voice.ts`) only means the adapter exists. It stays unavailable (never a mock) until `GNANI_VOICE_ENABLED=true` and every Gnani setting are present: key, an allow-listed host, the endpoint path, model, languages, credit rates, budget and `VOICE_TRANSCRIPT_SECRET`. No real call has been made; tests use a fake network.
-- **Mock mode** (`GNANI_VOICE_ENABLED=mock`) never calls Gnani. It ignores the audio and returns a fixed placeholder labelled `[MOCK TRANSCRIPT — no speech service was used]`. The server refuses to save it as a description or to build a brief from it.
-- **Blocked on facts about the Gnani account:** the confirmed endpoint path, credit rates, supported languages and limits. See `docs/PROVIDERS.md`.
-- **Mock transcripts never set the project language**, which stays `en`. "Tanglish" is a demo-only label.
-
-**Read-back (PR-009)**
-- The read-back summary is always shown as **text** on the brief page.
-- Spoken read-back (Gnani text-to-speech, English `en-IN` only) is written and offered only when the Gnani settings are complete. The customer must tick a consent box first, because the summary text goes to Gnani. It speaks only the server-stored summary, is rate limited, and the audio is never stored. **Never run against the real service.**
-
-**Brief writer**
-- The brief comes from a labelled mock template.
-- The OpenRouter adapter exists and is tested only with fake responses. Turning it on (`PROVIDER_MODE=live`) needs a model choice and a privacy notice for sending customer answers to a third party: an owner decision, not made.
-
-**Concept images**
-- The default is the mock generator: a deterministic placeholder PNG with no AI model, no network and no cost.
-- A live OpenRouter image adapter now exists (`src/lib/providers/openrouter-image.ts`, used only with `PROVIDER_MODE=live` and `OPENROUTER_API_KEY` plus `OPENROUTER_IMAGE_MODEL` set; otherwise generation says it is unavailable, never the mock). It is tested with a fake network only: **no real image has ever been generated.** The generated files are validated and stored privately; administrator release is unchanged.
-- Still needed before a live run: the owner's model choice, price and spending cap, the privacy decision, and migration `20261022000100_ai_usage_images.sql` (applied to the local database on 2026-10-22; not to any hosted one) so the usage ledger accepts image metering.
-- Two items are open before then:
-  - a database rule so that a request that was cleared as stale cannot add files;
-  - the release guard proposed in `supabase/proposed/` (not applied).
-
-**Reference uploads (PR-010)**
-- Built for the interior and landscape journeys: JPEG, PNG or WebP (type checked from the file's own bytes), up to 5 MB each, up to 6 per project. Files go to private Supabase Storage under random names, through the customer's own session only (never the service role); thumbnails use 5-minute signed links. Uploading and removing are allowed only while the project is editable.
-- Tested offline (unit tests and in-process PostgreSQL row-level-security tests), against the real local Supabase Storage (11 tests, 2026-10-28) and in a headless browser at 390 px (upload with thumbnail, removal, a fake image refused). Not run against hosted Supabase.
-- Photos are not sent to any outside service unless `PROVIDER_MODE=live` and `OPENROUTER_IMAGE_REFERENCES=true`; the upload screen says which applies.
-- Retention and deletion periods are still undecided.
-
-**Layout sketch**
-- An illustrative diagram drawn by code. It shows:
-  - the plot outline in the customer's proportions;
-  - the plot dimensions and unit as entered;
-  - the facing direction;
-  - one numbered block per requested room.
-- Block sizes and positions follow a fixed rule. No room sizes are shown or implied. No setbacks, building rules or approvals are applied.
-- Plots more elongated than 1:3 are drawn "Not to scale".
-- The sketch is not CAD, not a construction drawing and not stored; it is drawn again each time it is shown.
-
-**Pricing (PR-024)**
-- Publishing a rate makes it apply to **new** quotes immediately. Accepted quotes keep their frozen prices.
-- Whether quotes say "Demo rates" is decided separately, by the `pricing_mode` setting, which the screen does not change. Rates published while demo mode is on are still labelled demo. Turning demo mode off (real rates in effect) is the owner's decision.
-- Not on the screen (owner decisions):
-  - discounts (always zero today);
-  - payment instructions (kept in server configuration, `PAYMENT_*`);
-  - scheduling a price for a future date.
-- The demo rates in `supabase/demo/pricing_rules.demo.sql` are unverified placeholders, not commercial prices.
-
-**Payments**
-- Manual and offline only. The app never moves money and never treats a receipt as proof of payment: an administrator verifies against the receiving account.
-- No automated gateway (out of scope).
-
-**Privacy and retention**
-- Voice consent is asked for each recording but not stored.
-- Audio is never stored.
-- No retention or deletion periods have been decided, for transcripts, payment proofs or generated files. No privacy notice exists for live providers.
-
-**Verification gaps**
-- **Browser coverage is partial.** The 2026-10-21 run covered the three journeys on the development server. Not covered: the production build in a browser, mobile width, a real microphone, receipt-image upload, the payment-reject path, publishing a price, and a forced generation failure.
-- **No mobile-width (360 px) or accessibility check recorded.**
-- **The local live Supabase suites.** On 2026-10-22 these passed on the current tree against the local stack: `references-storage` (11), `payments-live` + `generation-live` (44) and `ai-usage-live` (16). The first two no longer delete pricing data; `ai-usage-live` removes only its own ledger rows (briefly disabling the ledger's guard trigger); `supabase-live` is now also non-destructive (43 passed, 1 skipped on 2026-10-22). A further live file, `late-asset-writes`, applies a proposed database rule temporarily to test real concurrency and restores the original afterwards.
-- **Real providers have never been called.** `npm run smoke:providers` (with `LIVE_PROVIDER_SMOKE=1`) runs one bounded call per provider and skips any provider without credentials; it skipped all four on 2026-10-22. For OpenRouter it first requires a key with its own credit limit of at most US$5, a model with the right output and a usable price, and re-reads real spend from the key (`tests/provider-smoke/openrouter-guard.ts`).
-- **Privacy and retention:** `docs/PRIVACY_RETENTION_CHECKLIST.md` is a draft of what is stored where and what the owner must decide. No privacy notice or retention period is approved.
-- **No rollback rehearsed on real PostgreSQL.**
-
-**Deployment**
-- None. No hosting configuration, no hosted Supabase project, no monitoring. The code is on a private GitHub repository (`origin`), which is not a deployment.
-
-**Process limits**
-- The voice rate limit is per server process. The mock transcript signing key is per process unless `VOICE_TRANSCRIPT_SECRET` is set.
-
-## Environment checklist
-
-No branching strategy or environment mapping is documented: there is one branch, `main`, pushed to the private GitHub repository `origin`.
-
-| Environment | What exists | What is missing or unverified | Safe to use now? |
-|---|---|---|---|
-| **Local development** | Code and dependencies; a git-ignored `.env.local` (exists; holds local Supabase settings according to earlier records; never commit or print it); a local Supabase stack in Docker, with all 9 migrations applied locally (the ninth on 2026-10-22). Its current running state is not checked here. | Re-checking the local stack, demo data and an administrator account before a demo. Live provider settings are intentionally absent. | Yes for offline work (`npm test`, typecheck, lint, build). Starting Docker or Supabase, applying migrations or loading demo data needs the owner's approval in this project. |
-| **QA / testing** | No separate QA environment. The offline suite (`npm test`: unit tests plus in-process PostgreSQL, network blocked) is the safe test layer. The live suites (`tests/live/`, `LIVE_SUPABASE=1 npx vitest run --config vitest.live.config.mts`) run against the local stack only. | An isolated plan for the live suites, whose setup deletes local `pricing_rules` and disables a guard trigger. Browser tests are not in the repository. | Offline suite: yes. Live suites: no, not without an approved isolated plan. |
-| **Staging** | Nothing. | Everything: hosting, a Supabase project, migrations, secrets, a URL. | No. It does not exist. |
-| **Production** | Nothing. | Everything above, plus monitoring, backups, a privacy notice, retention rules, real prices and payment details, and live-provider verification. | No. It does not exist. |
-
-A passing offline build does **not** mean providers are wired, the database is configured, secrets are set or anything is deployed. Those are separate checks.
-
-## Runbook
-
-**What was checked when.**
-- **Run on the current code on 2026-10-21:** `npm install` was not re-run; the four check commands below were.
-- **Last recorded working in earlier sessions:** the Supabase and app start-up commands (`supabase/README.md`; the earlier session notes). They were **not** re-run while writing this.
-
-### 1. Prerequisites
-
-- Node.js 22.12 or later (this machine: Node 24.16.0, npm 11.13.0). Next.js 16.4.2, React 19.3, TypeScript 5, Tailwind CSS 4.
-- For a local database: Docker Desktop and the Supabase CLI (`npx supabase`).
-- No accounts or API keys are needed for offline work or the mock demo.
-
-### 2. Install and run the offline checks
-
-```bash
-npm install
-npm run lint          # eslint
-npm run typecheck     # tsc --noEmit
-npm test              # vitest run: unit tests plus in-process PostgreSQL; network blocked; no Supabase account
-npm run build         # production build; set NEXT_TELEMETRY_DISABLED=1 to skip Next.js telemetry
+```
+DRAFT → BRIEF_REVIEW → BRIEF_APPROVED → QUOTED → AWAITING_PAYMENT → PAYMENT_PROOF_SUBMITTED
+   → (administrator verifies) PAYMENT_VERIFIED → GENERATING → READY_FOR_REVIEW → RELEASED
+                         ↘ PAYMENT_REJECTED (customer resubmits)      ↘ GENERATION_FAILED (retryable)
 ```
 
-`npm test` also picks up `tests/db/release-invariant.test.ts`, an intentionally uncommitted test of the proposed release guard. To test only the committed tree, run `npx vitest run --exclude tests/db/release-invariant.test.ts`.
+Verification starts generation automatically. When the job finishes with real (non-placeholder) output, the project is released to its owner automatically; placeholder output and failures wait for an administrator. Every transition is enforced by the database, not only by the application.
 
-### 3. Local database (needs Docker and the owner's approval to start)
+## Technology
+
+| Layer | Choice |
+|---|---|
+| App | Next.js 16 (App Router, Cache Components), React 19, TypeScript |
+| Styling | Tailwind CSS 4 |
+| Data, auth, files | Supabase: PostgreSQL with row level security, Auth, private Storage |
+| AI | OpenRouter (text and image models) |
+| Voice | Gnani speech-to-text and text-to-speech |
+| Hosting | Vercel |
+| Tests | Vitest, with an in-process PostgreSQL (PGlite) for database tests |
+
+## Getting started
+
+Requirements: Node.js 20.9 or newer (developed on Node 24), npm, and Docker only if you want a local Supabase stack.
+
+```bash
+npm ci
+cp .env.example .env.local     # every value is blank by default; fill in only what you need
+npm run dev                    # http://localhost:3000
+```
+
+With no environment variables set the app still runs: pages render, and anything that needs Supabase, a provider or voice reports itself as unavailable instead of pretending to work. Nothing is mocked silently; placeholder output is always labelled.
+
+### Checks
+
+```bash
+npm test                       # unit and database tests (no network, no Docker)
+npm run typecheck
+npm run lint
+npm run build                  # production build
+npm start                      # serve the production build
+```
+
+`npm run smoke:providers` runs opt-in live provider checks. It is skipped unless `LIVE_PROVIDER_SMOKE=1` and real credentials are present, and it can spend credits.
+
+### Local Supabase (optional)
 
 ```bash
 npx supabase start -x studio,realtime,imgproxy,edge-runtime,logflare,vector,supavisor,postgres-meta
-npx supabase status -o env      # copy the local URL and keys into .env.local
+npx supabase status -o env     # copy the URL and keys into .env.local
 ```
 
-- **Applying migrations.** On a fresh stack, start-up applies every file in `supabase/migrations/` (9, all applied to the local database; none to any hosted project; `supabase/README.md` is partly out of date). An existing local database was brought forward with `npx supabase migration up --local`. Never run `supabase db reset` or anything against a hosted project without approval.
-- **`.env.local` format.** Keep it to plain `KEY=value` lines: no comments and no byte-order mark, because the Supabase CLI reads it too.
-- **Variables the app needs for the local stack:** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_APP_URL` (for example `http://localhost:3000`).
-- **The service role key is required.** Saving the description step, creating a brief, calculating a quote and generation all use it. Without it those actions fail safely. The administrator pricing screen and the payment and release decisions use the administrator's own session instead.
-- **Making someone an administrator.** Add their row by SQL: `insert into public.admin_users (user_id) values ('<auth user uuid>');`. `ADMIN_EMAILS` is not read by the code and grants nothing.
-- **Demo prices.** Load `supabase/demo/pricing_rules.demo.sql` by hand. It also sets `pricing_mode` to demo, so quotes say "Demo rates". Never load it into production.
-- **Payment instructions** (display only): `PAYMENT_MODE=manual`, `PAYMENT_UPI_ID` and/or `PAYMENT_INSTRUCTIONS`, optionally `PAYMENT_ACCOUNT_NAME`, and `PAYMENT_CURRENCY` matching the quote currency. Values containing the word "demo" are labelled as demo details.
-- **Stopping.** `npx supabase stop` keeps the data; adding `--no-backup` discards it.
-
-### 4. Start the app
-
-```bash
-npm run build && npx next start -p 3000    # how earlier browser checks ran; restart after changing .env.local
-# or: npm run dev
-```
-
-- **Sign-in.** Create an account on `/sign-in` with an email and password (locally no confirmation email is needed). Use one host name throughout a Google sign-in or an emailed link, either `localhost` or `127.0.0.1`. Password-reset emails appear at `http://127.0.0.1:54324`.
-- **Configuration check.** `/status` and `/api/health` show which settings are present.
-- **Mock demo start (nothing is called, nothing is spent).** This checkout's `.env.local` holds live values, and variables set in the shell win over it, so a mock-only run sets three: `PROVIDER_MODE=mock` (labelled template briefs and placeholder images), `TRANSLATION_MODE=off` (no OpenRouter translation) and `GNANI_VOICE_ENABLED=mock` (labelled test voice; live speech and read-back off). In PowerShell, after `npm run build`:
-
-  ```powershell
-  $env:PROVIDER_MODE = "mock"; $env:TRANSLATION_MODE = "off"; $env:GNANI_VOICE_ENABLED = "mock"; npx next start -p 3000
-  ```
-
-  Use non-empty values (PowerShell deletes a variable set to `""`). cmd.exe and Git Bash forms, how to confirm the mode, and the demo itself are in [`docs/DEMO_SCRIPT.md`](docs/DEMO_SCRIPT.md).
-- **Mock voice only.** Set `GNANI_VOICE_ENABLED=mock`. If `.env.local` has `PROVIDER_MODE=live`, voice is still mock but the brief and images are not; use the mock demo start above.
-
-### 5. Safety rules
-
-- Never print, paste or commit `.env.local` or keys, and never put a secret in a `NEXT_PUBLIC_*` variable.
-- Do not set `PROVIDER_MODE=live` or call Gnani, OpenRouter or any image provider without the owner's explicit approval for that specific test.
-- Do not run the live suites, migrations, rollbacks or SQL against anything without approval. Never against a hosted project.
-- Protected, untracked files: `handoff.md`, `supabase/proposed/`, `tests/db/release-invariant.test.ts`. Do not edit or commit them.
-
-## Five-minute demo
-
-See [`docs/DEMO_SCRIPT.md`](docs/DEMO_SCRIPT.md). It follows `architectural-ai-design-spec/09_DEMO_SCRIPT.md` and marks every step as verified, mock-only or still needing a browser check. Steps that cannot be shown truthfully today have labelled fallbacks.
+Starting the stack applies every migration in `supabase/migrations/`. Never run `supabase db reset`, or any database command against a hosted project, without meaning to. See [docs/SUPABASE.md](docs/SUPABASE.md).
 
 ## Configuration
 
-Copy `.env.example` to `.env.local` and fill in values only when a feature needs them. All values are blank by default, and `.env.local` is git-ignored.
+Copy `.env.example` to `.env.local`. `.env*` files are git-ignored (only `.env.example` is tracked). The full variable reference is in [docs/ENVIRONMENT.md](docs/ENVIRONMENT.md). The essentials:
 
-Where each variable is documented:
-- `architectural-ai-design-spec/ENVIRONMENT_VARIABLES.md`: every variable;
-- `.env.example`: comments on current behaviour;
-- `docs/PROVIDERS.md`: provider and voice settings.
+| Purpose | Variables |
+|---|---|
+| Supabase (browser-safe) | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (legacy fallback: `NEXT_PUBLIC_SUPABASE_ANON_KEY`) |
+| Supabase (server only) | `SUPABASE_SECRET_KEY` (legacy fallback: `SUPABASE_SERVICE_ROLE_KEY`) |
+| App origin | `NEXT_PUBLIC_APP_URL` — the exact public URL; sign-in and upload origin checks use it |
+| OpenRouter | `PROVIDER_MODE=live`, `OPENROUTER_API_KEY`, `OPENROUTER_TEXT_MODEL`, `OPENROUTER_IMAGE_MODEL` |
+| Gnani voice | `GNANI_VOICE_ENABLED=true` plus the `GNANI_*` settings and `VOICE_TRANSCRIPT_SECRET` |
+| Manual payment display | `PAYMENT_MODE`, `PAYMENT_UPI_ID` / `PAYMENT_INSTRUCTIONS`, `PAYMENT_CURRENCY` |
 
-Validated by `src/lib/env/schema.ts` but **not read by the app today**:
-- `APP_BASE_URL`
-- `ADMIN_EMAILS`
-- `SUPABASE_DB_URL`
-- `SUPABASE_STORAGE_BUCKET`
-- `OPENROUTER_IMAGE_MODEL`
-- `GNANI_STT_MODEL`
-- `LOG_LEVEL`
-- `RATE_LIMIT_MAX_REQUESTS`
-- `RATE_LIMIT_WINDOW_SECONDS`
+**Never put a secret in a `NEXT_PUBLIC_*` variable** — those are sent to every browser. The app treats a secret Supabase key in a public variable as a configuration error and reports Supabase as not configured.
 
-Never put a secret in a `NEXT_PUBLIC_*` variable: those are sent to the browser.
+## Integrations
 
-## Project layout
+- **OpenRouter** drafts the brief wording and generates concept images. `PROVIDER_MODE` unset or `mock` uses clearly labelled placeholder generators; `live` needs the key and models, and an incomplete live configuration reports "unavailable" rather than falling back to placeholders. Every provider call reserves usage in a database budget guard first.
+- **Gnani** provides speech-to-text and text-to-speech. Voice is off unless `GNANI_VOICE_ENABLED=true` and every Gnani setting is present. Spoken read-back needs the customer's consent and stores no audio.
 
-```
-CLAUDE.md                Project instructions for Claude Code (section 19: current state and standing rules)
-AGENTS.md                Written by Next.js: agents read its bundled docs first
-.env.example             Blank environment template (names only)
-docs/PROVIDERS.md        Provider verification record (OpenRouter, Gnani, voice, images)
-docs/DEMO_SCRIPT.md      Five-minute presenter script for the current local prototype
-src/app/                 Pages, Server Actions and API routes (customer under /projects, admin under /admin)
-src/components/          UI components (journey, payments, generation, pricing)
-src/lib/journeys/        Steps, validation, brief, quote, project service, voice mode
-src/lib/payments/        Payment evidence and display configuration
-src/lib/generation/      Mock image generation, release, read layers, SVG layout sketch
-src/lib/pricing/         Administrator pricing settings
-src/lib/providers/       Provider interfaces, budget guard, OpenRouter and Gnani adapters, mocks
-src/lib/voice/           Recorder, provenance tokens, rate limit, voice wording
-src/lib/env/             Environment schema and validation
-src/lib/integrations/    Integration status (presence only, never values)
-src/lib/supabase/        Supabase clients (user session; server-only service role) and origin policy
-src/lib/auth/, admin/    Session and administrator guards
-src/lib/db/              Database vocabulary (statuses, transitions)
-src/lib/storage/         Private-bucket path helpers
-src/proxy.ts             Refreshes the sign-in session cookies
-supabase/                Migrations, rollbacks, demo pricing and database documentation
-tests/unit/              Unit tests (network blocked)
-tests/db/                Database tests (in-process PostgreSQL)
-tests/live/              Local-stack suites (opt-in; destructive setup)
-architectural-ai-design-spec/                Product and technical specification (06: plan plus progress ledger)
-architectural-ai-skill-integrated-prompts/   Phase prompts and build orchestration
-```
+Provider behaviour, limits and verification notes: [docs/PROVIDERS.md](docs/PROVIDERS.md). Provider output is always treated as untrusted and validated before use.
 
-## Notes for developers
+## Deploying to Vercel
 
-- This project uses Next.js 16 with Cache Components enabled. Code that reads environment values or the session at request time calls `await connection()` first and sits behind `<Suspense>`. Do not use `dynamic = "force-dynamic"`.
-- Error pages receive `retry`, not the older `reset`.
-- System fonts only. No external font or asset requests are made.
-- `AGENTS.md` is written by Next.js; it tells coding agents to read the bundled docs in `node_modules/next/dist/docs/` before writing Next.js code.
-- Rates, taxes and currency symbols must never be written into UI code (a test enforces this). Prices come only from `pricing_rules`.
+The app deploys as a standard Next.js project. Set the environment variables listed in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the Production environment, apply the database migrations to your Supabase project, configure Supabase Auth (site URL, redirect URL, password policy), create the first administrator, and redeploy after any environment change. The deployment guide has the full checklist, including the platform limits the code is designed around (4.5 MB request bodies, function duration).
 
-## Roadmap
+## Documentation
 
-Phases follow `architectural-ai-skill-integrated-prompts/`. Each phase is approved by the project owner before the next starts.
+| Document | Contents |
+|---|---|
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | System design, workflow, security model, automatic generation, 2D drawing |
+| [docs/SUPABASE.md](docs/SUPABASE.md) | Migrations, Auth checklist, administrators, RLS and Storage |
+| [docs/ENVIRONMENT.md](docs/ENVIRONMENT.md) | Every environment variable |
+| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | Vercel setup, environment checklist, release checklist |
+| [docs/PROVIDERS.md](docs/PROVIDERS.md) | OpenRouter and Gnani integration notes |
+| [docs/PRIVACY_RETENTION_CHECKLIST.md](docs/PRIVACY_RETENTION_CHECKLIST.md) | Draft privacy and retention decisions still to be made |
+| [supabase/README.md](supabase/README.md) | Database folder notes |
 
-1. Foundation — done
-2. Database, sign-in and private storage — done
-3. Customer journeys and quote — done
-4. Payment evidence and admin review — done
-5. AI text and voice — foundation done; mock voice; text read-back; live providers blocked
-6. Image generation and controlled release:
-   - mock generation and release — done (committed);
-   - SVG layout sketch and pricing screen — done;
-   - live image generation (6B) — blocked
-7. End-to-end QA and demo handoff — documentation in progress; browser and service verification not started
+## Limitations
+
+- **Payments are manual.** Nothing here moves money. Customers pay outside the app; a person confirms receipt. The simulated checkout is for demonstrations and is labelled as such.
+- **Concepts are not buildable designs.** Images are AI illustrations, and any text or dimensions inside them are part of the illustration.
+- **The 2D drawing is a schematic layout.** The customer gives only the plot width, plot length and unit, so the DXF contains the plot outline at true size (dimensioned) and one outline per requested room or space. Room outlines carry no sizes, and no walls, doors, windows or openings are drawn, because no such data exists to draw them from. It is available for new-build projects only.
+- **Automatic release applies to real output only.** Placeholder images are never released automatically.
+- **Rate limits for voice routes are per server instance**, so they are weaker on serverless hosting; the limits that control cost live in the database.
+- **Hosted environment:** a hosted Supabase project and Vercel deployment require their own setup and verification; passing local tests does not prove them.
+
+## Contributing
+
+Keep changes small and tested. Database changes are forward-only migrations in `supabase/migrations/` with a matching rollback in `supabase/rollbacks/`. Never weaken a security rule to make a test pass: explain the change first. Run `npm test`, `npm run typecheck`, `npm run lint` and `npm run build` before proposing a change. This project uses Next.js 16 with Cache Components: request-time reads belong behind `<Suspense>` and `connection()`, and `AGENTS.md` points coding agents to the Next.js docs bundled in `node_modules/next/dist/docs/`.

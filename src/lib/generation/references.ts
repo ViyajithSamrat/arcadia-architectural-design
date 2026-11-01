@@ -19,6 +19,10 @@ import { parseObjectPath, PROJECT_FILES_BUCKET } from "@/lib/storage/paths";
  * about it is logged.
  */
 
+/**
+ * The bucket limit (5 MiB, migration 6), deliberately not the 4 MiB request-path upload limit
+ * (src/lib/uploads/limits.ts): a photo stored before that limit was lowered is still offered.
+ */
 export const REFERENCE_MAX_BYTES = 5 * 1024 * 1024;
 /** Most photos a project may keep, and most that are ever offered to a provider. */
 export const REFERENCES_PER_PROJECT = 6;

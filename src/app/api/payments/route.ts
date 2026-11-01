@@ -1,6 +1,7 @@
 import { AuthError, authErrorResponse } from "@/lib/auth/errors";
 import { requireUser } from "@/lib/auth/guards";
 import { EVIDENCE_REQUEST_MAX_BYTES } from "@/lib/payments/evidence";
+import { UPLOAD_MAX_LABEL } from "@/lib/uploads/limits";
 import { submitPayment } from "@/lib/payments/service";
 import { isAllowedOrigin } from "@/lib/supabase/origin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -31,7 +32,7 @@ export async function POST(request: Request): Promise<Response> {
   if (!request.headers.has("content-length") || !Number.isFinite(declared) || declared < 0) {
     return problem("LENGTH_REQUIRED", "The request size was not declared.", 411);
   }
-  if (declared > EVIDENCE_REQUEST_MAX_BYTES) return problem("TOO_LARGE", "The upload is too large. The image must be 5 MB or smaller.", 413);
+  if (declared > EVIDENCE_REQUEST_MAX_BYTES) return problem("TOO_LARGE", `The upload is too large. The image must be ${UPLOAD_MAX_LABEL} or smaller.`, 413);
   if (!(request.headers.get("content-type") ?? "").toLowerCase().startsWith("multipart/form-data")) {
     return problem("UNSUPPORTED", "Send the details as a form.", 415);
   }

@@ -189,7 +189,8 @@ describe("administrator decisions", () => {
   });
 
   it("verifies through the database function with the stated, decimal amount", async () => {
-    expect(await verifyPayment(adminDb.client(), PAYMENT, ADMIN_OK)).toEqual({ ok: true });
+    // The project id is returned so the caller can start the generation this decision unlocks.
+    expect(await verifyPayment(adminDb.client(), PAYMENT, ADMIN_OK)).toEqual({ ok: true, projectId: PROJECT });
     expect(adminDb.rpcCalls).toEqual([{ name: "admin_verify_payment", args: { p_payment_id: PAYMENT, p_confirmed_amount: "12500.00", p_audit_note: "Seen in the bank statement." } }]);
   });
 

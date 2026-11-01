@@ -17,6 +17,38 @@ const blankToUndefined = (value: unknown) =>
 const optionalText = z.preprocess(blankToUndefined, z.string().trim().optional());
 const optionalUrl = z.preprocess(blankToUndefined, z.url().optional());
 
+/** The `role` claim of a legacy Supabase JWT key, or null when the value is not one. */
+function legacyJwtRole(value: string): string | null {
+  const payload = value.split(".")[1];
+  if (!payload) return null;
+  try {
+    const base64 = payload.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(payload.length / 4) * 4, "=");
+    const role = (JSON.parse(atob(base64)) as { role?: unknown }).role;
+    return typeof role === "string" ? role : null;
+  } catch {
+    return null;
+  }
+}
+
+/** A public (NEXT_PUBLIC_) key must never be a secret: no `sb_secret_` key and no legacy service_role JWT. */
+const optionalPublicKey = z.preprocess(
+  blankToUndefined,
+  z
+    .string()
+    .trim()
+    .refine((v) => !v.startsWith("sb_secret_") && legacyJwtRole(v) !== "service_role", "A secret key must not be public.")
+    .optional(),
+);
+/** A publishable key here would silently lack server privileges. */
+const optionalSecretKey = z.preprocess(
+  blankToUndefined,
+  z
+    .string()
+    .trim()
+    .refine((v) => !v.startsWith("sb_publishable_"), "Use the secret key, not the publishable key.")
+    .optional(),
+);
+
 export const envSchema = z.object({
   // Application
   // PROVIDER_MODE (02_TRD.md section 2.4): "mock" or "live". Unset behaves as
@@ -26,10 +58,14 @@ export const envSchema = z.object({
   APP_BASE_URL: optionalUrl,
   ADMIN_EMAILS: optionalText,
 
-  // Supabase (service role key and DB URL are server-only)
+  // Supabase (secret / service role key and DB URL are server-only). The modern
+  // publishable and secret keys are preferred; the legacy anon and service role
+  // keys are fallbacks for the local Docker stack.
   NEXT_PUBLIC_SUPABASE_URL: optionalUrl,
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: optionalText,
-  SUPABASE_SERVICE_ROLE_KEY: optionalText,
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: optionalPublicKey,
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: optionalPublicKey,
+  SUPABASE_SECRET_KEY: optionalSecretKey,
+  SUPABASE_SERVICE_ROLE_KEY: optionalSecretKey,
   SUPABASE_DB_URL: optionalText,
   SUPABASE_STORAGE_BUCKET: optionalText,
 
@@ -42,6 +78,8 @@ export const envSchema = z.object({
   OPENROUTER_APP_TITLE: optionalText,
   // Images per generation request (Phase 6, mock only for now); parsed and clamped in code.
   MAX_GENERATION_IMAGES: optionalText,
+  // "false" keeps finished generation for an administrator to release; anything else releases real (non-placeholder) output automatically.
+  GENERATION_AUTO_RELEASE: optionalText,
   // Live image generation (OpenRouter Image API): format, size, timeouts and image limits; parsed and clamped in code.
   OPENROUTER_IMAGE_RESOLUTION: optionalText,
   OPENROUTER_IMAGE_ASPECT_RATIO: optionalText,

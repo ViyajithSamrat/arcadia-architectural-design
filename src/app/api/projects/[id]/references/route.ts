@@ -2,6 +2,7 @@ import { AuthError, authErrorResponse } from "@/lib/auth/errors";
 import { requireUser } from "@/lib/auth/guards";
 import { referenceLimiter } from "@/lib/references/limiter";
 import { addReference, REFERENCE_REQUEST_MAX_BYTES } from "@/lib/references/service";
+import { UPLOAD_MAX_LABEL } from "@/lib/uploads/limits";
 import { isAllowedOrigin } from "@/lib/supabase/origin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -24,7 +25,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   // Refuse before reading anything: the declared size must be present and within the limit.
   const declared = Number(request.headers.get("content-length"));
   if (!request.headers.has("content-length") || !Number.isFinite(declared) || declared < 0) return problem("LENGTH_REQUIRED", "The request size was not declared.", 411);
-  if (declared > REFERENCE_REQUEST_MAX_BYTES) return problem("TOO_LARGE", "The photo is too large. It must be 5 MB or smaller.", 413);
+  if (declared > REFERENCE_REQUEST_MAX_BYTES) return problem("TOO_LARGE", `The photo is too large. It must be ${UPLOAD_MAX_LABEL} or smaller.`, 413);
   if (!(request.headers.get("content-type") ?? "").toLowerCase().startsWith("multipart/form-data")) return problem("UNSUPPORTED", "Send the photo as a form.", 415);
 
   let supabase;

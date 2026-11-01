@@ -5,7 +5,7 @@ import { ANNOTATIONS_NOTE, CONCEPT_DISCLAIMER, CONCEPT_DISCLAIMER_AI, CUSTOMER_M
 export function MockWarning() {
   return (
     <Notice tone="warning" title={MOCK_WARNING}>
-      <p>These pictures come from the prototype&apos;s test generator. No AI model made them and they must not be shown to a customer as a design.</p>
+      <p>These pictures come from the built-in test generator. No AI model made them and they must not be shown to a customer as a design.</p>
     </Notice>
   );
 }

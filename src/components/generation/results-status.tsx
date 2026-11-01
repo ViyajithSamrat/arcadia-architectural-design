@@ -43,7 +43,7 @@ export function ResultsStatus({ projectId, status }: { projectId: string; status
         <p className="max-w-md text-sm leading-relaxed text-muted">
           {beforeQuote
             ? "Concepts are drawn only after you accept a quote and a person verifies your payment."
-            : "Your concept images appear on this page only after they have been reviewed and released to you."}
+            : "Your concept images appear on this page by themselves as soon as they are ready and have passed the checks. You do not need to refresh or press anything."}
         </p>
         {action ? (
           <Link href={action.href} className={buttonPrimary}>
@@ -55,7 +55,7 @@ export function ResultsStatus({ projectId, status }: { projectId: string; status
         </div>
       </div>
 
-      <ol aria-label="From payment to release" className="border-t border-border bg-surface p-7 sm:p-10 lg:col-span-6 lg:border-l lg:border-t-0">
+      <ol aria-label="From payment to your concepts" className="border-t border-border bg-surface p-7 sm:p-10 lg:col-span-6 lg:border-l lg:border-t-0">
         {RELEASE_MILESTONES.map((m, i) => {
           const state = states[i];
           const last = i === RELEASE_MILESTONES.length - 1;

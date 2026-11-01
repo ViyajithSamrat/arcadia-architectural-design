@@ -330,7 +330,7 @@ SQL migrations in `supabase/migrations/` (11 files) create tables, constraints, 
 
 ### C.10 Storage and uploads
 
-One private bucket, `project-files`, holds three kinds of files under the path `<project_id>/<kind>/<file>`: `references/` (customer photos), `payment-proofs/` (receipts), `generated/` (design output). Paths are built and parsed by `src/lib/storage/paths.ts`. Uploads are limited to 5 MiB of JPEG/PNG/WebP at the bucket level (`20261018000100_payment_proof_limits.sql`), and the file type is also checked from the file's own bytes (`src/lib/payments/evidence.ts`, `src/lib/references/service.ts`). Customers receive only short-lived **signed links** (60 s for admin proof preview, 5 min for results and reference thumbnails).
+One private bucket, `project-files`, holds three kinds of files under the path `<project_id>/<kind>/<file>`: `references/` (customer photos), `payment-proofs/` (receipts), `generated/` (design output). Paths are built and parsed by `src/lib/storage/paths.ts`. Uploads are limited to 5 MiB of JPEG/PNG/WebP at the bucket level (`20261018000100_payment_proof_limits.sql`); customer uploads through the app are further limited to 4 MiB so they fit Vercel's 4.5 MB request-body limit (`src/lib/uploads/limits.ts`), and the file type is also checked from the file's own bytes (`src/lib/payments/evidence.ts`, `src/lib/references/service.ts`). Customers receive only short-lived **signed links** (60 s for admin proof preview, 5 min for results and reference thumbnails).
 
 ### C.11 Provider adapters and external API boundaries
 

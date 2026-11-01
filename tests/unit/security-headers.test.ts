@@ -187,6 +187,8 @@ describe("HTTPS upgrade", () => {
 describe("secrets", () => {
   const secrets = {
     SUPABASE_SERVICE_ROLE_KEY: "SENTINEL-service-role-key",
+    SUPABASE_SECRET_KEY: "SENTINEL-secret-key",
+    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "SENTINEL-publishable-key",
     OPENROUTER_API_KEY: "SENTINEL-openrouter-key",
     GNANI_API_KEY: "SENTINEL-gnani-key",
     VOICE_TRANSCRIPT_SECRET: "SENTINEL-transcript-secret",

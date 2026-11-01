@@ -363,6 +363,24 @@ export type FloorPlanView =
   | { state: "unavailable" };
 
 /**
+ * The structured layout behind the sketch, for a project, or null when its type has none or its saved
+ * answers do not check out. The DXF export (dxf.ts) is written from this same layout, so the sketch
+ * and the CAD file cannot disagree. Callers decide WHO may have it and WHEN.
+ */
+export function layoutFromRequirements(projectType: ProjectType, requirementsJson: unknown): PlanLayout | null {
+  if (projectType !== "EMPTY_PLOT") return null;
+  const check = validateRequirements("EMPTY_PLOT", requirementsJson);
+  if (!check.complete) return null;
+  const parsed = planInputFromRequirements(check.requirements);
+  if (!parsed.ok) return null;
+  try {
+    return layoutFloorPlan(parsed.input);
+  } catch {
+    return null;
+  }
+}
+
+/**
  * The sketch for a project, drawn from its stored answers after checking them again. Null for
  * project types that have no layout sketch. Callers decide WHO may see it and WHEN (the
  * generation read layer applies the same rules as for generated images).
