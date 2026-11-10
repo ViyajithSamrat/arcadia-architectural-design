@@ -97,6 +97,21 @@ describe("ai_usage image metering (migration 9)", () => {
     await expect(image(b, 4)).resolves.toHaveLength(1);
   });
 
+  it("accepts the application's unmetered image limit: heavy past usage never refuses, and every request is still recorded", async () => {
+    await wipe();
+    const unmetered = 1_000_000_000;
+    // 60 images already used by one customer inside the hour and the day: the old caps (6 an hour, 20 a day) would refuse.
+    for (let i = 0; i < 30; i++) await image(a, 2, { customerLimit: unmetered, globalLimit: unmetered });
+    const [{ id }] = await image(a, 2, { customerLimit: unmetered, globalLimit: unmetered, inFlight: 1000 });
+    expect(id).toMatch(/^[0-9a-f-]{36}$/);
+    expect((await rows()).filter((r) => r.operation === "image")).toHaveLength(31);
+    await finish(id, "FAILED");
+    // the in-flight guard still applies when the caller asks for it
+    const [{ id: open }] = await image(a, 1, { customerLimit: unmetered, globalLimit: unmetered, inFlight: 1000 });
+    await expectError(image(b, 1, { customerLimit: unmetered, globalLimit: unmetered, inFlight: 1 }), /too many calls in flight/);
+    await finish(open, "NOT_SENT");
+  });
+
   it("applies the app-wide image ceiling across customers", async () => {
     await wipe();
     await image(a, 4, { globalLimit: 6 });

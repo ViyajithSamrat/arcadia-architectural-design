@@ -121,10 +121,6 @@ export type OpenRouterImageConfig = {
    * output is still checked for type, size (5 MiB) and dimensions before it is stored.
    */
   outputFormat: (typeof OPENROUTER_IMAGE_FORMATS)[number] | null;
-  /** Most images one customer's projects may have generated per hour. */
-  imagesPerHour: number;
-  /** Most images the whole app may have generated per 24 hours. */
-  imagesPerDay: number;
   /** Send a project's reference photos as inputs. Off unless the owner has checked that the model supports them. */
   sendReferences: boolean;
 };
@@ -159,8 +155,6 @@ export function getOpenRouterImageConfig(env: RawEnv = process.env): OpenRouterI
     resolution: resolution as OpenRouterImageConfig["resolution"],
     aspectRatio,
     outputFormat: outputFormat as OpenRouterImageConfig["outputFormat"],
-    imagesPerHour: whole(env, "OPENROUTER_IMAGES_PER_HOUR", 6, 1, 60),
-    imagesPerDay: whole(env, "OPENROUTER_IMAGES_PER_DAY", 20, 1, 1000),
     sendReferences: isSet(env, "OPENROUTER_IMAGE_REFERENCES") && String(env.OPENROUTER_IMAGE_REFERENCES).trim().toLowerCase() === "true",
   };
 }

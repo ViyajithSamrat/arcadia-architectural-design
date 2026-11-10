@@ -80,11 +80,13 @@ export const envSchema = z.object({
   MAX_GENERATION_IMAGES: optionalText,
   // "false" keeps finished generation for an administrator to release; anything else releases real (non-placeholder) output automatically.
   GENERATION_AUTO_RELEASE: optionalText,
-  // Live image generation (OpenRouter Image API): format, size, timeouts and image limits; parsed and clamped in code.
+  // Live image generation (OpenRouter Image API): format, size and timeouts; parsed and clamped in code.
   OPENROUTER_IMAGE_RESOLUTION: optionalText,
   OPENROUTER_IMAGE_ASPECT_RATIO: optionalText,
   OPENROUTER_IMAGE_FORMAT: optionalText,
   OPENROUTER_IMAGE_TIMEOUT_MS: optionalText,
+  // No longer read: image generation has no ARCADIA quota since 2026-11-10 (see IMAGES_UNMETERED_LIMIT in
+  // src/lib/providers/budget.ts). Accepted so an environment that still sets them keeps validating.
   OPENROUTER_IMAGES_PER_HOUR: optionalText,
   OPENROUTER_IMAGES_PER_DAY: optionalText,
   OPENROUTER_IMAGE_REFERENCES: optionalText,

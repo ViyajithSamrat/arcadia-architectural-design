@@ -47,8 +47,7 @@ A secret key in a public variable, or a publishable key in a secret variable, is
 | `OPENROUTER_IMAGE_ASPECT_RATIO` | | Default `16:9`. |
 | `OPENROUTER_IMAGE_FORMAT` | | `jpeg` (default), `png`, `webp`. Stored files must stay within 5 MiB. |
 | `OPENROUTER_IMAGE_TIMEOUT_MS` | | Per image; default 90000, range 10000–180000. |
-| `OPENROUTER_IMAGES_PER_HOUR` | | Per customer; default 6. |
-| `OPENROUTER_IMAGES_PER_DAY` | | All customers; default 20. |
+| `OPENROUTER_IMAGES_PER_HOUR`, `OPENROUTER_IMAGES_PER_DAY` | | No longer read (2026-11-10): image generation has no ARCADIA quota; every request is still recorded in the usage ledger. |
 | `OPENROUTER_IMAGE_REFERENCES` | | `true` sends up to three customer reference photos to the image service; anything else never does. |
 | `OPENROUTER_HTTP_REFERER`, `OPENROUTER_APP_TITLE` | | Optional attribution headers. |
 | `AI_BRIEFS_PER_HOUR` | | Per-customer briefs per hour (default 5, 1 to 50). |

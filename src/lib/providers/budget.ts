@@ -184,11 +184,22 @@ export function planOpenRouterTranslation(config: OpenRouterConfig): UsagePlan {
 }
 
 /**
- * Image generation is metered in images, in a unit of its own, so it never uses up the
- * per-hour brief limit. The reservation is for the images THIS request will ask for; the
- * per-customer window is an hour and the app-wide window a day. A refusal means no call.
+ * Image generation has no ARCADIA-imposed quota (owner decision, 2026-11-10: the per-customer
+ * hourly and app-wide daily image caps refused valid, payment-verified projects while the provider
+ * account still had credit). The database function still requires finite, positive limits, so this
+ * is a ceiling no real usage can reach rather than an absent argument: the function keeps
+ * validating, recording and serialising every image reservation. OpenRouter's own account
+ * balance and key limit remain the real spending limit.
  */
-export function planOpenRouterImages(config: OpenRouterImageConfig, images: number): UsagePlan {
+export const IMAGES_UNMETERED_LIMIT = 1_000_000_000;
+
+/**
+ * Image generation is metered in images, in a unit of its own, so it never uses up the
+ * per-hour brief limit. The reservation is for the images THIS request will ask for and is
+ * always written to the ledger (audit, observability), one call at a time. The only refusals are
+ * a call already in flight (maxInFlight) and a ledger that cannot be reached (fail closed).
+ */
+export function planOpenRouterImages(config: Pick<OpenRouterImageConfig, "model">, images: number): UsagePlan {
   return {
     provider: "openrouter",
     operation: "image",
@@ -196,9 +207,9 @@ export function planOpenRouterImages(config: OpenRouterImageConfig, images: numb
     unit: "image",
     units: images,
     limits: {
-      customerLimit: config.imagesPerHour,
+      customerLimit: IMAGES_UNMETERED_LIMIT,
       customerWindowMinutes: 60,
-      globalLimit: config.imagesPerDay,
+      globalLimit: IMAGES_UNMETERED_LIMIT,
       globalWindowMinutes: 24 * 60,
       maxInFlight: 1,
     },

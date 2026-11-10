@@ -4,6 +4,7 @@ import { getImageGenerationMode, getImageProvider } from "@/lib/generation/provi
 import { startGeneration } from "@/lib/generation/service";
 import { viewsFor } from "@/lib/generation/prompt";
 import { mockBriefProvider } from "@/lib/journeys/brief";
+import { IMAGES_UNMETERED_LIMIT } from "@/lib/providers/budget";
 import { getOpenRouterImageConfig, type OpenRouterImageConfig } from "@/lib/providers/config";
 import { ImageProviderUnavailableError, type ImageGenerationRequest } from "@/lib/providers/images";
 import { ProviderError } from "@/lib/providers/interfaces";
@@ -86,8 +87,14 @@ describe("getOpenRouterImageConfig: fail closed, bounded", () => {
     expect(getOpenRouterImageConfig({ OPENROUTER_API_KEY: KEY, OPENROUTER_TEXT_MODEL: "a/b" })).toBeNull();
   });
 
-  it("applies bounded defaults: 1K 16:9, no output format, 90 s, 6 an hour, 20 a day, no references", () => {
-    expect(config()).toMatchObject({ model: "bytedance-seed/seedream-4.5", baseUrl: "https://openrouter.ai/api/v1", resolution: "1K", aspectRatio: "16:9", outputFormat: null, timeoutMsPerImage: 90_000, imagesPerHour: 6, imagesPerDay: 20, sendReferences: false });
+  it("applies bounded defaults: 1K 16:9, no output format, 90 s, no references", () => {
+    expect(config()).toMatchObject({ model: "bytedance-seed/seedream-4.5", baseUrl: "https://openrouter.ai/api/v1", resolution: "1K", aspectRatio: "16:9", outputFormat: null, timeoutMsPerImage: 90_000, sendReferences: false });
+  });
+
+  it("carries no image quota: the old per-hour and per-day settings are not read", () => {
+    const parsed = config({ OPENROUTER_IMAGES_PER_HOUR: "1", OPENROUTER_IMAGES_PER_DAY: "1" });
+    expect(parsed).not.toHaveProperty("imagesPerHour");
+    expect(parsed).not.toHaveProperty("imagesPerDay");
   });
 
   it.each([
@@ -104,10 +111,9 @@ describe("getOpenRouterImageConfig: fail closed, bounded", () => {
     expect(getOpenRouterImageConfig({ ...ENV, ...extra })).toBeNull();
   });
 
-  it("clamps the limits and the timeout", () => {
-    expect(config({ OPENROUTER_IMAGES_PER_HOUR: "9999", OPENROUTER_IMAGES_PER_DAY: "999999", OPENROUTER_IMAGE_TIMEOUT_MS: "9999999" })).toMatchObject({ imagesPerHour: 60, imagesPerDay: 1000, timeoutMsPerImage: 180_000 });
-    expect(config({ OPENROUTER_IMAGES_PER_HOUR: "0", OPENROUTER_IMAGE_TIMEOUT_MS: "5" })).toMatchObject({ imagesPerHour: 1, timeoutMsPerImage: 10_000 });
-    expect(config({ OPENROUTER_IMAGES_PER_HOUR: "abc" }).imagesPerHour).toBe(6);
+  it("clamps the timeout", () => {
+    expect(config({ OPENROUTER_IMAGE_TIMEOUT_MS: "9999999" })).toMatchObject({ timeoutMsPerImage: 180_000 });
+    expect(config({ OPENROUTER_IMAGE_TIMEOUT_MS: "5" })).toMatchObject({ timeoutMsPerImage: 10_000 });
   });
 
   it("enables references only when the owner says exactly true", () => {
@@ -196,7 +202,7 @@ describe("the request the adapter sends", () => {
 
   it("sizes its usage reservation to the images the request asks for, in the image unit", () => {
     const p = provider(fakeFetch());
-    expect(p.planUsage?.(request(viewsFor("EMPTY_PLOT")))).toMatchObject({ provider: "openrouter", operation: "image", unit: "image", units: 2, model: "bytedance-seed/seedream-4.5", limits: { customerLimit: 6, customerWindowMinutes: 60, globalLimit: 20, globalWindowMinutes: 1440, maxInFlight: 1 } });
+    expect(p.planUsage?.(request(viewsFor("EMPTY_PLOT")))).toMatchObject({ provider: "openrouter", operation: "image", unit: "image", units: 2, model: "bytedance-seed/seedream-4.5", limits: { customerLimit: IMAGES_UNMETERED_LIMIT, customerWindowMinutes: 60, globalLimit: IMAGES_UNMETERED_LIMIT, globalWindowMinutes: 1440, maxInFlight: 1 } });
     expect(p.planUsage?.(request(viewsFor("INTERIOR"))).units).toBe(1);
   });
 });
@@ -426,6 +432,36 @@ describe("startGeneration with the live OpenRouter adapter", () => {
     expect(assets.every((a) => a.is_released === false && a.mime_type === "image/png" && a.storage_path.startsWith(`${PROJECT}/generated/`))).toBe(true);
     expect(db.uploads).toHaveLength(2);
     expect(status()).toBe("READY_FOR_REVIEW");
+  });
+
+  it("is not stopped by an exhausted ARCADIA image budget: the old per-hour and per-day settings no longer limit a verified project", async () => {
+    await seed();
+    // A ledger that behaves like the database function: it refuses whenever what was already used plus this
+    // request passes the limits the caller sends. 40 images are already on the books, far above the old caps.
+    const alreadyUsed = 40;
+    db.rpcHandlers.ai_usage_reserve = (args: Record<string, unknown>) => {
+      const units = Number(args.p_units);
+      if (alreadyUsed + units > Number(args.p_customer_limit)) return { error: { code: "AI001", message: "x" } };
+      if (alreadyUsed + units > Number(args.p_global_limit)) return { error: { code: "AI002", message: "x" } };
+      return { data: "usage-1" };
+    };
+    const f = fakeFetch(ok(imageBody({ id: "gen-a" })), ok(imageBody({ id: "gen-b" })));
+    const result = await run(f, { ...ENV, OPENROUTER_IMAGES_PER_HOUR: "1", OPENROUTER_IMAGES_PER_DAY: "1" });
+    expect(result).toMatchObject({ ok: true, mock: false });
+    expect(f.calls).toHaveLength(2);
+    const reserve = db.rpcCalls.find((c) => c.name === "ai_usage_reserve");
+    expect(reserve?.args).toMatchObject({ p_customer_limit: IMAGES_UNMETERED_LIMIT, p_global_limit: IMAGES_UNMETERED_LIMIT, p_max_in_flight: 1 });
+    // the request is still recorded and finished in the ledger
+    expect(db.rpcCalls.filter((c) => c.name.startsWith("ai_usage_")).map((c) => c.name)).toEqual(["ai_usage_reserve", "ai_usage_finish"]);
+  });
+
+  it("still refuses, without any network call, when another image call is in flight (AI003)", async () => {
+    await seed();
+    db.rpcHandlers.ai_usage_reserve = () => ({ error: { code: "AI003", message: "x" } });
+    const f = fakeFetch(ok(imageBody()));
+    expect(await run(f)).toMatchObject({ ok: false, code: "reservation_refused" });
+    expect(f.calls).toHaveLength(0);
+    expect(status()).toBe("GENERATION_FAILED");
   });
 
   it("never marks the job as mock, so a release asks for no mock acknowledgement and screens show no mock label", async () => {

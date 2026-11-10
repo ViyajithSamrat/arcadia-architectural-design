@@ -53,7 +53,7 @@ Set these for the **Production** environment. Values must never appear in Git, l
 | `TRANSLATION_MODE` | no | `live` for Tamil → English translation |
 | `PROVIDER_MODE` | no | `live` for the OpenRouter brief **and** images; empty = labelled mocks |
 | `OPENROUTER_IMAGE_MODEL` (+ optional `OPENROUTER_IMAGE_*`) | no | Live images (required when `PROVIDER_MODE=live`) |
-| `AI_BRIEFS_PER_HOUR`, `AI_TRANSLATIONS_PER_HOUR`, `OPENROUTER_DAILY_REQUEST_CAP`, `OPENROUTER_IMAGES_PER_HOUR`, `OPENROUTER_IMAGES_PER_DAY`, `MAX_GENERATION_IMAGES`, `PROVIDER_TIMEOUT_MS` | no | Spending caps (defaults apply when empty) |
+| `AI_BRIEFS_PER_HOUR`, `AI_TRANSLATIONS_PER_HOUR`, `OPENROUTER_DAILY_REQUEST_CAP`, `MAX_GENERATION_IMAGES`, `PROVIDER_TIMEOUT_MS` | no | Text caps and image limits (defaults apply when empty). `OPENROUTER_IMAGES_PER_HOUR` and `OPENROUTER_IMAGES_PER_DAY` are no longer read: image generation has no ARCADIA quota |
 
 Do not set `LIVE_SUPABASE` on Vercel (it is for local live tests only). A `NEXT_PUBLIC_*` value is
 built into the browser bundle, so it must never hold a secret. The only `NEXT_PUBLIC_*` names are
