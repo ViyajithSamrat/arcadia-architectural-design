@@ -1,13 +1,14 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { GnaniConfig, OpenRouterConfig, OpenRouterImageConfig } from "./config";
+import { GNANI_HARD_CEILING_CREDITS, type GnaniConfig, type OpenRouterConfig, type OpenRouterImageConfig } from "./config";
 import type { ProviderHooks, ProviderUsage } from "./interfaces";
 import { logProviderCall } from "./log";
 
 /**
- * The budget guard. Before any provider call, usage is RESERVED in the database
- * (public.ai_usage_reserve: per-customer limit, provider-wide ceiling and an in-flight cap
- * checked in one serialized transaction). If the reservation is refused, or the database
- * cannot be reached, nothing is called: the guard fails closed.
+ * The usage ledger guard. Before any provider call, usage is RESERVED in the database
+ * (public.ai_usage_reserve, serialized per provider). ARCADIA sets no usage quota any more (see
+ * AI_UNMETERED_LIMIT): the reservation records the call, and refuses only for a call already in
+ * flight, the SQL-level Gnani ceiling, or a database that cannot be reached, in which case nothing
+ * is called: the guard fails closed.
  *
  * Use the trusted (service) client: customers cannot call the reservation functions.
  */
@@ -152,52 +153,46 @@ export async function withUsage<T>(
 // Plans
 // ---------------------------------------------------------------------------
 
-/** One brief = one request. The retry-free adapter makes exactly one. */
-export function planOpenRouterBrief(config: OpenRouterConfig): UsagePlan {
+/**
+ * ARCADIA imposes no AI usage quota (owner decisions, 2026-11-10: first image generation, then text,
+ * translation and speech, because the quotas refused valid requests while the provider accounts still
+ * had credit). The database function still requires finite, positive limits, so this is a ceiling no
+ * real usage can reach rather than an absent argument: the function keeps validating, recording and
+ * serialising every reservation. The providers' own account balances and key limits remain the real
+ * spending limits. The one remaining ceiling is in SQL (see GNANI_HARD_CEILING_CREDITS).
+ */
+export const AI_UNMETERED_LIMIT = 1_000_000_000;
+
+const UNMETERED_TEXT_LIMITS = {
+  customerLimit: AI_UNMETERED_LIMIT,
+  customerWindowMinutes: 60,
+  globalLimit: AI_UNMETERED_LIMIT,
+  globalWindowMinutes: 24 * 60,
+  maxInFlight: null,
+} as const;
+
+/** One brief = one request. The retry-free adapter makes exactly one. Recorded in the ledger, never refused for quota. */
+export function planOpenRouterBrief(config: Pick<OpenRouterConfig, "model">): UsagePlan {
   return {
     provider: "openrouter",
     operation: "brief",
     model: config.model,
     unit: "request",
     units: 1,
-    limits: {
-      customerLimit: config.briefsPerHour,
-      customerWindowMinutes: 60,
-      globalLimit: config.dailyRequestCap,
-      globalWindowMinutes: 24 * 60,
-      maxInFlight: null,
-    },
+    limits: { ...UNMETERED_TEXT_LIMITS },
   };
 }
 
-/**
- * A transcript translation is one OpenRouter text request with its own per-customer hourly
- * allowance (migration 13 counts requests per operation), so translating never uses up the brief
- * limit. The app-wide daily cap is the same one briefs use: together they stay within it.
- */
-export function planOpenRouterTranslation(config: OpenRouterConfig): UsagePlan {
-  return {
-    ...planOpenRouterBrief(config),
-    operation: "translate",
-    limits: { ...planOpenRouterBrief(config).limits, customerLimit: config.translationsPerHour },
-  };
+/** A transcript translation is one OpenRouter text request, recorded under its own operation and never refused for quota. */
+export function planOpenRouterTranslation(config: Pick<OpenRouterConfig, "model">): UsagePlan {
+  return { ...planOpenRouterBrief(config), operation: "translate" };
 }
 
 /**
- * Image generation has no ARCADIA-imposed quota (owner decision, 2026-11-10: the per-customer
- * hourly and app-wide daily image caps refused valid, payment-verified projects while the provider
- * account still had credit). The database function still requires finite, positive limits, so this
- * is a ceiling no real usage can reach rather than an absent argument: the function keeps
- * validating, recording and serialising every image reservation. OpenRouter's own account
- * balance and key limit remain the real spending limit.
- */
-export const IMAGES_UNMETERED_LIMIT = 1_000_000_000;
-
-/**
- * Image generation is metered in images, in a unit of its own, so it never uses up the
- * per-hour brief limit. The reservation is for the images THIS request will ask for and is
- * always written to the ledger (audit, observability), one call at a time. The only refusals are
- * a call already in flight (maxInFlight) and a ledger that cannot be reached (fail closed).
+ * Image generation is metered in images, in a unit of its own. The reservation is for the images THIS
+ * request will ask for and is always written to the ledger (audit, observability), one call at a time.
+ * The only refusals are a call already in flight (maxInFlight) and a ledger that cannot be reached
+ * (fail closed).
  */
 export function planOpenRouterImages(config: Pick<OpenRouterImageConfig, "model">, images: number): UsagePlan {
   return {
@@ -206,29 +201,27 @@ export function planOpenRouterImages(config: Pick<OpenRouterImageConfig, "model"
     model: config.model,
     unit: "image",
     units: images,
-    limits: {
-      customerLimit: IMAGES_UNMETERED_LIMIT,
-      customerWindowMinutes: 60,
-      globalLimit: IMAGES_UNMETERED_LIMIT,
-      globalWindowMinutes: 24 * 60,
-      maxInFlight: 1,
-    },
+    limits: { ...UNMETERED_TEXT_LIMITS, maxInFlight: 1 },
   };
 }
 
-export type GnaniPlan ={ ok: true; plan: UsagePlan } | { ok: false; reason: "unmeasurable" | "per_request" };
+export type GnaniPlan = { ok: true; plan: UsagePlan } | { ok: false; reason: "unmeasurable" };
 
-/** The limits a Gnani plan needs. STT-only settings are enough for STT; TTS without its rate is unmeasurable. */
-export type GnaniPlanConfig = Pick<GnaniConfig, "maxCreditsPerRequest" | "customerCreditsPerHour" | "budgetCredits"> &
-  Partial<Pick<GnaniConfig, "creditsPerSttSecond" | "creditsPerTtsChar" | "ttsModel">>;
+/** What a Gnani plan needs: the owner's credit rates, to ESTIMATE a call. TTS without its rate is unmeasurable. */
+export type GnaniPlanConfig = Partial<Pick<GnaniConfig, "creditsPerSttSecond" | "creditsPerTtsChar" | "ttsModel">>;
 
 const ceil2 = (n: number) => Math.ceil(n * 100) / 100;
 
 /**
  * Gnani's documentation gives no price and its responses report no usage, so the cost of a
  * call is ESTIMATED from the owner's own credits-per-second / credits-per-character figures
- * and rounded up. If the estimate is not a positive number, or exceeds the per-request
- * maximum, the call is refused (fail closed). One call at a time, provider-wide.
+ * and rounded up, only so that the ledger records it. If the estimate is not a positive number the
+ * call is refused (fail closed). One call at a time, provider-wide (Gnani allows one active
+ * request per account).
+ *
+ * There is no ARCADIA per-request, per-customer or configured-budget limit any more. The cumulative
+ * ceiling that remains is enforced inside ai_usage_reserve (5,000 credits, the owner's own credit
+ * balance); the plan asks for exactly that number so the database's clamp changes nothing.
  *
  * @param amount seconds of audio for STT, characters for TTS
  */
@@ -237,7 +230,6 @@ export function planGnaniCall(operation: "stt" | "tts", amount: number, config: 
   const rate = (operation === "stt" ? config.creditsPerSttSecond : config.creditsPerTtsChar) ?? Number.NaN;
   const units = ceil2(Math.ceil(amount) * rate);
   if (!Number.isFinite(units) || units <= 0) return { ok: false, reason: "unmeasurable" };
-  if (units > config.maxCreditsPerRequest) return { ok: false, reason: "per_request" };
   return {
     ok: true,
     plan: {
@@ -247,9 +239,9 @@ export function planGnaniCall(operation: "stt" | "tts", amount: number, config: 
       unit: "credit",
       units,
       limits: {
-        customerLimit: config.customerCreditsPerHour,
+        customerLimit: AI_UNMETERED_LIMIT,
         customerWindowMinutes: 60,
-        globalLimit: config.budgetCredits,
+        globalLimit: GNANI_HARD_CEILING_CREDITS,
         globalWindowMinutes: null,
         maxInFlight: 1,
       },

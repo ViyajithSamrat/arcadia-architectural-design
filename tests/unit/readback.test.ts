@@ -415,12 +415,12 @@ describe("POST /api/projects/[id]/readback: refusals, before any call", () => {
     noCall();
   });
 
-  it("makes no call when the estimate exceeds the per-request maximum", async () => {
+  it("has no ARCADIA per-request credit maximum: the old setting no longer refuses a read-back", async () => {
     setEnv({ ...TTS_ENV, GNANI_MAX_CREDITS_PER_REQUEST: "1" });
     const res = await POST(request(), ctx());
-    expect(res.status).toBe(422);
-    expect((await code(res)).code).toBe("LIMIT");
-    noCall();
+    expect(res.status).toBe(200);
+    expect(calls).toHaveLength(1);
+    expect(reservations()).toHaveLength(1);
   });
 
   it("makes no call when the budget guard refuses or is unreachable", async () => {

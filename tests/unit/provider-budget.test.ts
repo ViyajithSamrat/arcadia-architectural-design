@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { finishUsage, planGnaniCall, planOpenRouterBrief, refusalMessage, reserveUsage, withUsage, type UsagePlan } from "@/lib/providers/budget";
+import { AI_UNMETERED_LIMIT, finishUsage, planGnaniCall, planOpenRouterBrief, refusalMessage, reserveUsage, withUsage, type UsagePlan } from "@/lib/providers/budget";
 import { getGnaniReadiness, getOpenRouterConfig, type GnaniConfig } from "@/lib/providers/config";
 import { FakeDb } from "./support/fake-supabase";
 
@@ -36,25 +36,25 @@ function ledger() {
 const finished = (db: FakeDb) => db.rpcCalls.filter((c) => c.name === "ai_usage_finish").map((c) => c.args);
 
 describe("planOpenRouterBrief", () => {
-  it("plans one request against the customer's hourly limit and the 24-hour daily cap", () => {
-    const config = getOpenRouterConfig({ OPENROUTER_API_KEY: "k", OPENROUTER_TEXT_MODEL: "vendor/m:free" })!;
+  it("plans one recorded request with no ARCADIA quota, whatever the old settings say", () => {
+    const config = getOpenRouterConfig({ OPENROUTER_API_KEY: "k", OPENROUTER_TEXT_MODEL: "vendor/m:free", AI_BRIEFS_PER_HOUR: "1", OPENROUTER_DAILY_REQUEST_CAP: "1" })!;
     expect(planOpenRouterBrief(config)).toEqual({
       provider: "openrouter",
       operation: "brief",
       model: "vendor/m:free",
       unit: "request",
       units: 1,
-      limits: { customerLimit: 5, customerWindowMinutes: 60, globalLimit: 40, globalWindowMinutes: 1440, maxInFlight: null },
+      limits: { customerLimit: AI_UNMETERED_LIMIT, customerWindowMinutes: 60, globalLimit: AI_UNMETERED_LIMIT, globalWindowMinutes: 1440, maxInFlight: null },
     });
   });
 });
 
 describe("planGnaniCall: conservative estimate, fail closed", () => {
-  it("estimates STT from whole seconds, rounded up, against a cumulative ceiling and one call in flight", () => {
+  it("estimates STT from whole seconds, rounded up, with no ARCADIA customer limit, the SQL ceiling and one call in flight", () => {
     const result = planGnaniCall("stt", 12.2, gnani());
     expect(result).toMatchObject({ ok: true, plan: { provider: "gnani", operation: "stt", unit: "credit", units: 26 } });
     if (result.ok) {
-      expect(result.plan.limits).toEqual({ customerLimit: 300, customerWindowMinutes: 60, globalLimit: 9999 > 5000 ? 5000 : 9999, globalWindowMinutes: null, maxInFlight: 1 });
+      expect(result.plan.limits).toEqual({ customerLimit: AI_UNMETERED_LIMIT, customerWindowMinutes: 60, globalLimit: 5000, globalWindowMinutes: null, maxInFlight: 1 });
     }
   });
 
@@ -63,9 +63,8 @@ describe("planGnaniCall: conservative estimate, fail closed", () => {
     expect(result).toMatchObject({ ok: true, plan: { operation: "tts", units: 50.5, model: "timbre-v2.5" } });
   });
 
-  it("refuses a call whose estimate exceeds the per-request maximum", () => {
-    expect(planGnaniCall("stt", 30, gnani({ GNANI_MAX_CREDITS_PER_REQUEST: "59" }))).toEqual({ ok: false, reason: "per_request" });
-    expect(planGnaniCall("stt", 30, gnani({ GNANI_MAX_CREDITS_PER_REQUEST: "60" })).ok).toBe(true);
+  it("has no per-request maximum any more: a large estimate is planned and recorded, not refused", () => {
+    expect(planGnaniCall("stt", 30, gnani({ GNANI_MAX_CREDITS_PER_REQUEST: "1" })).ok).toBe(true);
   });
 
   it("refuses an unmeasurable call (zero or invalid amount)", () => {
@@ -74,7 +73,7 @@ describe("planGnaniCall: conservative estimate, fail closed", () => {
     expect(planGnaniCall("stt", -3, gnani())).toEqual({ ok: false, reason: "unmeasurable" });
   });
 
-  it("can never plan a ceiling above 5,000 credits", () => {
+  it("ignores the configured Gnani budget and plans exactly the 5,000-credit ceiling the database enforces", () => {
     const result = planGnaniCall("stt", 1, gnani({ GNANI_BUDGET_CREDITS: "1000000" }));
     expect(result.ok && result.plan.limits.globalLimit).toBe(5000);
   });

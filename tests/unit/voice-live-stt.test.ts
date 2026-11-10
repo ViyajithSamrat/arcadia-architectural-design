@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { AI_UNMETERED_LIMIT } from "@/lib/providers/budget";
 import { MOCK_TRANSCRIPT_PREFIX } from "@/lib/providers/mock-speech";
 import { encodeWav } from "@/lib/voice/wav-encode";
 import { FakeDb } from "./support/fake-supabase";
@@ -120,7 +121,7 @@ describe("live transcription: the documented call, once, through the budget guar
   it("reserves credits from the measured duration BEFORE the call and records the outcome after", async () => {
     await POST(await multipart(good()), ctx());
     expect(reservations()).toHaveLength(1);
-    expect(reservations()[0].args).toMatchObject({ p_provider: "gnani", p_operation: "stt", p_unit: "credit", p_units: 2, p_customer_id: ME, p_project_id: PROJECT, p_max_in_flight: 1, p_global_limit: 1000, p_global_window_minutes: null });
+    expect(reservations()[0].args).toMatchObject({ p_provider: "gnani", p_operation: "stt", p_unit: "credit", p_units: 2, p_customer_id: ME, p_project_id: PROJECT, p_max_in_flight: 1, p_customer_limit: AI_UNMETERED_LIMIT, p_global_limit: 5000, p_global_window_minutes: null });
     expect(finishes()).toHaveLength(1);
     expect(finishes()[0].args).toMatchObject({ p_status: "SUCCEEDED", p_request_id: "req_abc123" });
     // the reservation happened first
@@ -278,12 +279,12 @@ describe("live transcription: refused before any call", () => {
     expect(calls).toHaveLength(0);
   });
 
-  it("makes no call when the estimated credits exceed the per-request maximum", async () => {
+  it("has no ARCADIA per-request credit maximum: the old setting no longer refuses a recording", async () => {
     setEnv({ ...LIVE_ENV, GNANI_MAX_CREDITS_PER_REQUEST: "1" }); // a 1 s recording is estimated at 2 credits
     const res = await POST(await multipart(good()), ctx());
-    expect(res.status).toBe(422);
-    expect(calls).toHaveLength(0);
-    expect(reservations()).toHaveLength(0);
+    expect(res.status).toBe(200);
+    expect(calls).toHaveLength(1);
+    expect(reservations()).toHaveLength(1);
   });
 
   it("allows only one recording at a time per user, before any credit is reserved", async () => {

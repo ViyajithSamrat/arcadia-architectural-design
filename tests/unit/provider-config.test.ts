@@ -50,13 +50,10 @@ describe("OpenRouter configuration", () => {
     expect(getOpenRouterConfig({ OPENROUTER_TEXT_MODEL: "m" })).toBeNull();
   });
 
-  it("uses the documented default base URL and sane limits", () => {
+  it("uses the documented default base URL and timeout", () => {
     expect(getOpenRouterConfig(OPENROUTER)).toMatchObject({
       baseUrl: "https://openrouter.ai/api/v1",
       model: "vendor/model:free",
-      briefsPerHour: 5,
-      translationsPerHour: 6,
-      dailyRequestCap: 40,
       timeoutMs: 30_000,
       referer: null,
       reasoningEffort: null,
@@ -77,12 +74,10 @@ describe("OpenRouter configuration", () => {
     }
   });
 
-  it("bounds the per-customer and daily limits", () => {
-    expect(getOpenRouterConfig({ ...OPENROUTER, AI_BRIEFS_PER_HOUR: "0", OPENROUTER_DAILY_REQUEST_CAP: "99999" })).toMatchObject({ briefsPerHour: 1, dailyRequestCap: 1000 });
-    expect(getOpenRouterConfig({ ...OPENROUTER, AI_BRIEFS_PER_HOUR: "x" })?.briefsPerHour).toBe(5);
-    expect(getOpenRouterConfig({ ...OPENROUTER, AI_TRANSLATIONS_PER_HOUR: "0" })?.translationsPerHour).toBe(1);
-    expect(getOpenRouterConfig({ ...OPENROUTER, AI_TRANSLATIONS_PER_HOUR: "500" })?.translationsPerHour).toBe(50);
-    expect(getOpenRouterConfig({ ...OPENROUTER, AI_BRIEFS_PER_HOUR: "3", AI_TRANSLATIONS_PER_HOUR: "10" })).toMatchObject({ briefsPerHour: 3, translationsPerHour: 10 });
+  it("carries no text quota: the old per-hour and daily settings are not read", () => {
+    const parsed = getOpenRouterConfig({ ...OPENROUTER, AI_BRIEFS_PER_HOUR: "1", AI_TRANSLATIONS_PER_HOUR: "1", OPENROUTER_DAILY_REQUEST_CAP: "1" });
+    expect(parsed).not.toBeNull();
+    for (const field of ["briefsPerHour", "translationsPerHour", "dailyRequestCap"]) expect(parsed).not.toHaveProperty(field);
   });
 });
 

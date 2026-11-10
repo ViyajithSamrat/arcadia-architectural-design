@@ -90,6 +90,18 @@ describe("ai_usage translation allowance (migration 13)", () => {
     await expectError(translate(b), /provider usage ceiling reached/);
   });
 
+  it("accepts the application's unmetered limit for text: heavy past use never refuses, and every request is still recorded", async () => {
+    await wipe();
+    const unmetered = 1_000_000_000;
+    // 60 briefs and translations already on the ledger inside the hour and the day: the old limits (3 and 6 an hour, 5 a day) would refuse.
+    for (let i = 0; i < 30; i += 1) await reserve(a, { operation: "brief", unit: "request", customerLimit: unmetered, globalLimit: unmetered });
+    for (let i = 0; i < 30; i += 1) await reserve(a, { operation: "translate", unit: "request", customerLimit: unmetered, globalLimit: unmetered });
+    expect(await rows()).toHaveLength(60);
+    // The Gnani cumulative ceiling is still clamped to 5,000 credits inside the function, whatever the caller sends.
+    await expectError(reserve(a, { provider: "gnani", operation: "stt", unit: "credit", units: 5001, customerLimit: unmetered, globalLimit: 5000 }), /provider usage ceiling reached/);
+    await expect(reserve(a, { provider: "gnani", operation: "stt", unit: "credit", units: 40, customerLimit: unmetered, globalLimit: 5000 })).resolves.toHaveLength(1);
+  });
+
   it("leaves Gnani's shared credit allowance (STT plus TTS) and images unchanged", async () => {
     await wipe();
     await reserve(a, { provider: "gnani", operation: "stt", unit: "credit", units: 2, customerLimit: 3, globalLimit: 100 });

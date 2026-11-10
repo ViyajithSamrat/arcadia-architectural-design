@@ -44,12 +44,6 @@ export type OpenRouterConfig = {
   referer: string | null;
   title: string | null;
   timeoutMs: number;
-  /** Most briefs one customer may create per hour. */
-  briefsPerHour: number;
-  /** Most transcript translations one customer may request per hour, counted apart from briefs. */
-  translationsPerHour: number;
-  /** Most OpenRouter requests the whole app may make per 24 hours (free models allow 50 without purchased credits). */
-  dailyRequestCap: number;
   /**
    * OpenRouter's unified `reasoning.effort`, sent only when OPENROUTER_TEXT_REASONING_EFFORT is set.
    * "none" switches thinking off on models that allow it (google/gemini-3.1-flash-lite reports
@@ -88,9 +82,6 @@ export function getOpenRouterConfig(env: RawEnv = process.env): OpenRouterConfig
     referer: isSet(env, "OPENROUTER_HTTP_REFERER") ? String(env.OPENROUTER_HTTP_REFERER).trim() : null,
     title: isSet(env, "OPENROUTER_APP_TITLE") ? String(env.OPENROUTER_APP_TITLE).trim().slice(0, 100) : null,
     timeoutMs: getProviderTimeoutMs(env),
-    briefsPerHour: whole(env, "AI_BRIEFS_PER_HOUR", 5, 1, 50),
-    translationsPerHour: whole(env, "AI_TRANSLATIONS_PER_HOUR", 6, 1, 50),
-    dailyRequestCap: whole(env, "OPENROUTER_DAILY_REQUEST_CAP", 40, 1, 1000),
     reasoningEffort: effort as OpenRouterConfig["reasoningEffort"],
   };
 }

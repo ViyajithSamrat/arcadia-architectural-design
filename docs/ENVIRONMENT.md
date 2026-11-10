@@ -50,9 +50,7 @@ A secret key in a public variable, or a publishable key in a secret variable, is
 | `OPENROUTER_IMAGES_PER_HOUR`, `OPENROUTER_IMAGES_PER_DAY` | | No longer read (2026-11-10): image generation has no ARCADIA quota; every request is still recorded in the usage ledger. |
 | `OPENROUTER_IMAGE_REFERENCES` | | `true` sends up to three customer reference photos to the image service; anything else never does. |
 | `OPENROUTER_HTTP_REFERER`, `OPENROUTER_APP_TITLE` | | Optional attribution headers. |
-| `AI_BRIEFS_PER_HOUR` | | Per-customer briefs per hour (default 5, 1 to 50). |
-| `AI_TRANSLATIONS_PER_HOUR` | | Per-customer transcript translations per hour, counted apart from briefs (default 6, 1 to 50). Needs migration 13. |
-| `OPENROUTER_DAILY_REQUEST_CAP` | | All-customer text requests per day. |
+| `AI_BRIEFS_PER_HOUR`, `AI_TRANSLATIONS_PER_HOUR`, `OPENROUTER_DAILY_REQUEST_CAP` | | No longer read (2026-11-10): ARCADIA sets no AI usage quota for briefs, translations or images; every request is still recorded in the usage ledger. |
 | `PROVIDER_TIMEOUT_MS` | | Provider call timeout. |
 
 ## Gnani voice (server only)

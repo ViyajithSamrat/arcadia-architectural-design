@@ -141,11 +141,7 @@ export async function transcribeForProject(supabase: Client, userId: string, inp
   // Live. Reached only when the route supplied the provider and the ledger client.
   if (!deps.live || option.sourceLanguage === null) return fail(503, "VOICE_UNAVAILABLE", VOICE_UNAVAILABLE_MESSAGE);
   const planned = planGnaniCall("stt", seconds, mode.config);
-  if (!planned.ok) {
-    return planned.reason === "per_request"
-      ? fail(422, "LIMIT", "This recording is too long to process. Try a shorter one.")
-      : fail(503, "VOICE_UNAVAILABLE", VOICE_UNAVAILABLE_MESSAGE);
-  }
+  if (!planned.ok) return fail(503, "VOICE_UNAVAILABLE", VOICE_UNAVAILABLE_MESSAGE);
   const { provider, service } = deps.live;
   const language = option.sourceLanguage;
   try {

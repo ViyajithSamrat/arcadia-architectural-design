@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { BRIEF_MAX_TEXT, BriefProviderUnavailableError, getBriefProvider, parseBrief, type BriefInput } from "@/lib/journeys/brief";
 import { createBrief } from "@/lib/journeys/service";
 import { validateRequirements } from "@/lib/journeys/validation";
+import { AI_UNMETERED_LIMIT } from "@/lib/providers/budget";
 import { getOpenRouterConfig } from "@/lib/providers/config";
 import { ProviderError } from "@/lib/providers/interfaces";
 import {
@@ -321,12 +322,25 @@ describe("createBrief with the live provider and the budget guard", () => {
   it("reserves usage, calls the provider once, stores the validated brief and records SUCCEEDED", async () => {
     const { provider, calls } = live(() => completion(GOOD_DRAFT));
     expect(await run(provider)).toEqual({ ok: true });
-    expect(serviceDb.rpcCalls[0]).toMatchObject({ name: "ai_usage_reserve", args: { p_customer_id: ME, p_project_id: PROJECT, p_provider: "openrouter", p_operation: "brief", p_units: 1, p_customer_limit: 5, p_global_limit: 40, p_global_window_minutes: 1440 } });
+    expect(serviceDb.rpcCalls[0]).toMatchObject({ name: "ai_usage_reserve", args: { p_customer_id: ME, p_project_id: PROJECT, p_provider: "openrouter", p_operation: "brief", p_units: 1, p_customer_limit: AI_UNMETERED_LIMIT, p_global_limit: AI_UNMETERED_LIMIT, p_global_window_minutes: 1440 } });
     expect(calls).toHaveLength(1);
     expect(status()).toBe("BRIEF_REVIEW");
     const stored = userDb.rows("projects")[0].english_brief_json as { meta: { provider: string } };
     expect(stored.meta.provider).toBe("openrouter");
     expect(finished()).toEqual([{ p_id: "usage-1", p_status: "SUCCEEDED", p_units_reported: 1, p_request_id: "gen-123", p_model: "vendor/model:free" }]);
+  });
+
+  it("is not stopped by an exhausted ARCADIA text budget: 500 requests already on the ledger no longer refuse a brief", async () => {
+    const alreadyUsed = 500; // far above the old daily cap (40) and hourly allowance (5)
+    serviceDb.rpcHandlers.ai_usage_reserve = (args) => {
+      if (alreadyUsed + Number(args.p_units) > Number(args.p_customer_limit)) return { error: { code: "AI001", message: "x" } };
+      if (alreadyUsed + Number(args.p_units) > Number(args.p_global_limit)) return { error: { code: "AI002", message: "x" } };
+      return { data: "usage-1" };
+    };
+    const { provider, calls } = live(() => completion(GOOD_DRAFT));
+    expect(await run(provider)).toEqual({ ok: true });
+    expect(calls).toHaveLength(1);
+    expect(status()).toBe("BRIEF_REVIEW");
   });
 
   it.each([

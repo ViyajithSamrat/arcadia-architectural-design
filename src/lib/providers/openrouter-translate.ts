@@ -15,8 +15,8 @@ import { logProviderCall } from "./log";
  * shown to the customer as an editable suggestion. It can set nothing else.
  *
  * Metering: a translation is one OpenRouter text request, reserved as the ledger operation
- * "translate" (migration 20261101000200). It has its own per-customer hourly allowance
- * (AI_TRANSLATIONS_PER_HOUR) and shares the app-wide daily cap with briefs.
+ * "translate" (migration 20261101000200). It is recorded, but has no ARCADIA quota (see
+ * AI_UNMETERED_LIMIT in budget.ts).
  */
 
 export const TRANSLATE_PROMPT_VERSION = "translate-or-1";

@@ -4,7 +4,7 @@ import { getImageGenerationMode, getImageProvider } from "@/lib/generation/provi
 import { startGeneration } from "@/lib/generation/service";
 import { viewsFor } from "@/lib/generation/prompt";
 import { mockBriefProvider } from "@/lib/journeys/brief";
-import { IMAGES_UNMETERED_LIMIT } from "@/lib/providers/budget";
+import { AI_UNMETERED_LIMIT } from "@/lib/providers/budget";
 import { getOpenRouterImageConfig, type OpenRouterImageConfig } from "@/lib/providers/config";
 import { ImageProviderUnavailableError, type ImageGenerationRequest } from "@/lib/providers/images";
 import { ProviderError } from "@/lib/providers/interfaces";
@@ -202,7 +202,7 @@ describe("the request the adapter sends", () => {
 
   it("sizes its usage reservation to the images the request asks for, in the image unit", () => {
     const p = provider(fakeFetch());
-    expect(p.planUsage?.(request(viewsFor("EMPTY_PLOT")))).toMatchObject({ provider: "openrouter", operation: "image", unit: "image", units: 2, model: "bytedance-seed/seedream-4.5", limits: { customerLimit: IMAGES_UNMETERED_LIMIT, customerWindowMinutes: 60, globalLimit: IMAGES_UNMETERED_LIMIT, globalWindowMinutes: 1440, maxInFlight: 1 } });
+    expect(p.planUsage?.(request(viewsFor("EMPTY_PLOT")))).toMatchObject({ provider: "openrouter", operation: "image", unit: "image", units: 2, model: "bytedance-seed/seedream-4.5", limits: { customerLimit: AI_UNMETERED_LIMIT, customerWindowMinutes: 60, globalLimit: AI_UNMETERED_LIMIT, globalWindowMinutes: 1440, maxInFlight: 1 } });
     expect(p.planUsage?.(request(viewsFor("INTERIOR"))).units).toBe(1);
   });
 });
@@ -450,7 +450,7 @@ describe("startGeneration with the live OpenRouter adapter", () => {
     expect(result).toMatchObject({ ok: true, mock: false });
     expect(f.calls).toHaveLength(2);
     const reserve = db.rpcCalls.find((c) => c.name === "ai_usage_reserve");
-    expect(reserve?.args).toMatchObject({ p_customer_limit: IMAGES_UNMETERED_LIMIT, p_global_limit: IMAGES_UNMETERED_LIMIT, p_max_in_flight: 1 });
+    expect(reserve?.args).toMatchObject({ p_customer_limit: AI_UNMETERED_LIMIT, p_global_limit: AI_UNMETERED_LIMIT, p_max_in_flight: 1 });
     // the request is still recorded and finished in the ledger
     expect(db.rpcCalls.filter((c) => c.name.startsWith("ai_usage_")).map((c) => c.name)).toEqual(["ai_usage_reserve", "ai_usage_finish"]);
   });

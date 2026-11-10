@@ -106,6 +106,8 @@ export const envSchema = z.object({
   GNANI_TTS_MAX_CHARS: optionalText,
   GNANI_CREDITS_PER_STT_SECOND: optionalText,
   GNANI_CREDITS_PER_TTS_CHAR: optionalText,
+  // The three limits below are still required to be set (readiness) but are no longer enforced; only
+  // GNANI_CREDITS_PER_* matter, as the estimate recorded in the ledger. The 5,000-credit ceiling in SQL remains.
   GNANI_MAX_CREDITS_PER_REQUEST: optionalText,
   GNANI_CUSTOMER_CREDITS_PER_HOUR: optionalText,
   GNANI_BUDGET_CREDITS: optionalText,
@@ -114,8 +116,10 @@ export const envSchema = z.object({
   TRANSLATION_MODE: optionalText,
   VOICE_TRANSCRIPT_SECRET: z.preprocess(blankToUndefined, z.string().trim().min(32, "Use at least 32 characters.").optional()),
 
-  // AI request limits (Phase 5)
+  // Provider timeout (Phase 5)
   PROVIDER_TIMEOUT_MS: optionalText,
+  // No longer read: ARCADIA sets no AI usage quota since 2026-11-10 (AI_UNMETERED_LIMIT in
+  // src/lib/providers/budget.ts). Accepted so an environment that still sets them keeps validating.
   AI_BRIEFS_PER_HOUR: optionalText,
   AI_TRANSLATIONS_PER_HOUR: optionalText,
   // OpenRouter reasoning effort for the brief and translation: "none", "minimal" or "low"; empty = model default.

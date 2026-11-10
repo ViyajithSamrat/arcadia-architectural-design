@@ -85,11 +85,7 @@ export async function synthesizeReadback(supabase: Client, userId: string, input
   if (spoken.text.length === 0) return fail(409, "NO_BRIEF", "There is no summary to read aloud.");
 
   const planned = planGnaniCall("tts", spoken.text.length, config);
-  if (!planned.ok) {
-    return planned.reason === "per_request"
-      ? fail(422, "LIMIT", "This summary is too long to read aloud. It stays on screen as text.")
-      : fail(503, "READBACK_UNAVAILABLE", READBACK_UNAVAILABLE_MESSAGE);
-  }
+  if (!planned.ok) return fail(503, "READBACK_UNAVAILABLE", READBACK_UNAVAILABLE_MESSAGE);
 
   let service: Client;
   try {

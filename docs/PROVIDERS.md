@@ -91,7 +91,7 @@ What the model is trusted with: the wording of the brief only. The server compos
 
 `ai_usage` (migration `20261018000200_ai_usage.sql`, revised after a SQL audit and **applied to the LOCAL Supabase database only**) records every provider call before it is made. `ai_usage_reserve` checks the per-customer limit, the provider-wide ceiling (clamped to 5,000 credits in SQL for Gnani) and the in-flight cap in one serialized transaction; `ai_usage_finish` records the outcome. `audit_events` was rejected as the ledger: it is append-only, admin-read-only and tied to workflow events. Not verified: hosted Supabase, a hosted connection pooler, and the rollback on real PostgreSQL (in-memory only).
 
-OpenRouter limits (all environment-tunable, bounded in code): `AI_BRIEFS_PER_HOUR` (default 5 per customer), `AI_TRANSLATIONS_PER_HOUR` (default 6 per customer, its own allowance since migration 13: a translation is the ledger operation `translate` and no longer uses up the brief limit), `OPENROUTER_DAILY_REQUEST_CAP` (default 40 across the app, below the free tier's 50; briefs and translations share it).
+OpenRouter limits: **none imposed by ARCADIA since 2026-11-10** (owner decision for the live demo). `AI_BRIEFS_PER_HOUR`, `AI_TRANSLATIONS_PER_HOUR`, `OPENROUTER_DAILY_REQUEST_CAP` and the image settings `OPENROUTER_IMAGES_PER_HOUR` / `_PER_DAY` are no longer read. Briefs, translations (ledger operation `translate`, migration 13) and images are still recorded in the usage ledger, and OpenRouter's own balance and key limits are the real limits. Gnani: only the SQL ceiling of 5,000 credits and one call in flight remain.
 
 ## Image generation (Phase 6A: labelled MOCK only)
 

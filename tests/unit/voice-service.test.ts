@@ -202,11 +202,11 @@ describe("the live path, with injected fakes only (for the future, unreachable f
     expect(mock.calls).toHaveLength(0);
   });
 
-  it("refuses a recording whose estimate exceeds the per-request maximum, before reserving", async () => {
+  it("has no per-request credit maximum: the old setting no longer refuses a recording, which is reserved and recorded", async () => {
     const service = ledger();
     const mode = getVoiceMode({ ...LIVE_ENV, GNANI_MAX_CREDITS_PER_REQUEST: "5" });
-    expect(await run(mode, { audio: wavBlob(3) }, { live: { provider: live().provider, service: service.client() } })).toMatchObject({ ok: false, code: "LIMIT" });
-    expect(service.rpcCalls).toHaveLength(0);
+    expect(await run(mode, { audio: wavBlob(3) }, { live: { provider: live().provider, service: service.client() } })).toMatchObject({ ok: true });
+    expect(service.rpcCalls.map((c) => c.name)).toEqual(["ai_usage_reserve", "ai_usage_finish"]);
   });
 });
 

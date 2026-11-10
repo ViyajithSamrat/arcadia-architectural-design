@@ -796,7 +796,7 @@ This evidence is **not yet recorded in the repository's own documents** (`README
 
 - **Text/brief adapter:** `createOpenRouterBriefProvider` (`src/lib/providers/openrouter.ts` ≈L110) → `POST {OPENROUTER_BASE_URL}/chat/completions` with `Authorization: Bearer <key>`, a strict `json_schema` response format and `provider.require_parameters: true`; one request, no retry; the model supplies only the wording, the server composes the rest; output is rejected if it adds numbers not in the customer's data or claims "construction-ready" etc.
 - **Image adapter:** `createOpenRouterImageProvider` (`openrouter-image.ts` ＋) → `POST {base}/images` (one image per view, sequential, one retry only for 429/502/503, never after a timeout); output validated by `validateImageOutputs`.
-- **Configuration required** (names): `PROVIDER_MODE=live`, `OPENROUTER_API_KEY`, `OPENROUTER_TEXT_MODEL` (text), `OPENROUTER_IMAGE_MODEL` (images), optional tuning (`OPENROUTER_IMAGE_RESOLUTION`, `…_ASPECT_RATIO`, `…_FORMAT`, `…_TIMEOUT_MS`, `AI_BRIEFS_PER_HOUR`, `OPENROUTER_DAILY_REQUEST_CAP`). Host is locked to `openrouter.ai`.
+- **Configuration required** (names): `PROVIDER_MODE=live`, `OPENROUTER_API_KEY`, `OPENROUTER_TEXT_MODEL` (text), `OPENROUTER_IMAGE_MODEL` (images), optional tuning (`OPENROUTER_IMAGE_RESOLUTION`, `…_ASPECT_RATIO`, `…_FORMAT`, `…_TIMEOUT_MS`; no usage quota: the old `AI_BRIEFS_PER_HOUR` and `OPENROUTER_DAILY_REQUEST_CAP` are no longer read). Host is locked to `openrouter.ai`.
 - **Current state:** `PROVIDER_MODE` is unset (mock). A key variable is present locally but unused; no text or image model is configured; the ledger has **zero** OpenRouter rows. Both adapters are tested only with a fake network. Note that `PROVIDER_MODE=live` is *global*: with no image model set, admin "start generation" reports unavailable (it never falls back to the mock).
 - **Context from the development session (not a repository fact):** on 2026-10-24 OpenRouter's public model catalogue listed free text models with structured-output support and no free image-output models.
 
@@ -1253,7 +1253,7 @@ Docker Desktop running → local Supabase containers up → `.env.local` present
 | `OPENROUTER_API_KEY` | **Secret.** OpenRouter key | Yes |
 | `OPENROUTER_TEXT_MODEL`, `OPENROUTER_IMAGE_MODEL`, `OPENROUTER_BASE_URL`, `OPENROUTER_HTTP_REFERER`, `OPENROUTER_APP_TITLE` | Model choices and request attribution | Yes |
 | `OPENROUTER_IMAGE_RESOLUTION`, `…_ASPECT_RATIO`, `…_FORMAT`, `…_TIMEOUT_MS`, `…_IMAGE_REFERENCES`, `MAX_GENERATION_IMAGES` | Image settings (no ARCADIA image quota since 2026-11-10; `…_IMAGES_PER_HOUR/DAY` are no longer read) | Yes |
-| `AI_BRIEFS_PER_HOUR`, `OPENROUTER_DAILY_REQUEST_CAP` | OpenRouter text request limits | Yes |
+| `AI_BRIEFS_PER_HOUR`, `OPENROUTER_DAILY_REQUEST_CAP` | No longer read (no ARCADIA text quota since 2026-11-10) | Yes |
 | `GNANI_API_KEY` | **Secret.** Gnani key | Yes |
 | `GNANI_VOICE_ENABLED` | Master switch: empty/`false` off, `mock`, `true` live | Yes |
 | `GNANI_BASE_URL`, `GNANI_STT_ENDPOINT`, `GNANI_TTS_ENDPOINT`, `GNANI_TTS_MODEL`, `GNANI_TTS_VOICE`, `GNANI_LANGUAGES` | Where and how to call Gnani | Yes |
