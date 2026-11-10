@@ -12,7 +12,7 @@ export function SiteFooter() {
           </p>
         </div>
         <div className="flex flex-wrap items-end justify-between gap-6 border-t border-white/15 pt-6 print:hidden">
-          <span className="font-display text-2xl font-semibold tracking-[0.18em] text-white">GNANI</span>
+          <span className="font-display text-2xl font-semibold tracking-[0.18em] text-white">ARCADIA</span>
           <p className="print:hidden"><Link href="/status" className="inline-flex min-h-11 items-center underline-offset-4 transition-colors hover:text-white hover:underline">System status</Link></p>
         </div>
       </div>

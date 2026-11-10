@@ -15,7 +15,7 @@ import { JOURNEY_STEPS } from "@/lib/journeys/steps";
 
 type Props = { params: Promise<{ type: string }> };
 
-/** A reference photograph per journey for the page banner. Not a GNANI project; credited in the caption. */
+/** A reference photograph per journey for the page banner. Not an ARCADIA project; credited in the caption. */
 const BANNERS: Readonly<Record<ProjectType, { photo: Photo; kind: string }>> = {
   EMPTY_PLOT: { photo: PHOTOS.vacantPlot, kind: "New build" },
   INTERIOR: { photo: PHOTOS.livingRoom, kind: "Interior" },

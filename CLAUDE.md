@@ -1,4 +1,4 @@
-# CLAUDE.md --- Architectural AI Design Web Prototype
+# CLAUDE.md --- ARCADIA Architectural Design Web Prototype (formerly GNANI / Architectural AI Design)
 
 > **Active instruction file.** This root `CLAUDE.md` is the active
 > instruction file for this repository. (An older copy that lived in
@@ -18,7 +18,7 @@ specifications.
 
 ## 1. Project Summary
 
-**Project name:** Architectural AI Design Web Prototype
+**Project name:** ARCADIA Architectural Design Web Prototype (renamed from GNANI / Architectural AI Design Web Prototype on 2026-11-10; the provider Gnani, `GNANI_*` settings and dated history keep their names)
 
 **Purpose:** Build a web prototype that lets a customer describe an
 architectural, interior-design, or landscaping requirement using text or

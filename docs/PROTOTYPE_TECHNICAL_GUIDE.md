@@ -1,4 +1,4 @@
-# Gnani Architectural AI Design Platform — Prototype Technical Guide
+# ARCADIA Architectural Design — Prototype Technical Guide
 
 > **Purpose.** A handover and presentation guide for the prototype in this repository. It tells you what exists, where the code is, how it works, what has actually been tested, and what is still mocked or unfinished.
 >
@@ -54,7 +54,7 @@
 
 ### A.1 What it is
 
-The Gnani Architectural AI Design Platform is a **web prototype** (a Next.js application backed by Supabase) in which a customer describes something they want designed — a **new building on an empty plot**, an **interior refresh**, or a **garden/landscape** — and the system:
+ARCADIA Architectural Design is a **web prototype** (a Next.js application backed by Supabase) in which a customer describes something they want designed — a **new building on an empty plot**, an **interior refresh**, or a **garden/landscape** — and the system:
 
 1. collects the requirements through guided, validated forms (typing, or optionally speaking);
 2. turns the answers into a structured **English brief** that the customer reviews and approves;

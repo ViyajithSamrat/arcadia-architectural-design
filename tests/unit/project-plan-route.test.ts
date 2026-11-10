@@ -42,7 +42,7 @@ describe("GET /api/projects/[id]/plan", () => {
     const res = await get("?format=dxf");
     expect(res.status).toBe(200);
     expect(res.headers.get("content-type")).toBe("application/dxf");
-    expect(res.headers.get("content-disposition")).toBe('attachment; filename="gnani-layout-333333.dxf"');
+    expect(res.headers.get("content-disposition")).toBe('attachment; filename="arcadia-layout-333333.dxf"');
     expect(res.headers.get("cache-control")).toBe("private, no-store");
     expect(res.headers.get("x-content-type-options")).toBe("nosniff");
     const body = await res.text();
@@ -59,7 +59,7 @@ describe("GET /api/projects/[id]/plan", () => {
     const svg = await get("?format=svg&floor=2");
     expect(svg.status).toBe(200);
     expect(svg.headers.get("content-type")).toBe("image/svg+xml; charset=utf-8");
-    expect(svg.headers.get("content-disposition")).toBe('attachment; filename="gnani-layout-333333-floor-2.svg"');
+    expect(svg.headers.get("content-disposition")).toBe('attachment; filename="arcadia-layout-333333-floor-2.svg"');
     const text = await svg.text();
     expect(text.startsWith("<svg")).toBe(true);
     expect(text).toContain("First floor");

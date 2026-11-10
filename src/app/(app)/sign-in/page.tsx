@@ -60,7 +60,7 @@ async function SignInContent({ searchParams }: Props) {
     <Frame>
       <div className="space-y-8">
         <header className="space-y-4">
-          <p className="eyebrow">Welcome to GNANI</p>
+          <p className="eyebrow">Welcome to ARCADIA</p>
           <h1 className="font-display">Your projects, in one place</h1>
           <p className="text-muted">
             Sign in or create a free account to save your project. You return to {returnTo ? "the page you were on" : "My projects"}{" "}
@@ -93,7 +93,7 @@ function Frame({ children }: { children: ReactNode }) {
         <Image src={photo.src} alt={photo.alt} fill sizes="(max-width: 1024px) 0px, 50vw" className="-z-20 object-cover" />
         <span aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-t from-[rgb(15_28_24/0.9)] via-[rgb(15_28_24/0.35)] to-[rgb(15_28_24/0.15)]" />
         <figcaption className="flex h-full flex-col justify-between p-10">
-          <span className="font-display text-2xl font-semibold tracking-[0.18em]">GNANI</span>
+          <span className="font-display text-2xl font-semibold tracking-[0.18em]">ARCADIA</span>
           <span className="space-y-4">
             <span className="block font-display text-5xl font-medium leading-[1.02]">
               Every project begins <em className="italic text-[#d9d2c3]">in your own words.</em>

@@ -11,7 +11,7 @@ import {
 } from "@/lib/security/headers";
 
 const HOSTED_SUPABASE = "https://abcdefghij.supabase.co";
-const PRODUCTION = { NODE_ENV: "production", NEXT_PUBLIC_SUPABASE_URL: `${HOSTED_SUPABASE}/`, NEXT_PUBLIC_APP_URL: "https://gnani.vercel.app" };
+const PRODUCTION = { NODE_ENV: "production", NEXT_PUBLIC_SUPABASE_URL: `${HOSTED_SUPABASE}/`, NEXT_PUBLIC_APP_URL: "https://arcadia.vercel.app" };
 
 function byKey(headers: SecurityHeader[]): Record<string, string> {
   return Object.fromEntries(headers.map((h) => [h.key, h.value]));
@@ -172,11 +172,11 @@ describe("Supabase image origin", () => {
 });
 
 describe("HTTPS upgrade", () => {
-  it.each(["https://gnani.vercel.app", "https://gnani.vercel.app/some/path", "HTTPS://GNANI.VERCEL.APP"])("is on for %j", (url) => {
+  it.each(["https://arcadia.vercel.app", "https://arcadia.vercel.app/some/path", "HTTPS://ARCADIA.VERCEL.APP"])("is on for %j", (url) => {
     expect(parse(buildContentSecurityPolicy({ NEXT_PUBLIC_APP_URL: url })).has("upgrade-insecure-requests")).toBe(true);
   });
 
-  it.each([undefined, "", "http://localhost:3000", "http://127.0.0.1:3000", "not a url", "javascript:alert(1)", "https://user:pass@gnani.vercel.app"])(
+  it.each([undefined, "", "http://localhost:3000", "http://127.0.0.1:3000", "not a url", "javascript:alert(1)", "https://user:pass@arcadia.vercel.app"])(
     "is off for %j, so a production build served over plain http still works",
     (url) => {
       expect(buildContentSecurityPolicy({ NEXT_PUBLIC_APP_URL: url })).not.toContain("upgrade-insecure-requests");
@@ -220,7 +220,7 @@ describe("next.config.ts wiring", () => {
   it("applies one rule built from the current environment", async () => {
     vi.stubEnv("NODE_ENV", "production");
     vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", HOSTED_SUPABASE);
-    vi.stubEnv("NEXT_PUBLIC_APP_URL", "https://gnani.vercel.app");
+    vi.stubEnv("NEXT_PUBLIC_APP_URL", "https://arcadia.vercel.app");
     const rules = (await nextConfig.headers?.()) ?? [];
     expect(rules).toHaveLength(1);
     const [rule] = rules;

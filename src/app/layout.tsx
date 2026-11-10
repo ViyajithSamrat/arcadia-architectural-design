@@ -18,13 +18,43 @@ const sans = Manrope({
   display: "swap",
 });
 
+const DESCRIPTION =
+  "Describe a new build, an interior refresh or a garden. Get a clear English brief and an itemized quote; concept designs follow after payment is checked by a person. Concept ideas, not construction drawings.";
+
+/**
+ * Social-card image addresses must be absolute. They resolve against the deployment's own address, the
+ * same setting the sign-in origin policy uses, so no URL is written into the code.
+ */
+function metadataBase(): URL | undefined {
+  const raw = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  if (!raw) return undefined;
+  try {
+    return new URL(raw);
+  } catch {
+    return undefined;
+  }
+}
+
 export const metadata: Metadata = {
+  metadataBase: metadataBase(),
+  applicationName: "ARCADIA Architectural Design",
   title: {
-    default: "GNANI · Architectural AI Design",
-    template: "%s | GNANI Architectural AI",
+    default: "ARCADIA · Architectural Design",
+    template: "%s | ARCADIA Architectural Design",
   },
-  description:
-    "Describe a new build, an interior refresh or a garden. Get a clear English brief and an itemized quote; concept designs follow after payment is checked by a person. Concept ideas, not construction drawings.",
+  description: DESCRIPTION,
+  // The card image is src/app/opengraph-image.png (and twitter-image.png), picked up by Next.
+  openGraph: {
+    type: "website",
+    siteName: "ARCADIA Architectural Design",
+    title: "ARCADIA · Architecture, reimagined.",
+    description: DESCRIPTION,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "ARCADIA · Architecture, reimagined.",
+    description: DESCRIPTION,
+  },
 };
 
 export const viewport: Viewport = {

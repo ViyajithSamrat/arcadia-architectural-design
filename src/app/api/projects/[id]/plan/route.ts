@@ -51,7 +51,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   const layout = layoutFromRequirements(project.project_type, project.requirements_json);
   if (!layout) return problem("NOT_AVAILABLE", "A 2D layout drawing is not available for this project.", 404);
 
-  const stem = `gnani-layout-${id.slice(0, 6).toLowerCase()}`;
+  const stem = `arcadia-layout-${id.slice(0, 6).toLowerCase()}`;
 
   if (format === "svg") {
     const index = floorParam === null ? 0 : Number(floorParam) - 1;

@@ -103,7 +103,7 @@ async function QuoteContent({ params }: Props) {
   // Printed or saved as a PDF, the quote identifies itself (the site menu is left out of print).
   const printLine = (
     <p className="hidden text-sm text-muted print:block">
-      GNANI Architectural AI · {JOURNEYS[project.project_type].title} ·{" "}
+      ARCADIA Architectural Design · {JOURNEYS[project.project_type].title} ·{" "}
       {quote.acceptedAt ? `Accepted on ${dateFormat.format(new Date(quote.acceptedAt))}` : "Not yet accepted"}
     </p>
   );

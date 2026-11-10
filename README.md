@@ -1,6 +1,6 @@
-# GNANI — Architectural AI Design
+# ARCADIA Architectural Design
 
-GNANI turns a plain description of a building, a room or a garden into an English design brief, an itemized quote and AI-generated concept images. A customer describes what they want in text (or by voice where enabled), reviews the brief and quote, and sends evidence of an offline payment. A person verifies the payment; generation then starts automatically and the finished concepts appear in the customer's project.
+ARCADIA turns a plain description of a building, a room or a garden into an English design brief, an itemized quote and AI-generated concept images. A customer describes what they want in text (or by voice where enabled), reviews the brief and quote, and sends evidence of an offline payment. A person verifies the payment; generation then starts automatically and the finished concepts appear in the customer's project.
 
 The output is **conceptual**. Generated images and the layout sketch are illustrations for exploring ideas. They are not construction drawings, engineering plans, CAD/BIM deliverables or code-compliant designs, and nothing in the product says otherwise.
 

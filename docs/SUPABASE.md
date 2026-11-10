@@ -1,6 +1,6 @@
 # Supabase
 
-GNANI keeps all durable state in Supabase: PostgreSQL (with row level security and workflow triggers), Auth, and one private Storage bucket.
+ARCADIA keeps all durable state in Supabase: PostgreSQL (with row level security and workflow triggers), Auth, and one private Storage bucket.
 
 ## Migrations
 

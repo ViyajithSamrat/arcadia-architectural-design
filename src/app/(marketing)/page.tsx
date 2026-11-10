@@ -172,12 +172,12 @@ export default function Home() {
           <div aria-hidden="true" className="gn-hero__shade absolute inset-0 -z-10" />
           <div className="mx-auto w-full max-w-7xl px-5 pb-14 pt-32 sm:px-8 sm:pb-20">
             <div className="gn-hero__type max-w-5xl space-y-7">
-              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-white/75">GNANI · Architectural AI studio</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-white/75">ARCADIA · Architecture, reimagined.</p>
               <h1 id="hero-title" className="gn-hero__title font-display font-medium">
                 Architecture, <em className="font-normal italic text-[#d9d2c3]">reimagined.</em>
               </h1>
               <p className="max-w-xl text-lg leading-relaxed text-white/85 sm:text-xl">
-                Describe the home, room or garden you have in mind. GNANI turns your words into a clear brief, an itemized quote and AI concept designs, started once a person has checked your payment.
+                Describe the home, room or garden you have in mind. ARCADIA turns your words into a clear brief, an itemized quote and AI concept designs, started once a person has checked your payment.
               </p>
               <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:flex-wrap">
                 <a href="#start" className={solid}>
@@ -202,7 +202,7 @@ export default function Home() {
         </section>
 
         {/* Statement */}
-        <section aria-label="What GNANI does" className="mx-auto max-w-7xl px-5 py-24 sm:px-8 sm:py-36">
+        <section aria-label="What ARCADIA does" className="mx-auto max-w-7xl px-5 py-24 sm:px-8 sm:py-36">
           <div className="grid gap-12 lg:grid-cols-12">
             <p className="eyebrow lg:col-span-3" data-reveal>
               The studio
@@ -248,7 +248,7 @@ export default function Home() {
             ))}
           </div>
           <p className="mt-4 text-sm text-muted" data-reveal>
-            Reference photographs of the kinds of place people bring to us, from open photo collections. They are not GNANI projects; credits are at the foot of the page.
+            Reference photographs of the kinds of place people bring to us, from open photo collections. They are not ARCADIA projects; credits are at the foot of the page.
           </p>
         </section>
 
@@ -363,7 +363,7 @@ export default function Home() {
               </h2>
               <div className="space-y-5 text-lg leading-relaxed text-muted" data-reveal data-i="2">
                 <p>
-                  GNANI uses language models to turn what you say into a structured brief, and an image model to draw concepts from it. Everything that matters is decided by people: your answers, your approval, the payment check and the release of every image.
+                  ARCADIA uses language models to turn what you say into a structured brief, and an image model to draw concepts from it. Everything that matters is decided by people: your answers, your approval, the payment check and the release of every image.
                 </p>
                 <p>
                   The results are concept designs: a shared picture of what you want, to take to a qualified architect or engineer. They are not construction drawings and have not been checked against structure, safety or local rules.
@@ -419,8 +419,8 @@ export default function Home() {
         <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8">
           <div className="grid gap-12 lg:grid-cols-12">
             <div className="space-y-4 lg:col-span-4">
-              <p className="font-display text-4xl font-semibold tracking-[0.18em] text-white">GNANI</p>
-              <p className="max-w-xs text-sm leading-relaxed">Architectural AI studio. Concept designs from your words. Every payment is checked by a person.</p>
+              <p className="font-display text-4xl font-semibold tracking-[0.18em] text-white">ARCADIA</p>
+              <p className="max-w-xs text-sm leading-relaxed">Architecture, reimagined. Concept designs from your words. Every payment is checked by a person.</p>
             </div>
             <nav aria-label="Footer" className="lg:col-span-2">
               <h2 className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-white/50">Projects</h2>
@@ -457,7 +457,7 @@ export default function Home() {
             </div>
           </div>
           <div className="mt-14 flex flex-wrap items-center justify-between gap-4 border-t border-white/10 pt-6 text-xs">
-            <span>GNANI Architectural AI. Concept designs only: not construction drawings.</span>
+            <span>ARCADIA Architectural Design. Concept designs only: not construction drawings.</span>
             <a href="#top" className="inline-flex min-h-11 items-center hover:text-white">
               Back to top ↑
             </a>

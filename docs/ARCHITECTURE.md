@@ -1,6 +1,6 @@
 # Architecture
 
-This document explains how GNANI is put together and why the security-sensitive parts are built the way they are. For setup see the [README](../README.md); for hosting see [DEPLOYMENT.md](DEPLOYMENT.md).
+This document explains how ARCADIA is put together and why the security-sensitive parts are built the way they are. For setup see the [README](../README.md); for hosting see [DEPLOYMENT.md](DEPLOYMENT.md).
 
 ## Overview
 

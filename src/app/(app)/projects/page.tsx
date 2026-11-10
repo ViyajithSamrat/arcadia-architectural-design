@@ -223,7 +223,7 @@ async function ProjectList() {
               );
             })}
           </ul>
-          <p className="text-xs text-muted">Reference photographs from open collections, not GNANI projects.</p>
+          <p className="text-xs text-muted">Reference photographs from open collections, not ARCADIA projects.</p>
         </section>
       ) : (
         <>

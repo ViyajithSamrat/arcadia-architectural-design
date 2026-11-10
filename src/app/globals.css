@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /*
- * GNANI design system. One palette for the public site, the customer workspace and the
+ * ARCADIA design system. One palette for the public site, the customer workspace and the
  * administrator screens: forest green, warm limestone, sandstone, charcoal and white.
  * Fonts are self-hosted by next/font at build time (root layout), so browsers make no
  * external font requests. Text colours keep at least 4.5:1 contrast on their backgrounds.

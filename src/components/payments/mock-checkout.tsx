@@ -103,7 +103,7 @@ export function MockCheckout({ projectId, amountLabel }: { projectId: string; am
           <p className="text-sm font-bold uppercase tracking-[0.12em] text-warning-fg">{SIMULATED_PAYMENT_LABEL}</p>
           <dl className="grid grid-cols-2 gap-y-1 text-sm">
             <dt className="text-muted">Paying</dt>
-            <dd>Architectural AI Design (demo)</dd>
+            <dd>ARCADIA Architectural Design (demo)</dd>
             <dt className="text-muted">Amount</dt>
             <dd className="font-semibold">{amountLabel}</dd>
           </dl>
